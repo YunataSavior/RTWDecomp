@@ -1,0 +1,5 @@
+# Functions the linker folded together (/OPT:ICF keeps one copy of functions whose code is the same). Each line
+# is the name the copy has in symbols.txt, then the names of the functions folded into it.
+??0?$Array@H@@QAE@XZ ??0?$Array@PAVRoad@@@@QAE@XZ
+??1?$Array@H@@QAE@XZ ??1?$Array@URoadPoint@@@@QAE@XZ ??1?$Array@PAVRoad@@@@QAE@XZ
+?push_back@?$Array@H@@QAEPAHABH@Z ?push_back@?$Array@PAVRoad@@@@QAEPAPAVRoad@@ABQAV2@@Z ?push_back@?$Array@PAVLandmark@@@@QAEPAPAVLandmark@@ABQAV2@@Z

@@ -1,0 +1,1230 @@
+Sections:
+	.text       type:code align:16
+	.rdata      type:rodata align:8
+	.data       type:data align:8
+	.bss        type:bss align:8
+	.data1      type:data align:8
+
+code/main.cpp:
+	.text       start:0x00403090 end:0x00403412
+
+crt/crt0.c:
+	.text       start:0x00FC9680 end:0x00FC97D1
+
+code/romans_file.cpp:
+	.text       start:0x00413BD6 end:0x00413E79
+
+code/version_registry.cpp:
+	.text       start:0x004264CE end:0x004268EB
+
+code/climates.cpp:
+	.text       start:0x0043E20B end:0x0043EB4B
+
+code/solar_system.cpp:
+	.text       start:0x0043F99D end:0x004427D4
+
+code/win_conditions.cpp:
+	.text       start:0x00442FC4 end:0x00445334
+
+code/world.cpp:
+	.text       start:0x00446E95 end:0x00459119
+
+code/ground_tile.cpp:
+	.text       start:0x004663D5 end:0x00467C85
+
+code/world_map.cpp:
+	.text       start:0x00481BCC end:0x0048E4EC
+
+code/battle_site_marker.cpp:
+	.text       start:0x0048F29C end:0x0048F5E6
+
+code/extents_manager.cpp:
+	.text       start:0x00490EE4 end:0x00491184
+
+code/fog_of_war.cpp:
+	.text       start:0x00491A1D end:0x00495C71
+
+code/fort.cpp:
+	.text       start:0x0049946D end:0x00499892
+
+code/garrison.cpp:
+	.text       start:0x0049BA72 end:0x0049BC60
+
+code/landmark.cpp:
+	.text       start:0x0049C7CE end:0x0049D831
+
+code/port.cpp:
+	.text       start:0x0049E32B end:0x004A02AA
+
+code/resources.cpp:
+	.text       start:0x004A10D6 end:0x004A11A9
+
+code/road.cpp:
+	.text       start:0x004A1627 end:0x004A2D4F
+
+code/strategy_map.cpp:
+	.text       start:0x004A41C7 end:0x004B7114
+
+code/strategy_map_pathfinding.cpp:
+	.text       start:0x004B80D5 end:0x004BA61A
+
+code/sundry.cpp:
+	.text       start:0x004BB5D0 end:0x004BB79F
+
+code/watchtower.cpp:
+	.text       start:0x004BF2E4 end:0x004BFA04
+
+code/faction.cpp:
+	.text       start:0x004C0456 end:0x004D7629
+
+code/ai/ai_action_request_controller.cpp:
+	.text       start:0x004DED2D end:0x004E12CC
+
+code/ai/ai_analyser_region_group.cpp:
+	.text       start:0x004E8F90 end:0x004E9AA7
+
+code/ai/ai_campaign_objective.cpp:
+	.text       start:0x004EDE03 end:0x004FB2C9
+
+code/ai/ai_campaign_resource.cpp:
+	.text       start:0x004FBA36 end:0x004FBAFC
+
+code/ai/ai_faction_base.cpp:
+	.text       start:0x004FD43D end:0x004FE42A
+
+code/ai/ai_global_production_manager.cpp:
+	.text       start:0x005061E3 end:0x0050A498
+
+code/ai/ai_global_strategy_director.cpp:
+	.text       start:0x0050B0F3 end:0x0050F75D
+
+code/ai/ai_military_controller.cpp:
+	.text       start:0x00518B8E end:0x00519CAF
+
+code/ai/ai_military_director.cpp:
+	.text       start:0x0051AEC2 end:0x0051B93D
+
+code/ai/ai_movement_evaluator.cpp:
+	.text       start:0x0051F271 end:0x0051F40A
+
+code/ai/ai_named_character_controller.cpp:
+	.text       start:0x00520204 end:0x00520F68
+
+code/ai/ai_region_controller.cpp:
+	.text       start:0x005243AC end:0x00524760
+
+code/ai/ai_resource_allocation_manager.cpp:
+	.text       start:0x0052709C end:0x00527243
+
+code/ai/ai_senate_faction.cpp:
+	.text       start:0x00528B04 end:0x00534A1E
+
+code/ai/ai_subterfuge_controller.cpp:
+	.text       start:0x005352AC end:0x00545024
+
+code/senate_mission.cpp:
+	.text       start:0x00548E93 end:0x00548FA5
+
+code/sm_annex_city.cpp:
+	.text       start:0x0054A471 end:0x0054ADC0
+
+code/sm_appease.cpp:
+	.text       start:0x0054B307 end:0x0054BFCB
+
+code/sm_assassination.cpp:
+	.text       start:0x0054C512 end:0x0054D5EE
+
+code/sm_assist_faction.cpp:
+	.text       start:0x0054DB35 end:0x0054E616
+
+code/sm_attack_outlaw_faction.cpp:
+	.text       start:0x0054EB5D end:0x0054EE7C
+
+code/sm_blockade_port.cpp:
+	.text       start:0x0054F724 end:0x0054FBB7
+
+code/sm_break_alliance.cpp:
+	.text       start:0x005506AC end:0x00551050
+
+code/sm_broker_peace.cpp:
+	.text       start:0x00551618 end:0x00552012
+
+code/sm_build_army.cpp:
+	.text       start:0x00552559 end:0x005528CD
+
+code/sm_capture_rebel_city.cpp:
+	.text       start:0x005531EF end:0x005533E2
+
+code/sm_cease_hostilities.cpp:
+	.text       start:0x00553AA4 end:0x00553F40
+
+code/sm_declare_war.cpp:
+	.text       start:0x00554809 end:0x00554CB0
+
+code/sm_demand_suicide.cpp:
+	.text       start:0x005555E6 end:0x005557DE
+
+code/sm_destroy_rebel_city.cpp:
+	.text       start:0x00556071 end:0x00556264
+
+code/sm_enslave_city.cpp:
+	.text       start:0x00556977 end:0x00556B6A
+
+code/sm_exact_tribute.cpp:
+	.text       start:0x0055720C end:0x00557BCF
+
+code/sm_exterminate_city.cpp:
+	.text       start:0x005581AF end:0x005583A2
+
+code/sm_get_map_info.cpp:
+	.text       start:0x00558A59 end:0x00559425
+
+code/sm_give_back_city.cpp:
+	.text       start:0x0055996C end:0x0055A376
+
+code/sm_give_cash.cpp:
+	.text       start:0x0055A8BD end:0x0055B2B4
+
+code/sm_help_player.cpp:
+	.text       start:0x0055B7DA end:0x0055B9DD
+
+code/sm_leave_region.cpp:
+	.text       start:0x0055C5BC end:0x0055C8F7
+
+code/sm_make_alliance.cpp:
+	.text       start:0x0055D141 end:0x0055D4C3
+
+code/sm_make_trade_agreement.cpp:
+	.text       start:0x0055DD5C end:0x0055E728
+
+code/sm_occupy_city.cpp:
+	.text       start:0x0055F1C3 end:0x0055F3B6
+
+code/sm_recapture_eagle.cpp:
+	.text       start:0x0055FFFE end:0x005601F1
+
+code/sm_subjugate.cpp:
+	.text       start:0x00560916 end:0x005612E2
+
+code/sm_take_city.cpp:
+	.text       start:0x005619BF end:0x00562B1C
+
+code/assassin_actions.cpp:
+	.text       start:0x00563F91 end:0x0056416B
+
+code/character_action_details.cpp:
+	.text       start:0x00564B6C end:0x00569820
+
+code/common_actions.cpp:
+	.text       start:0x0056F5F9 end:0x00570700
+
+code/diplomat_actions.cpp:
+	.text       start:0x00570D96 end:0x00571230
+
+code/general_actions.cpp:
+	.text       start:0x00573EF5 end:0x0057554E
+
+code/character.cpp:
+	.text       start:0x0057E693 end:0x0058E173
+
+code/character_record.cpp:
+	.text       start:0x0058F1B4 end:0x00594493
+
+code/character_verified.cpp:
+	.text       start:0x00596799 end:0x00596952
+
+code/diplomatic_proposition.cpp:
+	.text       start:0x0059FD4C end:0x005A02DA
+
+code/faction_diplomacy.cpp:
+	.text       start:0x005A3F28 end:0x005A4690
+
+code/ai/ai_diplomacy_manager.cpp:
+	.text       start:0x005A7072 end:0x005A71F0
+
+code/ai/ai_diplomat_controller.cpp:
+	.text       start:0x005ACC31 end:0x005AD754
+
+code/settlement.cpp:
+	.text       start:0x005B1440 end:0x005C008A
+
+code/settlement_construction.cpp:
+	.text       start:0x005C1815 end:0x005C3592
+
+code/settlement_manager.cpp:
+	.text       start:0x005C6AB0 end:0x005C6C72
+
+code/settlement_verified.cpp:
+	.text       start:0x005D3E13 end:0x005D3FCC
+
+code/building_description.cpp:
+	.text       start:0x005DB276 end:0x005E1FF3
+
+code/building_physical.cpp:
+	.text       start:0x005E291B end:0x005EA0CE
+
+code/building_verified.cpp:
+	.text       start:0x005EF693 end:0x005EF8E2
+
+code/settlement_condition.cpp:
+	.text       start:0x005F0043 end:0x005F00E6
+
+code/legions.cpp:
+	.text       start:0x005F3C87 end:0x005F3EAB
+
+code/battle.cpp:
+	.text       start:0x005F60D1 end:0x00601892
+
+code/battle_alliance.cpp:
+	.text       start:0x0060793E end:0x006079E2
+
+code/battle_auto_resolve.cpp:
+	.text       start:0x0060ADE2 end:0x0060C78C
+
+code/battle_objectives.cpp:
+	.text       start:0x006106AF end:0x00610EDF
+
+code/unit_tree.cpp:
+	.text       start:0x0061EE38 end:0x0061FBD1
+
+code/battle_map.cpp:
+	.text       start:0x00620789 end:0x00623B13
+
+code/battle_map_areas.cpp:
+	.text       start:0x00628109 end:0x0062A87F
+
+code/battle_map_bridges.cpp:
+	.text       start:0x0062F46D end:0x00635936
+
+code/battle_map_engines.cpp:
+	.text       start:0x00638072 end:0x006384A2
+
+code/battle_map_hedgerows.cpp:
+	.text       start:0x0063A9CA end:0x0063B469
+
+code/battle_map_objects.cpp:
+	.text       start:0x00641FBE end:0x00644691
+
+code/battle_map_platform_links.cpp:
+	.text       start:0x00649EE2 end:0x0064A16E
+
+code/battle_map_wall_ai_db.cpp:
+	.text       start:0x00655138 end:0x00656180
+
+code/battle_map_walls.cpp:
+	.text       start:0x006566C8 end:0x006568B0
+
+code/ai/ai_melee_street_attack_analyser.cpp:
+	.text       start:0x0065B642 end:0x0065B9F1
+
+code/ai/ai_melee_wall_attack_analyser.cpp:
+	.text       start:0x0065C9D7 end:0x0065CB24
+
+code/ai/ai_melee_wall_defend_analyser.cpp:
+	.text       start:0x0065D9DE end:0x0065DB2B
+
+code/ai/ai_melee_attack_analyser.cpp:
+	.text       start:0x00663C93 end:0x00663F62
+
+code/ai/ai_melee_attack_brace_analyser.cpp:
+	.text       start:0x006654AA end:0x00665779
+
+code/ai/ai_melee_collect_artillery_analyser.cpp:
+	.text       start:0x00666425 end:0x00666572
+
+code/ai/ai_melee_missile_analyser.cpp:
+	.text       start:0x006689EC end:0x00668B39
+
+code/ai/ai_melee_outflank_analyser.cpp:
+	.text       start:0x0066B695 end:0x0066B7E2
+
+code/ai/ai_melee_retreat_analyser.cpp:
+	.text       start:0x0066CBD5 end:0x0066CD22
+
+code/ai/ai_melee_special_ability_analyser.cpp:
+	.text       start:0x0066E3FB end:0x0066E548
+
+code/ai/ai_melee_manager.cpp:
+	.text       start:0x0066F14E end:0x00670FD4
+
+code/ai/ai_detachment_tactics.cpp:
+	.text       start:0x006905FB end:0x00690D52
+
+code/ai/ai_tactic_attack_battlegroup.cpp:
+	.text       start:0x0069392F end:0x00693A6B
+
+code/ai/ai_tactic_outflank.cpp:
+	.text       start:0x0069C237 end:0x0069DD48
+
+code/ai/ai_tactic_skirmish.cpp:
+	.text       start:0x006A140B end:0x006A1916
+
+code/ai/ai_detachment.cpp:
+	.text       start:0x006A4E36 end:0x006A5BC0
+
+code/ai/ai_detachment_attack_battlegroup.cpp:
+	.text       start:0x006A6A14 end:0x006A6C4F
+
+code/ai/ai_detachment_attack_settlement.cpp:
+	.text       start:0x006A818A end:0x006AA21B
+
+code/ai/ai_detachment_defend_crossing.cpp:
+	.text       start:0x006AADBF end:0x006AAECB
+
+code/ai/ai_detachment_defend_settlement.cpp:
+	.text       start:0x006AB5E0 end:0x006ABC07
+
+code/ai/ai_detachment_defend_terrain_feature.cpp:
+	.text       start:0x006AE324 end:0x006B1396
+
+code/ai/ai_detachment_sally_out.cpp:
+	.text       start:0x006B19CE end:0x006B1B02
+
+code/ai/ai_detachment_scout.cpp:
+	.text       start:0x006B20F0 end:0x006B216F
+
+code/ai_helpers/auto_link_up.cpp:
+	.text       start:0x006B70BD end:0x006B74C5
+
+code/ai_helpers/group_automation.cpp:
+	.text       start:0x006B9E5E end:0x006BA25D
+
+code/ai/ai_battle_group.cpp:
+	.text       start:0x006BFC84 end:0x006C04A3
+
+code/ai/ai_battle_gta.cpp:
+	.text       start:0x006C2C61 end:0x006C4EDA
+
+code/ai/ai_battle_objective.cpp:
+	.text       start:0x006C5BD4 end:0x006CA016
+
+code/ai/ai_battle_objective_attack_settlement.cpp:
+	.text       start:0x006CB0AC end:0x006CB111
+
+code/ai/ai_battle_objective_defend_settlement.cpp:
+	.text       start:0x006CB964 end:0x006CBB3C
+
+code/ai/ai_battle_objective_sally_out.cpp:
+	.text       start:0x006CC25B end:0x006CC2BC
+
+code/battle_area_divider.cpp:
+	.text       start:0x006D6E9A end:0x006D78C4
+
+code/deployment.cpp:
+	.text       start:0x006DF883 end:0x006E0EC1
+
+code/boiling_oil.cpp:
+	.text       start:0x006F147D end:0x006F14D4
+
+code/building_battle.cpp:
+	.text       start:0x006FBCFF end:0x006FC6B9
+
+code/building_battle_gate.cpp:
+	.text       start:0x00704F08 end:0x0070675C
+
+code/building_battle_manager.cpp:
+	.text       start:0x0070909C end:0x00711EA1
+
+code/building_battle_verified.cpp:
+	.text       start:0x007146AC end:0x007148ED
+
+code/army.cpp:
+	.text       start:0x007195FF end:0x00726362
+
+code/army_verified.cpp:
+	.text       start:0x007279A2 end:0x00727B5B
+
+code/group_formation_parser.cpp:
+	.text       start:0x007280A5 end:0x00728980
+
+code/unit_cavalry_chariot.cpp:
+	.text       start:0x00743B2D end:0x00743E53
+
+code/unit_cavalry_elephant.cpp:
+	.text       start:0x007466CA end:0x007468C8
+
+code/unit_cavalry_horse.cpp:
+	.text       start:0x00747974 end:0x00747B52
+
+code/unit_infantry.cpp:
+	.text       start:0x0074EA54 end:0x0074EDA8
+
+code/unit_wardogs.cpp:
+	.text       start:0x00755A27 end:0x00755D21
+
+code/unit.cpp:
+	.text       start:0x007B52E6 end:0x007CDA7D
+
+code/unit_torch_allocator.cpp:
+	.text       start:0x007E1E9A end:0x007E2EC0
+
+code/unit_verified.cpp:
+	.text       start:0x007E5B1F end:0x007E5CD8
+
+code/attachment.cpp:
+	.text       start:0x0083067A end:0x00830719
+
+code/soldier.cpp:
+	.text       start:0x00836DAC end:0x0083B74E
+
+code/siege_engine.cpp:
+	.text       start:0x0085963F end:0x0085AABA
+
+code/pathfinding.cpp:
+	.text       start:0x00861710 end:0x00861888
+
+code/locomotion_table.cpp:
+	.text       start:0x00872EE3 end:0x008733C2
+
+code/projectile.cpp:
+	.text       start:0x0087B7C8 end:0x0087B955
+
+code/battle_state_inspection.cpp:
+	.text       start:0x0087F2C0 end:0x0088D96E
+
+code/character_state_inspection.cpp:
+	.text       start:0x0089127A end:0x00893226
+
+code/faction_state_inspection.cpp:
+	.text       start:0x00894F8F end:0x008978EF
+
+code/game_state_inspection.cpp:
+	.text       start:0x00898E69 end:0x0089A06A
+
+code/settlement_state_inspection.cpp:
+	.text       start:0x0089A79D end:0x0089CA32
+
+code/ui_state_inspection.cpp:
+	.text       start:0x0089E3DD end:0x0089F30D
+
+code/battle_triggers.cpp:
+	.text       start:0x008A30C6 end:0x008A3508
+
+code/triggers.cpp:
+	.text       start:0x008AA012 end:0x008AC8A4
+
+code/advisor.cpp:
+	.text       start:0x008AF5F3 end:0x008B04F8
+
+code/faction_event.cpp:
+	.text       start:0x008B1795 end:0x008B6CBC
+
+code/logging.cpp:
+	.text       start:0x008B8499 end:0x008B8DBF
+
+code/living_breathing_world.cpp:
+	.text       start:0x008BC26B end:0x008BCB56
+
+code/battlefield_handler.cpp:
+	.text       start:0x008BDF79 end:0x008C2378
+
+code/game_battle_handler.cpp:
+	.text       start:0x008C41CA end:0x008C4277
+
+code/game_map_view_handler.cpp:
+	.text       start:0x008C77B1 end:0x008C7800
+
+code/game_strat_handler.cpp:
+	.text       start:0x008C7FF5 end:0x008C8821
+
+code/advice_db.cpp:
+	.text       start:0x008C9F07 end:0x008CC580
+
+code/building_db.cpp:
+	.text       start:0x008D5A25 end:0x008DE269
+
+code/character_db.cpp:
+	.text       start:0x008E08F0 end:0x008E2B06
+
+code/culture_db.cpp:
+	.text       start:0x008E6792 end:0x008E8BD9
+
+code/daytype_db.cpp:
+	.text       start:0x008EC057 end:0x008EC375
+
+code/engine_db.cpp:
+	.text       start:0x008ED798 end:0x008EDFBE
+
+code/event_images_db.cpp:
+	.text       start:0x008F2DE0 end:0x008F321B
+
+code/faction_db.cpp:
+	.text       start:0x008F5FA4 end:0x008F60BF
+
+code/landmark_db.cpp:
+	.text       start:0x008F80F8 end:0x008F8570
+
+code/names_db.cpp:
+	.text       start:0x008FE98C end:0x008FF36F
+
+code/resource_db.cpp:
+	.text       start:0x00904CFE end:0x00904D88
+
+code/strat_sundries_db.cpp:
+	.text       start:0x0091167F end:0x009117F6
+
+code/unit_db.cpp:
+	.text       start:0x0091B024 end:0x0091BFE7
+
+code/unit_group_formation_db.cpp:
+	.text       start:0x0091E107 end:0x0091EA03
+
+code/display/fauna.cpp:
+	.text       start:0x00920375 end:0x00920FAF
+
+code/display/model.cpp:
+	.text       start:0x0093646F end:0x0093697D
+
+code/display/model_flexi.cpp:
+	.text       start:0x0093DC84 end:0x0093E146
+
+code/display/model_weighted.cpp:
+	.text       start:0x00944B98 end:0x00945056
+
+code/display/placed_model.cpp:
+	.text       start:0x009458DB end:0x00949DCD
+
+code/display/placed_model_data.cpp:
+	.text       start:0x009504E1 end:0x0095179D
+
+code/display/cam_control_battle_cams.cpp:
+	.text       start:0x00956709 end:0x009592A2
+
+code/display/cam_control_default.cpp:
+	.text       start:0x00959B50 end:0x0095BAA2
+
+code/display/cam_control_rtm.cpp:
+	.text       start:0x0095EFDE end:0x0095F02E
+
+code/display/cam_control_stratmap.cpp:
+	.text       start:0x00967A38 end:0x00967A85
+
+code/display/cam_control_unit.cpp:
+	.text       start:0x009686E1 end:0x0096C598
+
+code/display/virtual_surface.cpp:
+	.text       start:0x0096E870 end:0x0096EE81
+
+code/display/particle_system.cpp:
+	.text       start:0x0097265A end:0x00972996
+
+code/display/performance.cpp:
+	.text       start:0x009751FF end:0x009752B7
+
+code/display/burning_oil_effect.cpp:
+	.text       start:0x00976AA0 end:0x0097853F
+
+code/display/leaf_effect.cpp:
+	.text       start:0x0097E9EF end:0x0097F2CA
+
+code/display/loading_screen.cpp:
+	.text       start:0x0098923A end:0x0098A861
+
+code/display/lens_flare.cpp:
+	.text       start:0x00991557 end:0x009917F1
+
+code/display/sea_plane.cpp:
+	.text       start:0x0099F0CD end:0x0099F295
+
+code/display/bezier_patch_table.cpp:
+	.text       start:0x009A1190 end:0x009A12CE
+
+code/display/aerial_map.cpp:
+	.text       start:0x009B1406 end:0x009B3454
+
+code/display/aerial_map_coastline.cpp:
+	.text       start:0x009C5D01 end:0x009C5E0F
+
+code/display/aerial_map_paths.cpp:
+	.text       start:0x009CDE31 end:0x009CE51A
+
+code/display/aerial_map_roads.cpp:
+	.text       start:0x009D8309 end:0x009DE4EF
+
+code/display/aerial_map_sea_routes.cpp:
+	.text       start:0x009DF003 end:0x009DFB3D
+
+code/display/aerial_map_shadows.cpp:
+	.text       start:0x009E3025 end:0x009E419C
+
+code/display/aerial_map_tile_manager.cpp:
+	.text       start:0x009F739E end:0x009F74F8
+
+code/display/aerial_map_trees.cpp:
+	.text       start:0x009F97BA end:0x009FCDBB
+
+code/display/terrain.cpp:
+	.text       start:0x009FE9D5 end:0x009FFBDD
+
+code/display/projectile_display.cpp:
+	.text       start:0x00A02BD2 end:0x00A02F10
+
+code/display/units/unit_render.cpp:
+	.text       start:0x00A071C3 end:0x00A12CD6
+
+code/display/dead_person_renderer.cpp:
+	.text       start:0x00A24523 end:0x00A24694
+
+code/display/unit_shadows.cpp:
+	.text       start:0x00A289D0 end:0x00A2C786
+
+code/display/building_display.cpp:
+	.text       start:0x00A2F7AA end:0x00A34380
+
+code/display/building_vegetation_display.cpp:
+	.text       start:0x00A34D2C end:0x00A3572A
+
+code/display/siege_sap_display.cpp:
+	.text       start:0x00A3FD1C end:0x00A40041
+
+code/display/standard_display.cpp:
+	.text       start:0x00A47F3A end:0x00A48094
+
+code/display/banner_display.cpp:
+	.text       start:0x00A4B9BA end:0x00A4C5C3
+
+code/display/borders.cpp:
+	.text       start:0x00A680A7 end:0x00A68680
+
+code/display/arrows.cpp:
+	.text       start:0x00A693BD end:0x00A69BEC
+
+code/display/splash_display.cpp:
+	.text       start:0x00A7EACE end:0x00A7EF16
+
+code/display/display_manager_shaders.cpp:
+	.text       start:0x00A8005F end:0x00A804D6
+
+code/display/shaders/flexi_shader.cpp:
+	.text       start:0x00A837A2 end:0x00A84794
+
+code/display/display_manager_buffers.cpp:
+	.text       start:0x00A8687D end:0x00A86DF0
+
+code/display/display_manager_camera.cpp:
+	.text       start:0x00A87F0F end:0x00A8C4E6
+
+code/display/display_manager_texture.cpp:
+	.text       start:0x00A959F9 end:0x00A95B60
+
+code/display/interaction_effect_db.cpp:
+	.text       start:0x00A9AE6F end:0x00A9B41F
+
+code/display/interaction_effect_decal.cpp:
+	.text       start:0x00A9D46C end:0x00A9D624
+
+code/display/interaction_effect_display.cpp:
+	.text       start:0x00AA09B5 end:0x00AA10C4
+
+code/display/interaction_effect_explosion.cpp:
+	.text       start:0x00AA5ABE end:0x00AA61AB
+
+code/display/interaction_effect_flaming_halo.cpp:
+	.text       start:0x00AA7966 end:0x00AA7B7E
+
+code/display/interaction_effect_flaming_skeleton.cpp:
+	.text       start:0x00AA89FC end:0x00AA8D9A
+
+code/display/interaction_effect_light.cpp:
+	.text       start:0x00AAA9C3 end:0x00AAAC30
+
+code/display/interaction_effect_particle.cpp:
+	.text       start:0x00AB7CE4 end:0x00AB83B3
+
+code/display/interaction_effect_projectiles.cpp:
+	.text       start:0x00AC5D23 end:0x00AC5FA6
+
+code/display/interaction_effect_ribbon.cpp:
+	.text       start:0x00AC7982 end:0x00AC7C77
+
+code/battle_sprite_db.cpp:
+	.text       start:0x00AD71DF end:0x00AD73DD
+
+code/display/model_db.cpp:
+	.text       start:0x00ADC69E end:0x00ADFDD8
+
+code/display/particle_db.cpp:
+	.text       start:0x00AE2421 end:0x00AE558C
+
+code/sound_trackers.cpp:
+	.text       start:0x00AFD44F end:0x00B0A251
+
+code/sample_banks.cpp:
+	.text       start:0x00B0AA62 end:0x00B1F061
+
+code/sound2pack.cpp:
+	.text       start:0x00B233C2 end:0x00B26A52
+
+code/sound_db.cpp:
+	.text       start:0x00B29BE2 end:0x00B2F4B4
+
+code/scripted_battle.cpp:
+	.text       start:0x00B3264E end:0x00B327DF
+
+code/script_battle.cpp:
+	.text       start:0x00B352FD end:0x00B39E4D
+
+code/script_camera.cpp:
+	.text       start:0x00B3AF95 end:0x00B3C656
+
+code/script_campaign.cpp:
+	.text       start:0x00B3CE8B end:0x00B3E2E0
+
+code/script_semantics.cpp:
+	.text       start:0x00B3F0A4 end:0x00B45C33
+
+code/script_senate.cpp:
+	.text       start:0x00B461FD end:0x00B469A0
+
+code/script_sound.cpp:
+	.text       start:0x00B47047 end:0x00B476F3
+
+code/script_sundry.cpp:
+	.text       start:0x00B47EA3 end:0x00B49706
+
+code/script_ui.cpp:
+	.text       start:0x00B49D08 end:0x00B4C686
+
+code/rome_access.cpp:
+	.text       start:0x00B4FEFE end:0x00B503F8
+
+code/battle_uishell.cpp:
+	.text       start:0x00B54A80 end:0x00B54B4C
+
+code/character_uishell.cpp:
+	.text       start:0x00B58B22 end:0x00B58B67
+
+code/network/network_lobby.cpp:
+	.text       start:0x00B7A167 end:0x00B7AAE8
+
+code/network/network_manager.cpp:
+	.text       start:0x00B836C8 end:0x00B903B6
+
+code/ui/ui_card_manager.cpp:
+	.text       start:0x00B9BFA5 end:0x00BA049A
+
+code/ui/ui_cards.cpp:
+	.text       start:0x00BA15DC end:0x00BA6904
+
+code/ui/shortcut_handler.cpp:
+	.text       start:0x00BAB55B end:0x00BAE50C
+
+code/ui/ui_texture_handler.cpp:
+	.text       start:0x00BAEBC2 end:0x00BB23C0
+
+code/ui/battle_menu.cpp:
+	.text       start:0x00BB2D98 end:0x00BBBAFF
+
+code/ui/ui_battle_chat.cpp:
+	.text       start:0x00BBC9B6 end:0x00BC162E
+
+code/ui/ui_battle_pieces.cpp:
+	.text       start:0x00BC205C end:0x00BC9007
+
+code/ui/ui_timeline_card.cpp:
+	.text       start:0x00BCB5FE end:0x00BCBB51
+
+code/ui/battle_view_menu.cpp:
+	.text       start:0x00BCCEE3 end:0x00BCD04E
+
+code/ui/battle_replay_ui.cpp:
+	.text       start:0x00BD0994 end:0x00BD0C8E
+
+code/ui/battlefield_menu.cpp:
+	.text       start:0x00BD2084 end:0x00BD25D6
+
+code/ui/battlefield_pieces.cpp:
+	.text       start:0x00BD63A1 end:0x00BD74C7
+
+code/ui/settlement_plaza.cpp:
+	.text       start:0x00BD8691 end:0x00BD8B1A
+
+code/ui/editor_brush_manager.cpp:
+	.text       start:0x00BDB3F0 end:0x00BDB647
+
+code/ui/strat_ed_pieces.cpp:
+	.text       start:0x00BDCBE7 end:0x00BEC7B3
+
+code/ui/strat_ed_ui.cpp:
+	.text       start:0x00BED056 end:0x00BF18BE
+
+code/ui/battle_ed_buttons.cpp:
+	.text       start:0x00BF299F end:0x00BF29FD
+
+code/ui/battle_ed_pieces.cpp:
+	.text       start:0x00BF4363 end:0x00C00458
+
+code/ui/battle_ed_ui.cpp:
+	.text       start:0x00C021F9 end:0x00C0846F
+
+code/ui/ui_notify.cpp:
+	.text       start:0x00C09C9E end:0x00C0A7B2
+
+code/ui/army_info_pieces.cpp:
+	.text       start:0x00C0B149 end:0x00C0C609
+
+code/ui/building_info_pieces.cpp:
+	.text       start:0x00C0CEF4 end:0x00C11FDC
+
+code/ui/character_info_pieces.cpp:
+	.text       start:0x00C1261A end:0x00C1C223
+
+code/ui/combined_lists_scroll.cpp:
+	.text       start:0x00C1CD54 end:0x00C1EDEC
+
+code/ui/construction_scroll.cpp:
+	.text       start:0x00C1F390 end:0x00C20DDA
+
+code/ui/diplomacy_scroll.cpp:
+	.text       start:0x00C2276D end:0x00C2F22E
+
+code/ui/exchange_scroll.cpp:
+	.text       start:0x00C32998 end:0x00C333E9
+
+code/ui/faction_scrolls.cpp:
+	.text       start:0x00C350E5 end:0x00C4488A
+
+code/ui/family_tree.cpp:
+	.text       start:0x00C45205 end:0x00C46C0E
+
+code/ui/info_scrolls_base.cpp:
+	.text       start:0x00C47670 end:0x00C4CC57
+
+code/ui/mission_target_scroll.cpp:
+	.text       start:0x00C4D98B end:0x00C4FB4A
+
+code/ui/prebattle_scroll.cpp:
+	.text       start:0x00C50502 end:0x00C55E5F
+
+code/ui/senate_scrolls.cpp:
+	.text       start:0x00C575AC end:0x00C59063
+
+code/ui/settlement_info_pieces.cpp:
+	.text       start:0x00C595F2 end:0x00C6FCB0
+
+code/ui/settlement_trade_scroll.cpp:
+	.text       start:0x00C706F1 end:0x00C73290
+
+code/ui/settlement_training_dialog.cpp:
+	.text       start:0x00C740FA end:0x00C75D8A
+
+code/ui/siege_scroll.cpp:
+	.text       start:0x00C772FE end:0x00C79CEF
+
+code/ui/strat_buttons_v2.cpp:
+	.text       start:0x00C7AFAF end:0x00C7E1D9
+
+code/ui/strat_ui_v2.cpp:
+	.text       start:0x00C80477 end:0x00C919BA
+
+code/ui/strat_v2_pieces.cpp:
+	.text       start:0x00C91F37 end:0x00C9FC78
+
+code/ui/unit_info_pieces.cpp:
+	.text       start:0x00CA1E26 end:0x00CA8BC2
+
+code/ui/ui_font_manager.cpp:
+	.text       start:0x00CA99EE end:0x00CAA608
+
+code/ui/event_construction_messages.cpp:
+	.text       start:0x00CAB181 end:0x00CAC628
+
+code/ui/event_diplomacy_messages.cpp:
+	.text       start:0x00CADC6C end:0x00CADD6A
+
+code/ui/event_faction_messages.cpp:
+	.text       start:0x00CB09C7 end:0x00CB2478
+
+code/ui/event_message_disasters.cpp:
+	.text       start:0x00CB3AAB end:0x00CB42BB
+
+code/ui/event_messages.cpp:
+	.text       start:0x00CB629F end:0x00CBBB78
+
+code/ui/message_builder_objects.cpp:
+	.text       start:0x00CBD87C end:0x00CC3506
+
+code/ui/ui_message_builder.cpp:
+	.text       start:0x00CC4734 end:0x00CC4B22
+
+code/ui/ui_request_generator.cpp:
+	.text       start:0x00CC53C0 end:0x00CC5D73
+
+code/ui/common_dialog_manager.cpp:
+	.text       start:0x00CC839C end:0x00CC98A3
+
+code/ui/cursor.cpp:
+	.text       start:0x00CCA68F end:0x00CCAA7B
+
+code/ui/expanding_group.cpp:
+	.text       start:0x00CCFF5E end:0x00CCFFF4
+
+code/ui/help_window.cpp:
+	.text       start:0x00CD072D end:0x00CD11B0
+
+code/ui/in_game_options.cpp:
+	.text       start:0x00CD1ACE end:0x00CD9DFA
+
+code/ui/indicators.cpp:
+	.text       start:0x00CDAA93 end:0x00CDB280
+
+code/ui/post_battle_scrolls.cpp:
+	.text       start:0x00CDE471 end:0x00CE4573
+
+code/ui/romans_ui.cpp:
+	.text       start:0x00CE5C3A end:0x00CE6971
+
+code/ui/subtitles.cpp:
+	.text       start:0x00CE71F6 end:0x00CE87C5
+
+code/ui/ui_advisor.cpp:
+	.text       start:0x00CE8DD8 end:0x00CED096
+
+code/ui/ui_buttons.cpp:
+	.text       start:0x00CEE282 end:0x00CEE448
+
+code/ui/ui_dialog.cpp:
+	.text       start:0x00CF2DC2 end:0x00CF392B
+
+code/ui/ui_dropdown_lists.cpp:
+	.text       start:0x00CF4787 end:0x00CF582F
+
+code/ui/ui_editor_pieces.cpp:
+	.text       start:0x00CF673D end:0x00CFB77E
+
+code/ui/ui_element.cpp:
+	.text       start:0x00CFCD5F end:0x00D04091
+
+code/ui/ui_file_requester.cpp:
+	.text       start:0x00D04A32 end:0x00D077E7
+
+code/ui/ui_input_element.cpp:
+	.text       start:0x00D09658 end:0x00D0AB40
+
+code/ui/ui_listview.cpp:
+	.text       start:0x00D0E084 end:0x00D125BA
+
+code/ui/ui_manager.cpp:
+	.text       start:0x00D1378A end:0x00D15FF0
+
+code/ui/ui_message_box.cpp:
+	.text       start:0x00D1735C end:0x00D18110
+
+code/ui/ui_message_handler.cpp:
+	.text       start:0x00D19BAC end:0x00D1C0E9
+
+code/ui/ui_radar.cpp:
+	.text       start:0x00D1DE69 end:0x00D25D7B
+
+code/ui/ui_request_manager.cpp:
+	.text       start:0x00D2A00A end:0x00D2B715
+
+code/ui/ui_scroll.cpp:
+	.text       start:0x00D2C143 end:0x00D2C42E
+
+code/ui/ui_table.cpp:
+	.text       start:0x00D3025C end:0x00D31D98
+
+code/ui/ui_textview.cpp:
+	.text       start:0x00D32B02 end:0x00D3316F
+
+code/ui/ui_tutorial_window.cpp:
+	.text       start:0x00D33B87 end:0x00D362BF
+
+code/menu/menu_layout.cpp:
+	.text       start:0x00D48FD2 end:0x00D493CB
+
+code/menu/menu_resource.cpp:
+	.text       start:0x00D50D83 end:0x00D50F6F
+
+code/menu/parse.cpp:
+	.text       start:0x00D51EDD end:0x00D5200A
+
+code/menu/parse_lnt.cpp:
+	.text       start:0x00D532DF end:0x00D533E3
+
+code/world_info.cpp:
+	.text       start:0x00D603EB end:0x00D60496
+
+code/menu/menu_base.cpp:
+	.text       start:0x00D7F771 end:0x00D85A32
+
+code/localisation/english.cpp:
+	.text       start:0x00D8CF52 end:0x00D8CF91
+
+code/localisation/language.cpp:
+	.text       start:0x00D92647 end:0x00D926DB
+
+code/localisation/string_table_manager.cpp:
+	.text       start:0x00D9543F end:0x00D95B17
+
+code/battle_ed.cpp:
+	.text       start:0x00D9977F end:0x00D9DC0B
+
+code/editor_battle_conditions.cpp:
+	.text       start:0x00DA5D6D end:0x00DA6026
+
+code/editor_battle_handler.cpp:
+	.text       start:0x00DA6DD2 end:0x00DA72B0
+
+code/editor_structures.cpp:
+	.text       start:0x00DA8D92 end:0x00DB0D98
+
+code/editor.cpp:
+	.text       start:0x00DB1B52 end:0x00DB1CFB
+
+code/strat_ed.cpp:
+	.text       start:0x00DB3724 end:0x00DB85F1
+
+code/rtm/rtm_group.cpp:
+	.text       start:0x00DC7626 end:0x00DC7E1C
+
+code/rtm/rtm_handler.cpp:
+	.text       start:0x00DCDEE7 end:0x00DCE025
+
+code/rtm/rtm_model.cpp:
+	.text       start:0x00DDA16E end:0x00DDCC25
+
+code/env/dev_console.cpp:
+	.text       start:0x00DE6BD5 end:0x00DE6E2A
+
+code/env/dev_menu.cpp:
+	.text       start:0x00DE98CF end:0x00DEA149
+
+code/vector_outline.cpp:
+	.text       start:0x00DFE23C end:0x00DFEA97
+
+code/env/a_star.cpp:
+	.text       start:0x00DFFF10 end:0x00E004CD
+
+code/env/ai_framework.cpp:
+	.text       start:0x00E1207F end:0x00E1220E
+
+code/util/allocators.cpp:
+	.text       start:0x00E12ABB end:0x00E12BFA
+
+code/util/dynamic_sphere_tree.cpp:
+	.text       start:0x00E19BD6 end:0x00E1CDD3
+
+code/util/fixed_size_pool.cpp:
+	.text       start:0x00E1D456 end:0x00E1DF9F
+
+code/env/geometry_utils.cpp:
+	.text       start:0x00E23715 end:0x00E241C2
+
+code/env/output_window.cpp:
+	.text       start:0x00E287A1 end:0x00E28B03
+
+code/romans_utils.cpp:
+	.text       start:0x00E2AAA8 end:0x00E30F8F
+
+code/util/tetris_set.cpp:
+	.text       start:0x00E49059 end:0x00E49184
+
+code/env/time_server.cpp:
+	.text       start:0x00E49E5C end:0x00E4A9B4
+
+code/env/tracked_object.cpp:
+	.text       start:0x00E4B396 end:0x00E4B522
+
+code/battlefield/water/shorelines.cpp:
+	.text       start:0x00E6F777 end:0x00E7079A
+
+code/battlefield/water/water_manager.cpp:
+	.text       start:0x00E736B9 end:0x00E73864
+
+code/battlefield/ground/ground_decals.cpp:
+	.text       start:0x00E75883 end:0x00E75BFD
+
+code/battlefield/ground/ground_display.cpp:
+	.text       start:0x00E79220 end:0x00E7931E
+
+code/battlefield/ground/ground_manager.cpp:
+	.text       start:0x00E7A0FB end:0x00E7A3A0
+
+code/battlefield/ground/ground_models.cpp:
+	.text       start:0x00E8613D end:0x00E8C61E
+
+code/battlefield/ground/ground_textures.cpp:
+	.text       start:0x00E8FDCE end:0x00E8FE1D
+
+code/battlefield/ground/ground_tiles.cpp:
+	.text       start:0x00E91500 end:0x00E96AB9
+
+code/battlefield/vegetation/vegetation_db.cpp:
+	.text       start:0x00E9D78C end:0x00EA3E07
+
+code/battlefield/vegetation/vegetation_manager.cpp:
+	.text       start:0x00EA85EA end:0x00EB1691
+
+code/battlefield/vegetation/vegetation_patch.cpp:
+	.text       start:0x00EB3DF4 end:0x00EB4088
+
+code/battlefield/generator.cpp:
+	.text       start:0x00EC6106 end:0x00EC67E3
+
+code/battlefield/manager.cpp:
+	.text       start:0x00ED0608 end:0x00ED1372
+
+code/battlefield/manifold_set.cpp:
+	.text       start:0x00ED42C0 end:0x00EDAD44
+
+code/battlefield/node.cpp:
+	.text       start:0x00EDBD09 end:0x00EE0E21
+
+code/battlefield/quadtree.cpp:
+	.text       start:0x00EE3B50 end:0x00EE416E
+
+code/render_sys/buffer.cpp:
+	.text       start:0x00EED247 end:0x00EED446
+
+code/steam/steam_controller.cpp:
+	.text       start:0x00EF8DEC end:0x00EF8ED8
+
+libs_daily/ca_libs/core/pc_buffers.cpp:
+	.text       start:0x00F3BA40 end:0x00F3C4B0
+
+libs_daily/ca_libs/core/core_string.cpp:
+	.text       start:0x00F4C990 end:0x00F4CB40
+
+libs_daily/ca_libs/display/pc_vertex_buffers.cpp:
+	.text       start:0x00F6C8F0 end:0x00F6DD50
+
+libs_daily/ca_libs/ui/ui_menu.cpp:
+	.text       start:0x00F847F0 end:0x00F84B60
+
+libs_daily/ca_libs/ui/ui_narrator.cpp:
+	.text       start:0x00F86A60 end:0x00F86BE0
+
+libs_daily/cas_loader/cas_anim_mesh_data.cpp:
+	.text       start:0x00F9D620 end:0x00FA1510
+
+libs_daily/cas_loader/cas_basic_anim_data.cpp:
+	.text       start:0x00FA1860 end:0x00FA18B0
+
+libs_daily/cas_loader/cas_scene_data.cpp:
+	.text       start:0x00FA5930 end:0x00FA61D0
+
+libs_daily/cas_loader/cas_anim_data.cpp:
+	.text       start:0x00FA6200 end:0x00FA7020
+
+libs_daily/cas_loader/cas_camera_data.cpp:
+	.text       start:0x00FA9FB0 end:0x00FAABD0
+
+libs_daily/cas_render/cas_alpha_render.cpp:
+	.text       start:0x00FB35D0 end:0x00FB4590
+
+libs_daily/cas_render/cas_rigid_render.cpp:
+	.text       start:0x00FB49D0 end:0x00FB4ED0
+
+libs_daily/cas_render/cas_flexi_render.cpp:
+	.text       start:0x00FB5D40 end:0x00FB7550
+
+libs_daily/cas_render/cas_weighted_render.cpp:
+	.text       start:0x00FB7AB0 end:0x00FB9850
+
+libs_daily/cas_render/cas_anim_mesh_render.cpp:
+	.text       start:0x00FB9F10 end:0x00FBB0F0
+
+code/ai/ai_cheat_manager.cpp:
+	.text       start:0x004FBAFC end:0x004FCF13

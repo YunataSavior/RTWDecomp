@@ -1,0 +1,14 @@
+# Original game files: never commit them
+orig/**/*
+!orig/**/
+!orig/**/.gitkeep
+
+# Generated
+build/
+build.ninja
+objdiff.json
+.ninja_*
+
+.venv/
+__pycache__/
+*.pyc

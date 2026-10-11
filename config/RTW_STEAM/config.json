@@ -1,0 +1,6 @@
+{
+  "name": "Rome: Total War Gold (Steam)",
+  "original": "orig/RTW_STEAM/RomeTW.exe",
+  "sha1": "bf5fb6e7b1cfe6ac94ebaef5c08ff1dfb2bf8812",
+  "cflags": ["/MT", "/Os", "/Ob1", "/Op", "/G6"]
+}
