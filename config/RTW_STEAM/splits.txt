@@ -12,7 +12,7 @@ crt/crt0.c:
 	.text       start:0x00FC9680 end:0x00FC97D1
 
 code/romans_file.cpp:
-	.text       start:0x00413BD6 end:0x00413E79
+	.text       start:0x00412E83 end:0x00414100
 
 code/version_registry.cpp:
 	.text       start:0x004264CE end:0x004268EB
@@ -228,7 +228,7 @@ code/character.cpp:
 	.text       start:0x0057E693 end:0x0058E173
 
 code/character_record.cpp:
-	.text       start:0x0058F1B4 end:0x00594493
+	.text       start:0x0058E173 end:0x00594493
 
 code/character_verified.cpp:
 	.text       start:0x00596799 end:0x00596952
@@ -501,7 +501,7 @@ code/battle_triggers.cpp:
 	.text       start:0x008A30C6 end:0x008A3508
 
 code/triggers.cpp:
-	.text       start:0x008AA012 end:0x008AC8A4
+	.text       start:0x008A99AB end:0x008ACBA3
 
 code/advisor.cpp:
 	.text       start:0x008AF5F3 end:0x008B04F8
@@ -536,6 +536,9 @@ code/building_db.cpp:
 code/character_db.cpp:
 	.text       start:0x008E08F0 end:0x008E2B06
 
+code/character_traits_db.cpp:
+	.text       start:0x008E394C end:0x008E543B
+
 code/culture_db.cpp:
 	.text       start:0x008E6792 end:0x008E8BD9
 
@@ -552,7 +555,7 @@ code/faction_db.cpp:
 	.text       start:0x008F5FA4 end:0x008F60BF
 
 code/landmark_db.cpp:
-	.text       start:0x008F80F8 end:0x008F8570
+	.text       start:0x008F74A3 end:0x008F8570
 
 code/names_db.cpp:
 	.text       start:0x008FE98C end:0x008FF36F

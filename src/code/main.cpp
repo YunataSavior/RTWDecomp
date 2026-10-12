@@ -3,6 +3,7 @@
 #include <fstream.h>
 
 #include "unsorted.h"
+#include "map_constants.h"
 
 inline void copy_to_ascii(char* dst, const unsigned short* src)
 {

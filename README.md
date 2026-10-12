@@ -90,55 +90,8 @@ can be declared `extern "C"` by the name the splitter gives it (`fn_00EFA483`, `
 Matching tips
 -------------
 
-- Small inline functions (accessors, `max`) are expanded but leave their temporaries in place, one level of nesting at
-  a time: an accessor that stores its result in a temporary before use is usually an inline calling another inline
-  (`num_regions()` returning `m_regions.size()`), and `max` taking `const int&` keeps both arguments in slots.
-- Rounding to int is the inline assembly `push eax; fld x; frndint; fistp [esp]; pop eax` (`float_to_int` in
-  `include/unsorted.h`), not a cast.
-- Float literals are COMDAT constants named by their 80-bit value (`__real@4@3fff8ccccd0000000000` is 1.1f); name the
-  original's in `symbols.txt` the same way.
-- The game redefines `for` as `switch (0) case 0: default: for`, to give loop variables standard scope
-  (`include/for_scope.h`). That is the `and [ebp-X], 0` into a slot never read that starts nearly every loop.
-- `cmp x, y; sbb eax, eax; neg eax` is an unsigned `x < y` turned into a bool (`m_18 < 0xffffffff`), not `!=`.
-- A value copied through a temporary right after a call (`call; mov [ebp-X], eax; mov eax, [ebp-X]`, then a field
-  read) is an inline called on the call's result.
-- `__FILE__` must be the original's path and `__LINE__` its line, since the game's allocator and asserts push both.
-  A source starts with `#line 2 "E:\\Perforce\\Rome\\Rome,BI-1.5,1.6\\Dev\\barbi_daily\\code\\road.cpp"` (keeping
-  its own line numbers), and a `#line N` before a statement gives it the original's line.
-- VC6 expands template functions defined outside their class as it does inline ones. It does not expand a function
-  holding a `switch` (so any loop written with the `for` macro), and stops expanding one that calls an inline with a
-  local or a by-value parameter of its own after it has given it stack slots. Those slots stay unused, so unused
-  slots in a frame mean a call to such a function (`Array::~Array`, `Array::add_unique`).
-- `b = x != -1;` zero-extends (`xor eax, eax; cmp; setne al`), `b = x != -1 ? true : false;` does not.
-- An inline `bool` function written `if (a && b) return true; return false;` keeps its result in a byte; `return a
-  && b;` keeps it in an int.
-- Assigning straight to a bitfield (`tile->m_road_level = level`) copies a `char` value through a byte temporary; an
-  inline setter taking the value does not.
-- `if (x) return;` before a last call compiles to `je; jmp`, unlike `if (!x) f();`.
-- Every game file starts with the same 36 thunk/initializer pairs: they initialize the file's own copies of the
-  constants in `include/common_constants.h`, which `unsorted.h` includes. Each initializer uses three numbers of the
-  counter that names `$E<n>` initializers and `$S<n>` guards, so the unit's own are numbered after them: take the
-  numbers from the compiled object. The unit's copies of the constants (in its `.bss`, and the `const float`s in its
-  `.rdata`) are named in `symbols.txt` with `scope:local`.
-
-Locals and the stack
---------------------
-
-VC6 does not lay out a function's locals in the order they are declared, so two sources that compile to the same code
-can differ in their stack offsets, and a function's locals can need names that put them where the original has them.
-The rules, found by experiment:
-
-- Each scope's named locals are kept in a 16-bucket hash table. Slots are given out bucket by bucket from bucket 0
-  (from `[ebp-4]` down), and within a bucket the last declared first. The bucket is
-  `h = (h << 2) + (h >> 4) + c` over the name's characters, then `(h ^ (h >> 16)) & 15`.
-- Outer scopes get their slots before inner ones; a `case` block or loop body is a scope of its own.
-- Compiler temporaries come after all the named locals, in the order the compiler creates them: first those the front
-  end makes while parsing (an argument bound to a `const T&`, a class returned by value), then those made when inlines
-  are expanded, then code generation's (a `switch` value, conversions, `?:` and `&&` results).
-
-`tools/vc6_locals.py` prints names' buckets and the order they would get. To fix a function's layout, map its slots
-to its locals (by masking stack offsets and diffing), then choose names per scope that the tool puts in the
-original's order.
+[`MATCHING.md`](MATCHING.md) collects what has been found about matching VC6's output: the patterns its code shows,
+which source gives each, and how it lays out a function's locals on the stack.
 
 Project structure
 =================
@@ -159,7 +112,8 @@ Project structure
   and their functions to `symbols.txt` (see below).
 - `tools/check.py`: checks a compiled unit against its split.
 - `tools/cl.py`: runs VC6's `CL.EXE` with its environment, and writes the header dependencies VC6 cannot.
-- `tools/vc6_locals.py`: predicts the stack order VC6 gives locals from their names (see above).
+- `tools/vc6_locals.py`: predicts the stack order VC6 gives locals from their names (see
+  [`MATCHING.md`](MATCHING.md#locals-and-the-stack)).
 - `tools/ghidra/ExportSymbols.py`: a Ghidra script writing the program's functions and named data in `symbols.txt`
   format.
 

@@ -1,5 +1,5 @@
 // The constants every game file has its own copy of. A header (or a few) included everywhere defines them at
-// namespace scope, so each file gets them as file statics, and the 36 initializers of the class-typed and computed
+// namespace scope, so each file gets them as file statics, and the 33 initializers of the class-typed and computed
 // ones (the run of 10-byte thunks at the start of each file's code) come before the file's own. Which header that is,
 // and the constants' names, are not known: the names here say what the values are.
 #ifndef COMMON_CONSTANTS_H
@@ -8,6 +8,8 @@
 // A UTF-16 character. It has a constructor, so its constants are initialized at startup rather than folded.
 struct UniChar {
     UniChar(unsigned short c) : m_c(c) {}
+    bool operator==(unsigned short c) const { return m_c == c; }
+    bool operator!=(unsigned short c) const { return !(*this == c); }
 
     unsigned short m_c;
 };
@@ -89,8 +91,5 @@ static const float k_75_squared = k_75 * k_75;
 static const short s_unknown_twelfth = divide_round(lbl_02B1834E, 12.0f);
 static const ConstInt s_unknown_160(160);
 static const ConstInt s_unknown_minus_1(-1);
-static const float RADIANS_30_DEGREES = PI / 180.0f * 30.0f;
-static const float RADIANS_100_DEGREES = PI / 180.0f * 100.0f;
-static const float k_16000 = k_4000 * 4.0f;
 
 #endif

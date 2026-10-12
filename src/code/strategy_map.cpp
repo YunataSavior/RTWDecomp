@@ -1,5 +1,4 @@
-// The strategy map. Only its road planning is here so far: the rest of the unit (0x004A41C7-0x004B7114) is not
-// decompiled yet.
+// The strategy map's road planning.
 #include "road.h"
 
 #include "unsorted.h"

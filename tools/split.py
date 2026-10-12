@@ -181,7 +181,8 @@ class Splitter:
                     elif op.type == X86_OP_IMM and ins.imm_size == 4:
                         value = op.imm & 0xFFFFFFFF
                         if ins.group(CS_GRP_BRANCH_RELATIVE):
-                            if not function <= value < function_end:
+                            # (a recursive call is to the function's symbol, so it has a relocation)
+                            if not function < value < function_end and (value != function or ins.mnemonic == "call"):
                                 relocs.append((ins.address + ins.imm_offset, REL32, value))
                         elif self.in_image(value):
                             relocs.append((ins.address + ins.imm_offset, DIR32, value))

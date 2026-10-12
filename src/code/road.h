@@ -2,6 +2,7 @@
 #define ROAD_H
 
 #include "unsorted.h"
+#include "map_constants.h"
 
 // A road between two regions' settlements (or from a settlement to its port). Its route is planned once, by the
 // region that builds first: the planner's part is drawn, and the part in the other region waits, pending, until that

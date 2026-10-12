@@ -1,6 +1,7 @@
 #include "ai_cheat_manager.h"
 
 #include "unsorted.h"
+#include "map_constants.h"
 
 // Each faction's standing towards the first human faction, rebuilt by update().
 struct FactionCheatFlags {

@@ -5,6 +5,10 @@ static char THIS_FILE[] = __FILE__;
 #include "landmark.h"
 
 #include "unsorted.h"
+#include "map_constants.h"
+
+static const ConstInt NUM_LANDMARK_TYPES(9);  // the wonders' type IDs are 1 to 9
+static const float QUARTER_PI = PI * 0.25f;
 
 // Something a landmark keeps on the fog of war (code\fog_of_war.cpp).
 class FogOfWarEntry {
@@ -14,22 +18,13 @@ public:
     char m_pad0[0x1c];
 };
 
-// (Not identified: made from the port's +0xa98 when a wonder is captured.)
-class UnkMessage {
-public:
-    UnkMessage(int);                    // 0x008A4067
-    virtual ~UnkMessage() {}
-
-    int m_4;
-};
-
 // An effect played at a point of the map (not identified).
 class MapEffect {
 public:
     MapEffect();                        // 0x0048FB22
     void set_position(const Vector3& position);  // 0x004960B8
 
-    char m_pad0[0x18];
+    char m_pad0[0x40];
 };
 
 class UnkB4CFDA {
@@ -44,7 +39,7 @@ public:
 
 class UnkA62E78 {
 public:
-    void unk_00A62E78(int effect, MapEffect& at);  // 0x00A62E78
+    void unk_00A62E78(Model* model, MapEffect& at);  // 0x00A62E78: draws model
 };
 
 class Unk452977 {
@@ -53,7 +48,7 @@ public:
 };
 
 extern "C" {
-void fn_008AAE20(const UnkMessage& message);
+Vector3 fn_009C90D2(float x, float z, bool, bool, bool);  // (C4190: C linkage returning a struct)
 extern UnkB4CFDA* lbl_029219D8;
 extern UnkF6B3D0 lbl_017B1C48;
 extern UnkA62E78 lbl_016E84A0;
@@ -70,7 +65,7 @@ inline unsigned char visibility(const TilePosition& position)
 void Landmark::set_settlement(Settlement* settlement, bool captured)
 {
     if (settlement)
-        m_observers.notify(LandmarkEvent(settlement, this));
+        notify(LandmarkEvent(settlement, this));
     if (captured) {
         settlement->m_wonder_order = 4;
         if (settlement == lbl_029219D8->unk_00B4CFDA()) {
@@ -79,7 +74,7 @@ void Landmark::set_settlement(Settlement* settlement, bool captured)
         }
         Port* port = lbl_018CD80C->region(region())->port();
         if (port->unk_a98())
-            fn_008AAE20(UnkMessage(port->unk_a98()->m_78));
+            fire_triggers(UnkMessage(port->unk_a98()->unk_78()));
     }
     m_settlement = settlement;
 }
@@ -92,7 +87,8 @@ FogOfWarEntry* Landmark::unk_74()
 
 void LandmarkManager::add(Landmark* landmark)
 {
-    landmark->m_type = fn_00E3C9F6(landmark->m_description->m_name.c_str());
+    const String& name = landmark->m_description->name();
+    landmark->m_type = fn_00E3C9F6(name.c_str());
     m_landmarks.push_back(landmark);
     Tile* tile = lbl_018CD80C->tile(*landmark->position());
     tile->m_landmark = 1;
@@ -153,10 +149,10 @@ void LandmarkManager::update()
             x = m_landmarks[i]->position()->x + 0.5f;
             z = m_landmarks[i]->position()->y + 0.5f;
             Vector3 point(x, fn_009C90D2(x, z, true, true, false).m_y, z);
-            if (!lbl_017B1C48.unk_00F6B3D0(point, 2.0f)) {
+            if (!lbl_017B1C48.unk_00F6B3D0(point, 3.0f)) {
                 if (!lbl_02921AC0->unk_00452977() || lbl_029219E0->unk_004B3124(*m_landmarks[i]->position()) >= 2) {
                     effect.set_position(point);
-                    lbl_016E84A0.unk_00A62E78(m_landmarks[i]->m_description->m_effect, effect);
+                    lbl_016E84A0.unk_00A62E78(m_landmarks[i]->m_description->m_model, effect);
                 }
             }
         }
@@ -181,7 +177,7 @@ bool LandmarkManager::load(SaveStream& stream)
             name.load(stream);
             stream.read(&position, 8);
             stream.read(&saved_settlement, 4);
-            Landmark* landmark = fn_008F80F8(name);
+            Landmark* landmark = create_landmark(name);
             landmark->m_settlement = saved_settlement;
             lbl_029219E0->unk_004ABED9(landmark, &position);
             add(landmark);

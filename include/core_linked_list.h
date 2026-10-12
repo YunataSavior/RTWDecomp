@@ -32,16 +32,51 @@ public:
         Node* m_node;
     };
 
+    LinkedList() { m_head = 0; m_tail = 0; }
+    ~LinkedList();
+
+    int size()
+    {
+        int count = 0;
+        for (iterator it = head(); it != iterator(); ++it)
+            count++;
+        return count;
+    }
+    T& operator[](int index)
+    {
+        iterator it = head();
+        while (index--)
+            ++it;
+        return *it;
+    }
+    iterator erase(iterator& it);
+    iterator remove(iterator& it);
+
     Node* head() { return m_head; }
+    iterator begin() { return head(); }
     Node* tail() { return m_tail; }
     iterator last() { return m_tail; }
     Node* push_back(const T& item) { return append(item).tail(); }
     LinkedList& append(const T& item);
     LinkedList& pop_back();
+    void remove_last() { pop_back(); }
 
     Node* m_head;
     Node* m_tail;
 };
+
+template <class T>
+LinkedList<T>::~LinkedList()
+{
+    while (m_head) {
+        m_tail = m_head->m_next;
+#line 144
+        CA_DELETE(m_head);
+        m_head = m_tail;
+    }
+    m_head = 0;
+    m_tail = 0;
+}
 
 template <class T>
 LinkedList<T>& LinkedList<T>::append(const T& item)
@@ -79,6 +114,54 @@ LinkedList<T>& LinkedList<T>::pop_back()
     return *this;
 }
 
+template <class T>
+LinkedList<T>::iterator LinkedList<T>::erase(iterator& it)
+{
+    iterator next = it.m_node->m_next;
+    if (m_head == it.m_node) {
+        if (m_tail == it.m_node) {
+            m_tail = 0;
+            m_head = 0;
+        } else {
+            m_head = it.m_node->m_next;
+            it.m_node->m_next->m_prev = 0;
+        }
+    } else if (m_tail == it.m_node) {
+        m_tail = it.m_node->m_prev;
+        it.m_node->m_prev->m_next = 0;
+    } else {
+        it.m_node->m_prev->m_next = it.m_node->m_next;
+        it.m_node->m_next->m_prev = it.m_node->m_prev;
+    }
+#line 529
+    CA_DELETE(it.m_node);
+    return next;
+}
+
+template <class T>
+LinkedList<T>::iterator LinkedList<T>::remove(iterator& it)
+{
+    iterator next = it.m_node->m_next;
+    if (m_head == it.m_node) {
+        if (m_tail == it.m_node) {
+            m_tail = 0;
+            m_head = 0;
+        } else {
+            m_head = it.m_node->m_next;
+            it.m_node->m_next->m_prev = 0;
+        }
+    } else if (m_tail == it.m_node) {
+        m_tail = it.m_node->m_prev;
+        it.m_node->m_prev->m_next = 0;
+    } else {
+        it.m_node->m_prev->m_next = it.m_node->m_next;
+        it.m_node->m_next->m_prev = it.m_node->m_prev;
+    }
+#line 564
+    CA_DELETE(it.m_node);
+    return next;
+}
+
 // Something told of an event (the first virtual function of its class).
 template <class T>
 class Observer {
@@ -107,7 +190,7 @@ void ObserverList<T>::notify(const T& event)
         m_telling.push_back(it);
         (*it)->notify(event);
         it = *m_telling.last();
-        m_telling.pop_back();
+        m_telling.remove_last();
         if (it != List::iterator())
             ++it;
         else
