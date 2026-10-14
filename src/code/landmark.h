@@ -60,25 +60,25 @@ struct LandmarkDescription {
 
 // Told when a landmark changes hands.
 struct LandmarkEvent {
-    LandmarkEvent(Settlement* settlement, Landmark* landmark) : m_settlement(settlement), m_landmark(landmark) {}
+    LandmarkEvent(Faction* faction, Landmark* landmark) : m_faction(faction), m_landmark(landmark) {}
 
-    Settlement* m_settlement;
+    Faction* m_faction;
     Landmark* m_landmark;
 };
 
 // A landmark on the strategy map: a wonder (0x44 bytes). code\landmark_db.cpp creates them.
 class Landmark : public StrategyObject, public ObserverList<LandmarkEvent> {
 public:
-    Landmark() : m_type(10), m_settlement(0), m_description(0) {}
+    Landmark() : m_type(10), m_faction(0), m_description(0) {}
     virtual FogOfWarEntry* unk_74();                                  // +0x74: 0x0049CE2D
 
-    void set_settlement(Settlement* settlement, bool captured);      // 0x0049CD32
-    Settlement* settlement() const { return m_settlement; }
+    void set_faction(Faction* faction, bool captured);       // 0x0049CD32
+    Faction* faction() const { return m_faction; }
     int region() const { return m_region; }
 
     int m_type;                               // +0x34: 1 pyramids_and_sphinx to 9 gardens (10 for none)
     int m_region;                             // +0x38
-    Settlement* m_settlement;                 // +0x3c: the settlement that holds it, or 0
+    Faction* m_faction;                       // +0x3c: the faction that holds it, or 0
     LandmarkDescription* m_description;       // +0x40
 };
 
@@ -94,7 +94,7 @@ public:
     void update();                            // 0x0049D0E9
     bool load(SaveStream& stream);            // 0x0049D302
     bool save(SaveStream& stream);            // 0x0049D455
-    void resolve_settlements();               // 0x0049D535: after loading
+    void resolve_factions();                  // 0x0049D535: after loading
 
     unsigned int size() const { return m_landmarks.size(); }
 

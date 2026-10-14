@@ -152,6 +152,7 @@ V* HashMap<K, V, H, E>::find(const K& key)
 template <class K, class V, class H, class E>
 bool HashMap<K, V, H, E>::insert(const K& key, const V& value)
 {
+    // NONMATCHING - in the TextKey instantiation the original calls TextEqual out of line, where VC6 inlines it here
     unsigned int start = m_hash(key) % m_capacity;
     for (unsigned int i = start; i < m_capacity; i++) {
         if (m_equal(key, entry(i)->m_key)) {

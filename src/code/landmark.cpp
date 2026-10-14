@@ -29,7 +29,7 @@ public:
 
 class UnkB4CFDA {
 public:
-    Settlement* unk_00B4CFDA();         // 0x00B4CFDA
+    Faction* unk_00B4CFDA();            // 0x00B4CFDA: the player's faction (a guess)
 };
 
 class UnkF6B3D0 {
@@ -42,17 +42,12 @@ public:
     void unk_00A62E78(Model* model, MapEffect& at);  // 0x00A62E78: draws model
 };
 
-class Unk452977 {
-public:
-    bool unk_00452977();                // 0x00452977
-};
-
 extern "C" {
 Vector3 fn_009C90D2(float x, float z, bool, bool, bool);  // (C4190: C linkage returning a struct)
 extern UnkB4CFDA* lbl_029219D8;
 extern UnkF6B3D0 lbl_017B1C48;
 extern UnkA62E78 lbl_016E84A0;
-extern Unk452977* lbl_02921AC0;
+extern Campaign* lbl_02921AC0;
 }
 
 inline unsigned char visibility(const TilePosition& position)
@@ -60,23 +55,23 @@ inline unsigned char visibility(const TilePosition& position)
     return fn_009CB2A7(position.x, position.y);
 }
 
-// Gives the landmark to settlement (0 for none). When it is captured, the settlement's people celebrate for four
-// turns (Settlement::m_wonder_order).
-void Landmark::set_settlement(Settlement* settlement, bool captured)
+// Gives the landmark to faction (0 for none). When it is captured, the faction's people celebrate for four turns
+// (Faction::m_wonder_order).
+void Landmark::set_faction(Faction* faction, bool captured)
 {
-    if (settlement)
-        notify(LandmarkEvent(settlement, this));
+    if (faction)
+        notify(LandmarkEvent(faction, this));
     if (captured) {
-        settlement->m_wonder_order = 4;
-        if (settlement == lbl_029219D8->unk_00B4CFDA()) {
-            fn_00CB5468(settlement, this, position(), 0);
-            fn_00CB54E7(m_settlement, this, position());
+        faction->m_wonder_order = 4;
+        if (faction == lbl_029219D8->unk_00B4CFDA()) {
+            fn_00CB5468(faction, this, position(), 0);
+            fn_00CB54E7(m_faction, this, position());
         }
         Port* port = lbl_018CD80C->region(region())->port();
         if (port->unk_a98())
             fire_triggers(UnkMessage(port->unk_a98()->unk_78()));
     }
-    m_settlement = settlement;
+    m_faction = faction;
 }
 
 FogOfWarEntry* Landmark::unk_74()
@@ -112,7 +107,7 @@ int LandmarkManager::num_held(int faction)
 {
     int count = 0;
     for (unsigned int i = 0; i < size(); i++)
-        if (m_landmarks[i]->settlement() && m_landmarks[i]->settlement()->faction() == faction)
+        if (m_landmarks[i]->faction() && m_landmarks[i]->faction()->id() == faction)
             count++;
     return count;
 }
@@ -170,15 +165,15 @@ bool LandmarkManager::load(SaveStream& stream)
         String name;
         TilePosition position;
         unsigned short count = 0;
-        Settlement* saved_settlement;
+        Faction* saved_pointer;
         clear();
         count = stream.read_ushort();
         for (unsigned short i = 0; i < count; i++) {
             name.load(stream);
             stream.read(&position, 8);
-            stream.read(&saved_settlement, 4);
+            stream.read(&saved_pointer, 4);
             Landmark* landmark = create_landmark(name);
-            landmark->m_settlement = saved_settlement;
+            landmark->m_faction = saved_pointer;
             lbl_029219E0->unk_004ABED9(landmark, &position);
             add(landmark);
             lbl_018CD80C->tile(position.x, position.y)->m_landmark = 1;
@@ -201,14 +196,14 @@ bool LandmarkManager::save(SaveStream& stream)
         m_landmarks[i]->m_description->m_name.save(stream);
         position = *m_landmarks[i]->position();
         stream.write(&position, 8);
-        stream.write_value(m_landmarks[i]->m_settlement);
+        stream.write_value(m_landmarks[i]->m_faction);
     }
     return true;
 }
 
-void LandmarkManager::resolve_settlements()
+void LandmarkManager::resolve_factions()
 {
     unsigned short count = size();
     for (unsigned short i = 0; i < count; i++)
-        m_landmarks[i]->m_settlement = (Settlement*)fn_0041374F(m_landmarks[i]->m_settlement);
+        m_landmarks[i]->m_faction = (Faction*)fn_0041374F(m_landmarks[i]->m_faction);
 }

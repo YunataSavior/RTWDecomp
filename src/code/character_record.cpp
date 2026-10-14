@@ -584,7 +584,7 @@ void CharacterRecord::set_attribute(int attribute, int value)
     if (attribute == 20 && m_character && m_faction->unk_180())
         m_faction->unk_180()->unk_00492498(m_character, false);
     if (m_character)
-        m_character->unk_0058CBBC();
+        m_character->reset_movement();
 }
 
 void CharacterRecord::set_subterfuge(int value)

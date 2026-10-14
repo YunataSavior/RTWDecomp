@@ -573,6 +573,7 @@ void init_triggers()
 
 void free_triggers()
 {
+    // NONMATCHING - stack slot order differs
     if (s_event_types) {
         HashMap<TextKey, LinkedList<Trigger>*, TextHash, TextEqual>* event_types = s_event_types;
         for (HashMap<TextKey, LinkedList<Trigger>*, TextHash, TextEqual>::iterator it = event_types->begin();

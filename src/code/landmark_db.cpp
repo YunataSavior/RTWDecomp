@@ -112,7 +112,7 @@ Landmark* create_landmark(const String& type)
             Landmark* landmark = NEW Landmark;
             landmark->m_description = &LandmarkDatabase::s_descriptions.m_items[i];
             landmark->m_description->m_name = type;
-            landmark->m_settlement = 0;
+            landmark->m_faction = 0;
             landmark->m_type = i;
             return landmark;
         }

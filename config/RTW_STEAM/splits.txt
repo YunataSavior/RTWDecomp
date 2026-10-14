@@ -33,7 +33,7 @@ code/ground_tile.cpp:
 	.text       start:0x004663D5 end:0x00467C85
 
 code/world_map.cpp:
-	.text       start:0x00481BCC end:0x0048E4EC
+	.text       start:0x0046D364 end:0x0048E4EC
 
 code/battle_site_marker.cpp:
 	.text       start:0x0048F29C end:0x0048F5E6

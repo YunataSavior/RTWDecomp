@@ -111,6 +111,20 @@ Tips
   destructor at all, VC6 expands `debug_delete` into its caller.
 - A search loop that tests its match in the loop's condition (`while (e->m_key && (e->m_key != key || e->m_type !=
   type))`) compiles to one jump per test; testing it in the body and `break`ing adds a `jne; jmp` pair.
+- An `Array` loop whose start iterator takes one temporary (`mov eax, [this+X]; mov [ebp-A], eax; mov eax, [ebp-A];
+  mov [ebp-B], eax`) is built from `data()` (`iterator it = m_neighbours.data()`); from `begin()` it takes two.
+- A function whose callers read only `al` (`call; movzx eax, al`) but whose body returns another function's `int`
+  unchanged returns `unsigned char`: the narrowing costs no code (`StrategyMap::unk_00471495` in `world_map.cpp`).
+- An argument passed by value from a slot (`push [ebp-X]; push [ebp-Y]`) rather than through the constructor's
+  returned pointer (`push [eax+4]; push [eax]`) is a named local (`RoadPoint position(index);`), not a temporary.
+- A file's run of header initializers (the 36 thunk/initializer pairs above) marks where it starts, even when none of
+  its code pushes its `__FILE__`: `world_map.cpp` starts with its run at 0x0046D364, well before its first path.
+- `cmp; ...; mov byte ptr [t], 1` then `movzx eax, byte ptr [t]; neg eax; sbb eax, eax; inc eax` is `a != b` through an
+  inline `operator!=` built on `operator==`; `!(a == b)` tests the byte directly.
+- `movzx eax, byte ptr [x]; neg eax; sbb eax, eax; neg eax` before a test is a byte converted to `bool`
+  (`(bool)occupant->m_84`).
+- Many `return 0`s that jump to one shared `xor eax, eax` before `leave` are nested `if`s whose failures fall through
+  to a final `return 0;`; a `return 0;` written in place compiles to its own `xor eax, eax; jmp`.
 
 Locals and the stack
 --------------------
@@ -126,6 +140,10 @@ The rules, found by experiment:
 - Compiler temporaries come after all the named locals, in the order the compiler creates them: first those the front
   end makes while parsing (an argument bound to a `const T&`, a class returned by value), then those made when inlines
   are expanded, then code generation's (a `switch` value, conversions, `?:` and `&&` results).
+  - So a pointer stored to a slot below the temporaries, then loaded into `ecx` for a call, is an expanded inline's
+    `this`, not a named local (`Character::start_turn()` in `faction.cpp`).
+- Sibling loops don't share slots: each `for (unsigned int i = 0; ...)` gets its own `i`. Loops that all use one slot
+  have their variable declared once, before them.
 
 `tools/vc6_locals.py` prints names' buckets and the order they would get. To fix a function's layout, map its slots
 to its locals (by masking stack offsets and diffing), then choose names per scope that the tool puts in the
