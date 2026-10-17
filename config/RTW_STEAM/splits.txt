@@ -47,6 +47,9 @@ code/fog_of_war.cpp:
 code/fort.cpp:
 	.text       start:0x0049946D end:0x00499892
 
+code/settlement_base.cpp:
+	.text       start:0x0049ABD1 end:0x0049AD2D
+
 code/garrison.cpp:
 	.text       start:0x0049BA72 end:0x0049BC60
 
@@ -117,7 +120,7 @@ code/ai/ai_resource_allocation_manager.cpp:
 	.text       start:0x0052709C end:0x00527243
 
 code/ai/ai_senate_faction.cpp:
-	.text       start:0x00528B04 end:0x00534A1E
+	.text       start:0x0052749E end:0x00534A1E
 
 code/ai/ai_subterfuge_controller.cpp:
 	.text       start:0x005352AC end:0x00545024
@@ -162,7 +165,7 @@ code/sm_declare_war.cpp:
 	.text       start:0x00554809 end:0x00554CB0
 
 code/sm_demand_suicide.cpp:
-	.text       start:0x005555E6 end:0x005557DE
+	.text       start:0x005555E6 end:0x00555A5C
 
 code/sm_destroy_rebel_city.cpp:
 	.text       start:0x00556071 end:0x00556264
@@ -224,6 +227,9 @@ code/diplomat_actions.cpp:
 code/general_actions.cpp:
 	.text       start:0x00573EF5 end:0x0057554E
 
+code/spy_actions.cpp:
+	.text       start:0x005772C2 end:0x0057735A
+
 code/character.cpp:
 	.text       start:0x0057E693 end:0x0058E173
 
@@ -253,6 +259,9 @@ code/settlement_construction.cpp:
 
 code/settlement_manager.cpp:
 	.text       start:0x005C6AB0 end:0x005C6C72
+
+code/settlement_mechanics.cpp:
+	.text       start:0x005C7648 end:0x005CF3F9
 
 code/settlement_verified.cpp:
 	.text       start:0x005D3E13 end:0x005D3FCC

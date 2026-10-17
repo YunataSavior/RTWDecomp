@@ -336,6 +336,20 @@ int Region::unk_00483F36()
     return m_port->unk_184();
 }
 
+RebelType* Region::rebel_type()
+{
+    RebelType* type = fn_00903C7E(m_rebel_type);
+    return type;
+}
+
+bool Region::has_rebel_type()
+{
+    if (!m_rebel_type.is_set())
+        return false;
+    RebelType* type = fn_00903C7E(m_rebel_type);
+    return type != 0;
+}
+
 RegionNeighbour* Region::neighbour(int region)
 {
     for (unsigned int i = 0; i < m_neighbours.size(); i++)

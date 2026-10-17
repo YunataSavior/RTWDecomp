@@ -20,14 +20,12 @@ static char s_no_name[4];
 static char s_no_text[4];
 
 extern "C" {
-unsigned int fn_008D078B();                                         // (not identified)
 void fn_00CB17CB(CharacterRecord* record, TraitLevel* level);       // tells the player a trait was gained
 void fn_00CB19ED(CharacterRecord* record, TraitLevel* level);       // tells the player a trait was lost
 void fn_00CB1C02(Character* character, CharacterAncillary* ancillary);  // tells the player of a new ancillary
 void fn_00CB22B1(CharacterRecord* record);
 void fn_00B2BC04(int message, Character* character, int);
 void fn_008E2F67(CharacterRecord* record, int type, int faction, int name_faction);
-void fn_008FF5CB(Random* random, int faction, int, int* first_name, int* surname);
 CharacterRecord* fn_008E2CE8(Faction* faction, int first_name, int surname, int age, int, int, int);
 Character* fn_008E2A1C(CharacterRecord* record);                    // puts the record's character on the map
 void fn_008B3858(CharacterRecord* record);
@@ -49,11 +47,6 @@ extern Battle* lbl_029219E4;
 }
 
 // Messages to the triggers about a character's family (not identified).
-class UnkMessage8A4586 : public UnkMessage {
-public:
-    UnkMessage8A4586(CharacterRecord* record);  // 0x008A4586
-};
-
 class UnkMessage8A4724 : public UnkMessage {
 public:
     UnkMessage8A4724(CharacterRecord* record);  // 0x008A4724
@@ -72,11 +65,6 @@ inline int num_traits_defined()
 inline int num_ancillaries_defined()
 {
     return AncillaryDatabase::s_ancillaries.size();
-}
-
-inline bool religions_enabled()
-{
-    return fn_008D078B() > 0;
 }
 
 CharacterTrait::CharacterTrait(TraitDefinition* definition, int points)
@@ -527,7 +515,7 @@ bool CharacterRecord::add_ancillary(AncillaryDescription* definition)
         if (lbl_018CD818->unk_4() == 0 && !m_character->unk_a0())
             fn_00CB1C02(m_character, ancillary);
         if (m_character->unk_0058AFA9())
-            m_character->unk_0058AFA9()->m_dd8.unk_005C8729(true);
+            m_character->unk_0058AFA9()->m_dd8.update(true);
         if (m_character)
             lbl_029219DC->unk_00C0A37E(m_character);
         return true;
@@ -550,7 +538,7 @@ void CharacterRecord::remove_ancillary(AncillaryDescription* definition)
             if (religions_enabled())
                 update_religion();
             if (m_character->unk_0058AFA9())
-                m_character->unk_0058AFA9()->m_dd8.unk_005C8729(true);
+                m_character->unk_0058AFA9()->m_dd8.update(true);
             lbl_029219DC->unk_00C0A37E(m_character);
             break;
         }
@@ -934,7 +922,7 @@ void CharacterRecord::marry(CharacterRecord* wife)
             }
             m_faction->unk_004CA5BA(own_army);
             if (m_faction->is_unk_a7())
-                own_army->unk_007201B3(0, lbl_018CD80C->unk_00482A48(character->position())->unk_68());
+                own_army->unk_007201B3(0, lbl_018CD80C->unk_00482A48(character->position())->creator_faction());
             m_faction->unk_180()->unk_00492498(character, false);
             if (joined) {
                 character->unk_004B7B27(2);
@@ -1018,7 +1006,7 @@ void CharacterRecord::adopt(CharacterRecord* father)
         general_unit->m_27c = new_character->unk_c4();
         m_faction->unk_004CA5BA(own_army);
         if (m_faction->is_unk_a7())
-            own_army->unk_007201B3(0, lbl_018CD80C->unk_00482A48(new_character->position())->unk_68());
+            own_army->unk_007201B3(0, lbl_018CD80C->unk_00482A48(new_character->position())->creator_faction());
         m_faction->unk_180()->unk_00492498(new_character, false);
         if (joined) {
             new_character->unk_004B7B27(2);

@@ -20,6 +20,19 @@ enum Attribute {
     ATTR_INFLUENCE = 1,
     ATTR_MANAGEMENT = 2,
     ATTR_SUBTERFUGE = 3,
+    ATTR_LOYALTY = 4,
+    ATTR_PUBLIC_SECURITY = 0x10,
+    ATTR_ELECTABILITY = 0x13,
+    ATTR_LOCAL_POPULARITY = 0x19,
+    ATTR_FARMING = 0x1c,
+    ATTR_GRAIN_TRADING = 0x2a,
+    ATTR_SLAVE_TRADING = 0x2b,
+    ATTR_HEALTH = 0x2c,
+    ATTR_SQUALOR = 0x2d,
+    ATTR_UNREST = 0x2e,
+    ATTR_LAW = 0x2f,
+    ATTR_SENATE_STANDING = 0x31,
+    ATTR_POPULAR_STANDING = 0x32,
     NUM_ATTRIBUTES = 55,
 };
 
@@ -116,7 +129,9 @@ public:
     int command(BattleUnk* battle);                                       // 0x00590EC6
     int main_skill();                                                     // 0x00591415
     int management();                                                     // 0x0049C5B6
-    int influence();                                                      // 0x004D496D
+    int subterfuge();                                                     // 0x004D491A: 0 to 10
+    int influence();                                                      // 0x004D496D: 0 to 10
+    int loyalty();                                                        // 0x0058D1E6: 0 to 10
     void unk_0059146C(int, unsigned int);                                 // 0x0059146C
     void update_age();                                                    // 0x00591522
     bool unk_005919E3();                                                  // 0x005919E3
@@ -140,6 +155,7 @@ public:
     void remove_child(CharacterRecord* child);                            // 0x00593ECC
 
     int& attribute(int id) { return m_attributes[id]; }
+    int attribute_value(const int& id) { return m_attributes.m_items[id]; }
     CharacterRecord*& child(int index) { return m_children[index]; }
     bool flag3() const { return m_flag3; }
 

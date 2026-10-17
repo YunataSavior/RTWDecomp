@@ -71,6 +71,19 @@ bool PathFinder::is_blocked(const RoadPoint& from, const RoadPoint& to, Tile* ti
     return !by_land;
 }
 
+// Collects the spies in a settlement that aren't its owner's: every spy on its tile whose faction isn't the owner,
+// whether the owner can see it or not, and whatever the two factions' relations.
+void PathFinder::foreign_spies(Settlement* settlement, Array<Character*>* spies)
+{
+    StrategyObject* object = lbl_018CD80C->tile(*settlement->position())->m_objects;
+    while (object) {
+        Character* character = object->unk_28();
+        if (character && character->faction() != settlement->unk_9c() && character->type() == 0)
+            spies->push_back(character);
+        object = object->m_next;
+    }
+}
+
 // Plans a road from one tile to another into m_path, goal first. Returns 0, or 1 when the goal is off the map or
 // blocked, or 2 when there is no path.
 int PathFinder::find_road_path(const RoadPoint& from, const RoadPoint& to)

@@ -593,6 +593,7 @@ LIBS = [
             Object(NonMatching, "code/font_utils.cpp"),
             Object(NonMatching, "code/format_proposition.cpp"),
             Object(NonMatching, "code/fort.cpp"),
+            Object(NonMatching, "code/settlement_base.cpp"),
             Object(NonMatching, "code/game_battle_handler.cpp"),
             Object(NonMatching, "code/game_fmv_handler.cpp"),
             Object(NonMatching, "code/game_map_view_handler.cpp"),

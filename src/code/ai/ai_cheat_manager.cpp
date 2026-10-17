@@ -243,7 +243,7 @@ void AICheatManager::update()
                 else
                     s_flags.flags[i].strongest_neighbour = false;
                 if (!s_flags.flags[i].human && lbl_018CD818->unk_2e4() < 100 && record->unk_00445B2B()
-                    && !record->m_description->has_18() && record->num_regions() <= num_regions / 2)
+                    && !record->m_description->has_shadowing() && record->num_regions() <= num_regions / 2)
                     s_flags.flags[i].small_ai = true;
                 else
                     s_flags.flags[i].small_ai = false;

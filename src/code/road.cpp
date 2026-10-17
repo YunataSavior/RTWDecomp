@@ -86,8 +86,8 @@ bool Road::unk_004A1DFD()
     bool found = false;
     Array<RoadPoint> points;
     for (Array<RoadPoint>::iterator it = m_drawn.data(); it != m_drawn.end(); ++it) {
-        Settlement* source = lbl_018CD80C->m_regions[m_planner].m_settlement;
-        Settlement* target = lbl_018CD80C->m_regions[m_other].m_settlement;
+        Faction* source = lbl_018CD80C->m_regions[m_planner].m_owner;
+        Faction* target = lbl_018CD80C->m_regions[m_other].m_owner;
         int source_hit = 0;
         int target_hit = 0;
         if (source)

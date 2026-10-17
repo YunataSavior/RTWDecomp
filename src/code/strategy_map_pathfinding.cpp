@@ -133,9 +133,9 @@ void AStar::expand(PathNode* node, const RoadPoint& goal)
             }
             case 3: {
                 int region = lbl_018CD80C->m_tiles[next.x + next.y * lbl_018CD80C->m_width].m_region;
-                Settlement* settlement = lbl_018CD80C->m_regions[region].m_settlement;
-                if (lbl_029219E0->character()->unk_0058B8D9(settlement)
-                    || ((CharacterKind*)lbl_029219E0->character())->faction()->unk_004CFC65(settlement)) {
+                Faction* owner = lbl_018CD80C->m_regions[region].m_owner;
+                if (lbl_029219E0->character()->unk_0058B8D9(owner)
+                    || ((CharacterKind*)lbl_029219E0->character())->faction()->at_war_with(owner)) {
                     if (lbl_029219E0->can_move(point, next, goal) == 1)
                         relax(node, next, goal);
                 }
