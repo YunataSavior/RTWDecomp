@@ -31,6 +31,44 @@ inline int clamp_int(const int& value, const int& low, const int& high)
     return min_int(max_int(value, low), high);
 }
 
+inline unsigned int min_uint(const unsigned int& a, const unsigned int& b)
+{
+    return a < b ? a : b;
+}
+
+inline unsigned int max_uint(const unsigned int& a, const unsigned int& b)
+{
+    return a < b ? b : a;
+}
+
+inline void clamp_uint(unsigned int& value, const unsigned int& low, const unsigned int& high)
+{
+    value = min_uint(max_uint(value, low), high);
+}
+
+// Growth is factors 0-5 less factors 8-10, kept to -200..25 points, and then the AI's bonus for the difficulty; a point
+// is 0.5% of the population. Factors 6 and 7 (slaves) aren't counted. The plague's share (factor 9) is kept as the
+// settlement's m_plague_deaths, and the population is kept between the level's m_8 and three times its m_c.
+void SettlementStats::apply_growth(int faction, int level)
+{
+    int growth = 0;
+    growth += growth_ref(GROWTH_FERTILITY);
+    growth += growth_ref(GROWTH_FARMING);
+    growth += growth_ref(GROWTH_GRAIN);
+    growth += growth_ref(GROWTH_HEALTH);
+    growth += growth_ref(GROWTH_BONUS);
+    growth += growth_ref(GROWTH_LOW_TAXES);
+    growth -= growth_ref(GROWTH_SQUALOR);
+    growth -= growth_ref(GROWTH_PLAGUE);
+    growth -= growth_ref(GROWTH_HIGH_TAXES);
+    growth = clamp_int(growth, -200, 25);
+    growth += AICheatManager::ai_population_growth(faction);
+    settlement()->m_plague_deaths = float_to_int(m_population * (0.005f * growth_ref(GROWTH_PLAGUE)));
+    m_population += float_to_int(m_population * (0.005f * growth));
+    SettlementLevel* limits = &lbl_012DAFC8[level];
+    clamp_uint(m_population, (unsigned int&)limits->m_8, limits->m_c * 3);
+}
+
 // At the start of the owner's turn: reads the region's rebel chance, works the figures out again, and keeps them as
 // last turn's (which the riot and revolt checks read).
 void SettlementDD8::start_turn()
@@ -145,13 +183,13 @@ void SettlementDD8::compute_order(SettlementStats* stats, BuildingEffects* effec
 
     // The garrison, against the population.
     int garrison = 0;
-    if (m_settlement->m_garrison) {
+    if (m_settlement->m_garrison.m_object) {
         if (lbl_02921A30->m_prologue) {
-            Army* army = m_settlement->m_garrison;
+            Army* army = m_settlement->m_garrison.m_object;
             int population = float_to_int(lbl_02921A30->unit_scale() * stats->m_population);
             garrison = army->garrison_soldiers() * 1600 / population * 2;
         } else {
-            Army* army = m_settlement->m_garrison;
+            Army* army = m_settlement->m_garrison.m_object;
             int population = float_to_int(lbl_02921A30->unit_scale() * stats->m_population);
             garrison = army->garrison_soldiers() * 700 / population * 2;
         }
@@ -165,7 +203,7 @@ void SettlementDD8::compute_order(SettlementStats* stats, BuildingEffects* effec
     int influence = 0;
     int health = 0;
     int law = 0;
-    Character* governor = m_settlement->m_governor;
+    Character* governor = m_settlement->m_governor.m_character;
     if (governor) {
         CharacterRecord* record = governor->m_record;
         influence = record->influence();
@@ -275,7 +313,7 @@ void SettlementDD8::compute_order(SettlementStats* stats, BuildingEffects* effec
     distance = clamp_int(distance, 0, 80);
     stats->m_order[11] = distance / 5;
     stats->m_order[12] = (100 - share) / 10;
-    stats->m_order[13] = m_settlement->m_garrison ? 0 : 3;
+    stats->m_order[13] = m_settlement->m_garrison.m_object ? 0 : 3;
     stats->m_order[14] = (m_settlement->m_tax_level >= 2 ? m_settlement->m_tax_level - 1 : 0) * 4;
     unrest = clamp_int(unrest, 0, 16);
     stats->m_order[15] = unrest;

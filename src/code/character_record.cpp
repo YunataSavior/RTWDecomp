@@ -36,8 +36,8 @@ int fn_008FF4D7(int kind, int faction, const UniString* name);      // a name's 
 const char* fn_008FF4A3(int kind, int faction, int id);             // a saved name's key
 void fn_008FF55B(const char* full_name, String* first_name, String* surname);
 const UniString* fn_00D92EE8(int type);
-void fn_00528CD1(SaveStream& stream, SenateMissionSlot& slot);
-void fn_00528DD8(SaveStream& stream, SenateMissionSlot& slot);
+void fn_00528CD1(SaveStream& stream, SenateCareer& career);
+void fn_00528DD8(SaveStream& stream, SenateCareer& career);
 void fn_004136D7(void* object, int saved_address);
 void* fn_004138B0(void* saved);                                     // a saved pointer's new value
 void* fn_004137F3(void* saved);
@@ -146,7 +146,7 @@ CharacterRecord::CharacterRecord(Faction* faction)
     m_alive = true;
     m_male = true;
     m_flag2 = false;
-    m_flag3 = false;
+    m_leader = false;
     m_flag4 = false;
     m_flag5 = false;
     m_age = 0;
@@ -182,7 +182,7 @@ CharacterRecord::CharacterRecord(const CharacterRecord& other) : m_religious_bel
     m_father = other.m_father;
     m_spouse = other.m_spouse;
     m_children = other.m_children;
-    m_senate_mission = other.m_senate_mission;
+    m_career = other.m_career;
     m_1c0 = other.m_1c0;
     m_1c4 = other.m_1c4;
     m_1cc = other.m_1cc;
@@ -190,7 +190,7 @@ CharacterRecord::CharacterRecord(const CharacterRecord& other) : m_religious_bel
     m_alive = other.m_alive;
     m_male = other.m_male;
     m_flag2 = other.m_flag2;
-    m_flag3 = other.m_flag3;
+    m_leader = other.m_leader;
     m_flag4 = other.m_flag4;
     m_flag5 = other.m_flag5;
     m_age = other.m_age;
@@ -228,7 +228,7 @@ void CharacterRecord::kill()
 {
     m_character = 0;
     m_alive = false;
-    if (m_character && m_character->m_record->flag3())
+    if (m_character && m_character->m_record->is_leader())
         m_flag5 = true;
     m_death_date = lbl_018CD818->m_date;
 }
@@ -1162,12 +1162,12 @@ bool CharacterRecord::save(SaveStream& stream)
     stream.write_value(child(1));
     stream.write_value(child(2));
     stream.write_value(child(3));
-    fn_00528CD1(stream, m_senate_mission);
+    fn_00528CD1(stream, m_career);
     stream.write_value(m_1c0);
     unsigned int bits = m_alive;
     bits += m_male * 2;
     bits += m_flag2 * 4;
-    bits += m_flag3 * 8;
+    bits += m_leader * 8;
     bits += m_flag4 << 4;
     bits += m_flag5 << 5;
     bits += m_age << 6;
@@ -1222,14 +1222,14 @@ bool CharacterRecord::load(SaveStream& stream)
     stream.read(&child(1), 4);
     stream.read(&child(2), 4);
     stream.read(&child(3), 4);
-    fn_00528DD8(stream, m_senate_mission);
+    fn_00528DD8(stream, m_career);
     stream.read(&m_1c0, 4);
     unsigned int bits = 0;
     bits = stream.read_int();
     m_alive = bits;
     m_male = bits >> 1;
     m_flag2 = bits >> 2;
-    m_flag3 = bits >> 3;
+    m_leader = bits >> 3;
     m_flag4 = bits >> 4;
     m_flag5 = bits >> 5;
     m_age = bits >> 6;

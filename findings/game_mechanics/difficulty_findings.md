@@ -30,12 +30,12 @@ Difficulty levels: **0 Easy, 1 Medium, 2 Hard, 3 Very Hard.**
   - The battle difficulty goes in `slot+0x14`.
 - At campaign start (`0x446920`), every faction's entry in `campaign+0xc0 + faction*4` is set to **1 (Medium)**, then the human slots get their chosen value (`0x446A9A`).
   - **So AI factions are always "Medium" in this array.**
-- The getter is `difficulty(faction)` (`0x4529E3`) on the campaign object (`[0x18CD818]`).
+- The getter is `Campaign::difficulty(faction)` ([`code/world.cpp`](../../src/code/world.cpp)) on the campaign object (`[0x18CD818]`).
   - It has exactly five callers: `AICheatManager::update()`, and the two pairs under [Other direct uses](#other-direct-uses-of-the-difficulty-value-nyd).
 
 ## `AICheatManager::update()` (`0x4FC0A8`)
 
-It's called at the end of `load_game` (`0x413BD6`, the call at `0x413E6F`), so the settings are worked out again whenever a saved game is loaded. It's also called from `0x452ACF` and `0x453BE2` (probably campaign start and turn processing; NYD). It takes the first human faction (`human_faction(0)`, `0x457158`) and switches on **that faction's** difficulty, treating anything other than 0, 2 or 3 as Medium.
+It's called at the end of `load_game` (`0x413BD6`, the call at `0x413E6F`), so the settings are worked out again whenever a saved game is loaded. It's also called at the start of **every faction's turn** (`Campaign::unk_00453B9B`) and by `Campaign::unk_00452A62`, which sets up each human faction's AI again (both in [`code/world.cpp`](../../src/code/world.cpp)), so a change of the first human faction's difficulty takes effect by the next turn. It takes the first human faction (`Campaign::human_faction(0)`, in [`code/world.cpp`](../../src/code/world.cpp)) and switches on **that faction's** difficulty, treating anything other than 0, 2 or 3 as Medium.
 
 | Global | Easy | Medium | Hard | V.Hard | Read by | Effect (NYD) |
 |---|---|---|---|---|---|---|
@@ -78,7 +78,7 @@ Notes on the table:
 | +0 | `human` | The faction is human (`faction+0xb8 == 1`) |
 | +1 | `at_war_and_bordering` | At war with P (stance 600, the value `at_war_with` sets) **and** borders P |
 | +2 | `allied` | Its stance with P is 0 (allied) |
-| +3 | `bordering` | Borders P (P's neighbour bitmask `faction+0x13c`, built from region adjacency in `0x4CB391`; NYD) |
+| +3 | `bordering` | Borders P (P's neighbour bitmask `faction+0x13c`, built from region adjacency by `Faction::unk_004CB391` in [`code/faction.cpp`](../../src/code/faction.cpp): a faction is a neighbour when it holds a region beside one of P's) |
 | +4 | `strongest_neighbour` | P's strongest neighbour (the pair table `0x12D1552`, set in `0x4E18FA` from the strength metric at `0x12D0F74`; NYD), with extra conditions |
 | +5 | `small_ai` | A "small AI faction": AI, `campaign+0x2e4 < 100`, `0x445B2B` true, `[faction+0xb4]+0x18 == −1`, and no more than half P's regions |
 
@@ -86,21 +86,21 @@ The exact meaning of the `small_ai` fields isn't confirmed. With no human factio
 
 ## Effects, per area
 
-### Public order (NYD)
+### Public order
 
-The public order function is `0x5CC9D7`. One unit is 5%: `order% = 100 + 5 × units`, clamped to [−20, 80] units.
+The public order function is `SettlementDD8::compute_order` (`0x5CC9D7`, in [`code/settlement_mechanics.cpp`](../../src/code/settlement_mechanics.cpp); functionally equivalent, not byte-matching), and the values come from `AICheatManager::ai_public_order` and `boom_threshold`. One unit is 5%: `order% = 100 + 5 × units`, clamped to [−20, 80] units.
 
 | | Easy | Medium | Hard | V.Hard |
 |---|---|---|---|---|
-| AI settlements: a hidden flat modifier (`0x5CDA88`, added after all factors, not in the breakdown) | **−10%** | 0 | **+20%** | **+30%** |
-| Player: "Boom" (`SOF_BOOM`) counts only growth above this threshold (`0x5CCDBE`) | 4 | 6 | 8 | 10 |
+| AI settlements: a hidden flat modifier (−2 / 0 / +4 / +6 units, added after all 25 lines, so it's not in the breakdown) | **−10%** | 0 | **+20%** | **+30%** |
+| Player: "Boom" (`SOF_BOOM`, line 7) counts only growth points above this threshold | 4 | 6 | 8 | 10 |
 | AI: Boom threshold | 4 | 4 | 4 | 4 |
 
-The AI modifier doesn't apply to the human player or the rebels.
+The AI modifier doesn't apply to a human faction or the rebels, and an AI faction's Boom threshold is always 4.
 
-### Population growth (NYD)
+### Population growth
 
-In `0x5C7DED`, at `0x5C7EF0`, the AI-only value is added to the summed growth points after they're clamped to [−200, 25]. One point is 0.5% per turn.
+`SettlementStats::apply_growth` ([`code/settlement_mechanics.cpp`](../../src/code/settlement_mechanics.cpp)) adds the AI-only value to the summed growth points after they're clamped to [−200, 25], so it can take an AI settlement past the +12.5% cap. One point is 0.5% per turn.
 
 | | Easy | Medium | Hard | V.Hard |
 |---|---|---|---|---|
@@ -121,7 +121,7 @@ Settlement income is built in `0x5CDB6A`.
 
 ### AI treasury: cash every turn
 
-In the faction's end-of-turn finance update (NYD; `0x4D8197`, `this = faction+0x500`; `+0x504` is the treasury and `+0x508` the turn's income), after the normal income is added:
+In the faction's end-of-turn finance update (`FactionFinance::end_turn`, in [`code/faction.cpp`](../../src/code/faction.cpp); `faction+0x504` is the treasury and `+0x508` the turn's income), after the normal income is added, and only while the faction is still in the game (`faction+0x178` is 0):
 
 ```
 bonus = AICheatManager::ai_turn_cash(faction)
@@ -129,7 +129,7 @@ if bonus != 0:
     treasury += bonus × num_settlements + rand(0..100)
 ```
 
-`num_settlements` is `faction+0x114`, the size of the faction's settlement list (NYD). `ai_turn_cash()` (`0x4FC961`), with `base` = `s_ai_turn_cash` (0 / 200 / 400 / 700), checks these cases in order:
+`num_settlements` is the size of the faction's settlement list (`faction+0x10c`). `ai_turn_cash()` (`0x4FC961`), with `base` = `s_ai_turn_cash` (0 / 200 / 400 / 700), checks these cases in order:
 
 | Case | Result |
 |---|---|

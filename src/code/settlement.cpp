@@ -37,6 +37,42 @@ inline int clamp_int(const int& value, const int& low, const int& high)
     return min_int(max_int(value, low), high);
 }
 
+inline short min_short(const short& a, const short& b)
+{
+    return a < b ? a : b;
+}
+
+inline short max_short(const short& a, const short& b)
+{
+    return a < b ? b : a;
+}
+
+inline short clamp_short(const short& value, const short& low, const short& high)
+{
+    return min_short(max_short(value, low), high);
+}
+
+// A settlement's fog of war entry (not identified; 0x30 bytes).
+class SettlementFogEntry {
+public:
+    SettlementFogEntry(Settlement* settlement);  // 0x004946FB
+
+    char m_pad0[0x30];
+};
+
+extern "C" int fn_008F6174(int faction);  // the faction description's +0x40's first value (not identified)
+
+FogOfWarEntry* Settlement::unk_74()
+{
+#line 223
+    return (FogOfWarEntry*)NEW SettlementFogEntry(this);
+}
+
+int Settlement::unk_005B1486()
+{
+    return fn_008F6174(m_owner->id());
+}
+
 int Settlement::owner_id()
 {
     int id = m_owner->id();
@@ -73,8 +109,8 @@ SettlementDamage Settlement::riot_damage(SettlementDamageParams* params, bool ca
         m_dd8.unk_005C8F71(killed);
 
     int losses = 0;
-    if (m_garrison) {
-        Army* army = m_garrison;
+    if (m_garrison.m_object) {
+        Army* army = m_garrison.m_object;
         losses = army->kill_soldiers(lbl_02921A30->m_random.range(params->m_garrison_min, params->m_garrison_max));
     }
     SettlementDamage damage(this, amount, killed, losses);
@@ -149,10 +185,10 @@ void Settlement::check_riots(BuildingEffects* effects)
             }
         }
         int base = 70 - order + neighbours * 5 + 10;
-        if (order < 50 || m_garrison == 0) {
+        if (order < 50 || m_garrison.m_object == 0) {
             chance = base + 30;
         } else {
-            Army* army = m_garrison;
+            Army* army = m_garrison.m_object;
             unsigned int population = m_dd8.m_current.m_population;
             if (army->unk_00722430() > (int)(population >> 1))
                 chance = 0;
@@ -170,7 +206,7 @@ void Settlement::check_riots(BuildingEffects* effects)
         Army* army = revolt(type, 0, 2, 21);
         if (faction->unk_004584F1())
             m_a7e++;
-        fn_008B4820(this, faction, m_governor);
+        fn_008B4820(this, faction, m_governor.m_character);
         lbl_012CED70.unk_004392F9(EventUnk437A36(9, position(), Date(-1000, 2)));
         SettlementDamageParams params;
         params.m_population_min = 0;
@@ -211,8 +247,8 @@ void Settlement::check_riots(BuildingEffects* effects)
         params.m_heavy_max = 100;
         SettlementDamage damage = riot_damage(&params, false, true, false, true);
         fn_00CB4122(&damage);
-        if (m_governor) {
-            Character* governor = m_governor;
+        if (m_governor.m_character) {
+            Character* governor = m_governor.m_character;
             fire_triggers(GovernorCityRiotsEvent(governor->m_record, this, faction));
         }
         fire_triggers(CityRiotsEvent(this, faction));
@@ -290,11 +326,11 @@ int Settlement::revolt_type()
     } else {
         bool found = false;
         if (m_owner->unk_00445B2B()) {
-            String name("amphitheatres");
+            String region_name("amphitheatres");
             unsigned int unused = 0;
             for (unsigned int i = 0; i < lbl_014DA2B0.m_types.unk_005BEA85(); i++) {
                 BuildingType* building_type = lbl_014DA2B0.unk_008D8695(i);
-                if (building_type->m_name == name) {
+                if (building_type->m_name == region_name) {
                     unsigned int unused2 = 0;
                     for (unsigned int j = 0; j < num_buildings(); j++) {
                         if (m_buildings.unk_005C2B81(j)->m_type == building_type) {
@@ -357,8 +393,8 @@ Army* Settlement::revolt(int type, int unk, int reason, int faction)
             unit_faction = m_owner->description()->spawns_on_revolt();
             faction = unit_faction;
         } else if (type == REVOLT_BRITAIN) {
-            String name("romano_british");
-            unit_faction = fn_008F60D5(name)->m_id;
+            String region_name("romano_british");
+            unit_faction = fn_008F60D5(region_name)->m_id;
             faction = unit_faction;
         } else if (lbl_02921A30->m_2b9) {
             type = REVOLT_REBELS;
@@ -370,11 +406,11 @@ Army* Settlement::revolt(int type, int unk, int reason, int faction)
             // revolt_type gives the level plus 5).
             bool found = false;
             if (owner->unk_00445B2B()) {
-                String name("amphitheatres");
+                String region_name("amphitheatres");
                 unsigned int unused = 0;
                 for (unsigned int i = 0; i < lbl_014DA2B0.m_types.unk_005BEA85(); i++) {
                     BuildingType* building_type = lbl_014DA2B0.unk_008D8695(i);
-                    if (building_type->m_name == name) {
+                    if (building_type->m_name == region_name) {
                         unsigned int unused2 = 0;
                         for (unsigned int j = 0; j < num_buildings(); j++) {
                             if (m_buildings.unk_005C2B69(j)->m_type == building_type) {
@@ -404,7 +440,7 @@ Army* Settlement::revolt(int type, int unk, int reason, int faction)
 
     // The units of every kind but the rebels' come from the settlement (the Romano-British's from every infantry and
     // cavalry unit they own), and from the region's list.
-    RevoltUnits units;
+    RecruitmentItems units;
     BuildingEffects effects;
     unk_005C58A1(unit_faction, &effects);
     if (type == REVOLT_REEMERGE || type == REVOLT_SPAWN || type == REVOLT_BRITAIN || type == REVOLT_SHADOW) {
@@ -416,7 +452,7 @@ Army* Settlement::revolt(int type, int unk, int reason, int faction)
                     units.add()->unk_005AE4F0(this, &lbl_01589644[i], 0, 0, 0, 100);
             }
         } else {
-            unk_005B9E7C(&units, &effects, 0, 0);
+            recruitable_units(&units, &effects, false, false);
         }
         RegionRevoltUnits* extra = region()->m_88;
         if (extra) {
@@ -435,9 +471,9 @@ Army* Settlement::revolt(int type, int unk, int reason, int faction)
 
     String kind;
     if (type == REVOLT_SHADOW && (new_owner->m_178 == 0 || new_owner->m_178 == 3))
-        kind = "named character";
+        kind = "region_name character";
     else if ((type == REVOLT_SPAWN || type == REVOLT_BRITAIN) && new_owner->m_178 == 3)
-        kind = "named character";
+        kind = "region_name character";
     else
         kind = "general";
     Character* leader = 0;
@@ -481,16 +517,16 @@ Army* Settlement::revolt(int type, int unk, int reason, int faction)
             army->unk_007216B9();
         }
         // The garrison's units without a general join the army.
-        if (m_garrison) {
+        if (m_garrison.m_object) {
             int unused2 = 0;
-            for (int j = 0; j < m_garrison->num_units(); j++) {
-                Unit* unit = m_garrison->unit_at(j);
+            for (int j = 0; j < m_garrison.m_object->num_units(); j++) {
+                Unit* unit = m_garrison.m_object->unit_at(j);
                 if (unit->unk_278() == 0) {
                     int a = 0;
                     int b = 0;
                     unit->unk_007B64D2(army, a, b);
                     j--;
-                    if (!m_garrison)
+                    if (!m_garrison.m_object)
                         break;
                 }
             }
@@ -504,7 +540,7 @@ Army* Settlement::revolt(int type, int unk, int reason, int faction)
             character->unk_0057FAE2(new_owner, 1);
         }
     } else {
-        // A new general, aged 20 to 50; a named character is adopted by a man of the faction with fewer than 4
+        // A new general, aged 20 to 50; a region_name character is adopted by a man of the faction with fewer than 4
         // children, a living one if there is one.
         int first_name = 0;
         int surname = 0;
@@ -667,7 +703,7 @@ void selection_sort(Iterator first, Iterator last, Pred pred)
     }
 }
 
-// Which of the settlement's characters go over to the faction in a civil war (into defectors). Only its named
+// Which of the settlement's characters go over to the faction in a civil war (into defectors). Only its region_name
 // characters that aren't the faction's already can, as many as the faction's men have room to adopt; the most
 // influential go first. Each one goes with a chance of 100 less 10 times its loyalty, plus 10 for each region next to
 // this one held by a faction in a civil war with the owner, plus a total that grows by 10 for each army of one besieging
@@ -689,7 +725,7 @@ void Settlement::find_defectors(Array<Character*>* defectors, Faction* faction)
     for (i = 0; i < num_characters(true); i++) {
         Character* character = this->character(i, true);
         if (room != 0 && character->type() == 5 && character->unk_00580C1E() != faction
-            && !character->m_record->m_flag3) {
+            && !character->m_record->m_leader) {
             room--;
             candidates.push_back(character);
         }
@@ -794,20 +830,33 @@ void Settlement::end_turn()
     fire_triggers(SettlementTurnEndEvent(this));
 }
 
+// Whether the character would make a better governor: a region_name character, when there's no governor or his Management
+// is higher than the governor's.
+bool Settlement::better_governor(Character* character)
+{
+    if (character->type() == 5) {
+        Character* current = governor();
+        if (!current)
+            return true;
+        if (character->record()->management() > governor()->record()->management())
+            return true;
+    }
+    return false;
+}
+
 // Each turn, every foreign spy inside may be caught (Faction::catch_spy). The owner's strength against them is the
-// combined Subterfuge of its own spies and named characters on the settlement's tile, plus 1, plus the governor's
+// combined Subterfuge of its own spies and region_name characters on the settlement's tile, plus 1, plus the governor's
 // PublicSecurity.
 void Settlement::check_spies()
 {
-    // NONMATCHING - the original sets the attribute index's temporary after loading the record, and keeps the third
-    // path finder in a temporary
+    // NONMATCHING - the original keeps the third path finder in a temporary
     static Array<Character*> s_watchers;
     s_watchers.clear();
     path_finder()->unk_004A99D9(position(), &s_watchers, m_owner, 0);
     path_finder()->unk_004A99D9(position(), &s_watchers, m_owner, 5);
     float strength = combined_subterfuge(s_watchers) + 1.0f;
     if (governor())
-        strength += governor()->record()->attribute_value(ATTR_PUBLIC_SECURITY);
+        strength += governor()->record()->attribute_at(ATTR_PUBLIC_SECURITY);
     static Array<Character*> s_spies;
     s_spies.clear();
     path_finder()->unk_004A9C59(this, &s_spies);
@@ -871,7 +920,7 @@ void Settlement::change_owner(CharacterRecord* captor, Faction* faction, int rea
         set_rebels(region()->rebel_type(), region()->creator_faction());
     }
 
-    if (old_owner->unk_178() == 0 && old_owner->unk_a8() == 0)
+    if (old_owner->unk_178() == 0 && old_owner->capital() == 0)
         old_owner->unk_004CF14F();
     Campaign* campaign = lbl_02921A30;
     if (!campaign->unk_0045460A() || faction->unk_1d4())
@@ -961,6 +1010,99 @@ void Settlement::change_owner(CharacterRecord* captor, Faction* faction, int rea
     }
 }
 
+// After a revolt, the new army's leader and the characters with him come into the settlement, and each one who would
+// make a better governor (better_governor) becomes the governor.
+void Settlement::unk_ac(Character* leader)
+{
+    // NONMATCHING - the original's second read of the battle's +0x08 is a temporary, not a local
+    if (lbl_018BF5E0->unk_8() != 4)
+        int state = lbl_018BF5E0->unk_8();
+    Army* army = leader->army();
+    if (army)
+        unk_84(army);
+    if (better_governor(leader))
+        set_governor(leader);
+    else if (leader->type() == 4)
+        leader->unk_005813AC();
+    else
+        unk_0049BC60(leader);
+    while (army->m_characters.size()) {
+        Character* character = army->m_characters[0];
+        army->unk_0071B214(character, 0);
+        if (better_governor(character))
+            set_governor(character);
+        else
+            unk_0049BC60(character);
+    }
+}
+
+// The cost of training a unit here, in percent: 5% less for each point of the governor's TrainingUnits, from -10 to 10.
+int Settlement::unit_cost(BuildingEffects* effects)
+{
+    int percent = 100;
+    if (m_governor.valid()) {
+        int training = governor()->record()->attribute_at(ATTR_TRAINING_UNITS);
+        training = clamp_int(training, -10, 10);
+        percent -= training * 5;
+    }
+    return percent;
+}
+
+extern "C" int fn_005D44D5(int weapon);  // a weapon kind's building effect, or NUM_EFFECTS for none
+
+// Adds the units the buildings can train, the ships or the others. An animal unit costs 5% less for each point of the
+// governor's TrainingAnimalUnits. A unit whose weapon can be upgraded gets the level of its weapon's effect, from -1 to
+// 3, and isn't listed at -1. With owned_only, only the units the owner can have are listed.
+void Settlement::recruitable_units(RecruitmentItems* units, BuildingEffects* effects, bool ships, bool owned_only)
+{
+    // NONMATCHING - stack slot order only: the original has the cost, loop index and count, and the per-unit locals,
+    // in other slots
+    int cost = unit_cost(effects);
+    unsigned int i;
+    unsigned int count = effects->num_recruits();
+    for (i = 0; i < count; i++) {
+        BuildingRecruit recruit;
+        effects->recruit(&recruit, i);
+        UnitUnk50* type = &lbl_01589644[recruit.m_unit];
+        int unit_cost = cost;
+        if (ships == (type->m_2c == 4)) {
+            if (type->is_animal() && governor())
+                unit_cost = float_to_int(unit_cost * (1.0f - 0.05f * governor()->record()->attribute_at(ATTR_TRAINING_ANIMAL_UNITS)));
+            short weapon = -1;
+            if (type->m_d0 & 1) {
+                int effect = fn_005D44D5(type->m_weapon);
+                if (effect == NUM_EFFECTS) {
+                    weapon = 0;
+                } else {
+                    weapon = effects->effect(effect).total();
+                    weapon = clamp_short(weapon, -1, 3);
+                }
+            } else {
+                weapon = 0;
+            }
+            bool listed = true;
+            if (owned_only) {
+                if (!type->owned_by(owner_id())) {
+                    listed = false;
+                    bool minor = m_owner->is_unk_a7();
+                }
+            }
+            if (listed) {
+                if (!(type->m_d0 & 1) || weapon >= 0) {
+                    RecruitmentItem* unit = units->add();
+                    if (ships)
+                        unit->unk_005AE6C3(this, type, recruit.m_experience.total(), effects->unk_005D48F2(EFFECT_ARMOUR),
+                                           weapon, (unsigned char)unit_cost);
+                    else
+                        unit->unk_005AE4F0(this, type,
+                                           recruit.m_experience.total() + effects->unk_005D48AE(EFFECT_RECRUITS_EXP_BONUS),
+                                           effects->unk_005D48F2(EFFECT_ARMOUR), weapon, (unsigned char)unit_cost);
+                }
+            }
+        }
+    }
+}
+
 bool Settlement::can_stage_games()
 {
     BuildingEffects effects;
@@ -991,4 +1133,64 @@ int Settlement::entertainment()
 int Settlement::region_id()
 {
     return m_region_id;
+}
+
+extern "C" {
+void* fn_0041374F(void* saved);
+void* fn_00413785(void* saved);
+void* fn_004137F3(void* saved);
+void* fn_0041380E(void* saved);
+void* fn_0041385F(void* saved);
+void* fn_00413895(void* saved);
+}
+
+inline StrategyMap* strategy_map()
+{
+    StrategyMap* map = lbl_02921A34;
+    return map;
+}
+
+inline PathFinder* route_finder()
+{
+    PathFinder* paths = lbl_02921A1C;
+    return paths;
+}
+
+// After a load: its pointers become the loaded objects' new addresses, and it's put back on the map. The campaign's
+// Rome and Constantinople are the settlements with those names in descr_regions.txt, whoever holds them. Saves older
+// than version 8 get the shown name from the region.
+void Settlement::after_load()
+{
+    unsigned short i = 0;
+    unsigned short num_sieges = m_84;
+    unsigned short count = m_abc.size();
+    m_owner = (Faction*)fn_0041374F(m_owner);
+    m_184 = (SettlementUnk184*)fn_00413785(m_184);
+    m_governor.restore((Character*)fn_004137F3(m_governor.get()));
+    m_a9c.restore((Character*)fn_004137F3(m_a9c.get()));
+    m_garrison.restore((Army*)fn_0041380E(m_garrison.get()));
+    for (i = 0; i < num_sieges; i++)
+        m_sieges[i].restore((Siege*)fn_00413895(m_sieges[i].get()));
+    m_318.unk_005C56E9();
+    m_1e0.unk_005C26DB();
+    for (i = 0; i < count; i++)
+        m_abc[i] = fn_0041385F(m_abc[i]);
+    if (saved_version("SETTLEMENT") < 8u)
+        m_name = strategy_map()->region(m_region_id)->m_settlement_display_name;
+    const String& region_name = region()->m_settlement_name;
+    if (region_name == String("Rome")) {
+        campaign()->rome();  // read and dropped
+        campaign()->set_rome(this);
+    }
+    if (region_name == String("Constantinople")) {
+        campaign()->constantinople();
+        campaign()->set_constantinople(this);
+    }
+    m_dd8.set_faction(m_owner);
+    strategy_map()->set_settlement(m_region_id, this);
+    unk_005BACCE(&m_a68);
+    m_dd8.update(true);
+    if (m_owner->is_unk_a7() && m_rebel_faction == 21)
+        m_rebel_faction = region()->creator_faction();
+    route_finder()->unk_004AC1DB(this);
 }

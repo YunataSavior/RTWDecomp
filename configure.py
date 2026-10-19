@@ -578,6 +578,7 @@ LIBS = [
             Object(NonMatching, "code/env/time_server.cpp"),
             Object(NonMatching, "code/env/tracked_object.cpp"),
             Object(NonMatching, "code/env/vertex_buffer_utils.cpp"),
+            Object(NonMatching, "code/enum_names.cpp"),
             Object(NonMatching, "code/event_images_db.cpp"),
             Object(NonMatching, "code/event_manager.cpp"),
             Object(NonMatching, "code/extents_manager.cpp"),
@@ -1077,6 +1078,8 @@ LIBS = [
     {
         "lib": "ca_libs",
         "category": "libs",
+        # (optimised, unlike the game code: Random compiles byte for byte with these)
+        "cflags": ["/MT", "/O2", "/Oy-", "/G6"],
         "objects": [
             Object(NonMatching, "libs_daily/ca_libs/core/core.cpp"),
             Object(NonMatching, "libs_daily/ca_libs/core/core_font.cpp"),
@@ -1109,6 +1112,8 @@ LIBS = [
             Object(NonMatching, "libs_daily/ca_libs/input/input.cpp"),
             Object(NonMatching, "libs_daily/ca_libs/input/pc_input.cpp"),
             Object(NonMatching, "libs_daily/ca_libs/maths/maths_calculus.cpp"),
+            # (the name is a guess: nothing in it asserts)
+            Object(NonMatching, "libs_daily/ca_libs/maths/maths_random.cpp"),
             Object(NonMatching, "libs_daily/ca_libs/maths/maths_trig.cpp"),
             Object(NonMatching, "libs_daily/ca_libs/network/network_peer_to_peer.cpp"),
             Object(NonMatching, "libs_daily/ca_libs/network/network_protocol.cpp"),

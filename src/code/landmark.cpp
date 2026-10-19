@@ -27,11 +27,6 @@ public:
     char m_pad0[0x40];
 };
 
-class UnkB4CFDA {
-public:
-    Faction* unk_00B4CFDA();            // 0x00B4CFDA: the player's faction (a guess)
-};
-
 class UnkF6B3D0 {
 public:
     bool unk_00F6B3D0(const Vector3& point, float radius);  // 0x00F6B3D0

@@ -71,6 +71,40 @@ bool PathFinder::is_blocked(const RoadPoint& from, const RoadPoint& to, Tile* ti
     return !by_land;
 }
 
+// The first unk_18 of the objects on the tile that has one, or 0.
+TileUnk84* PathFinder::unk_004A74BA(const RoadPoint& point)
+{
+    StrategyObject* object = lbl_018CD80C->tile(point)->m_objects;
+    while (object) {
+        if (object->unk_18())
+            return object->unk_18();
+        object = object->m_next;
+    }
+    return 0;
+}
+
+// The first character on the tile, or 0 (and 0 when no faction is given). foreign is set when it isn't the faction's.
+Character* PathFinder::unk_004A95F3(Faction* faction, const RoadPoint& point, bool* foreign)
+{
+    if (!faction)
+        return 0;
+    Tile* tile = lbl_018CD80C->tile(point);
+    if (!tile->m_2c)
+        return 0;
+    StrategyObject* occupant = tile->m_objects;
+    while (occupant && occupant->object_type() != OBJECT_CHARACTER)
+        occupant = occupant->m_next;
+    if (occupant) {
+        Character* character = occupant->unk_28();
+        if (character->unk_00580C1E() == faction)
+            *foreign = false;
+        else
+            *foreign = true;
+        return character;
+    }
+    return 0;
+}
+
 // Collects the spies in a settlement that aren't its owner's: every spy on its tile whose faction isn't the owner,
 // whether the owner can see it or not, and whatever the two factions' relations.
 void PathFinder::foreign_spies(Settlement* settlement, Array<Character*>* spies)
@@ -82,6 +116,12 @@ void PathFinder::foreign_spies(Settlement* settlement, Array<Character*>* spies)
             spies->push_back(character);
         object = object->m_next;
     }
+}
+
+bool PathFinder::unk_004AA85D(const RoadPoint& point)
+{
+    Tile* tile = lbl_018CD80C->tile(point);
+    return tile->m_25 != 0xff && !tile->m_24_6 && !tile->m_24_5 && !tile->m_24_0 && !tile->m_24_1 && !tile->m_24_3;
 }
 
 // Plans a road from one tile to another into m_path, goal first. Returns 0, or 1 when the goal is off the map or

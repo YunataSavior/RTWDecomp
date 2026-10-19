@@ -303,7 +303,7 @@ int AICheatManager::ai_turn_cash(int faction)
         else
             scale = 1.0f;
         if (record->has_cash_crisis()) {
-            int treasury = record->m_treasury;
+            int treasury = record->m_finance.m_treasury;
             if (treasury < 0)
                 return s_ai_turn_cash + 3000 - treasury;
             return s_ai_turn_cash + 3000;

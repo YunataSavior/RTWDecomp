@@ -51,7 +51,7 @@ code/settlement_base.cpp:
 	.text       start:0x0049ABD1 end:0x0049AD2D
 
 code/garrison.cpp:
-	.text       start:0x0049BA72 end:0x0049BC60
+	.text       start:0x0049BA72 end:0x0049C7CE
 
 code/landmark.cpp:
 	.text       start:0x0049C7CE end:0x0049D831
@@ -78,7 +78,7 @@ code/watchtower.cpp:
 	.text       start:0x004BF2E4 end:0x004BFA04
 
 code/faction.cpp:
-	.text       start:0x004C0456 end:0x004D7629
+	.text       start:0x004C0456 end:0x004D8248
 
 code/ai/ai_action_request_controller.cpp:
 	.text       start:0x004DED2D end:0x004E12CC
@@ -250,6 +250,9 @@ code/ai/ai_diplomacy_manager.cpp:
 
 code/ai/ai_diplomat_controller.cpp:
 	.text       start:0x005ACC31 end:0x005AD754
+
+code/recruitment_item.cpp:
+	.text       start:0x005ADC0F end:0x005B0112
 
 code/settlement.cpp:
 	.text       start:0x005B1440 end:0x005C008A
@@ -1098,7 +1101,7 @@ code/rtm/rtm_model.cpp:
 	.text       start:0x00DDA16E end:0x00DDCC25
 
 code/env/dev_console.cpp:
-	.text       start:0x00DE6BD5 end:0x00DE6E2A
+	.text       start:0x00DE0FD8 end:0x00DE870A
 
 code/env/dev_menu.cpp:
 	.text       start:0x00DE98CF end:0x00DEA149
@@ -1129,6 +1132,9 @@ code/env/output_window.cpp:
 
 code/romans_utils.cpp:
 	.text       start:0x00E2AAA8 end:0x00E30F8F
+
+code/enum_names.cpp:
+	.text       start:0x00E41B13 end:0x00E4210F
 
 code/util/tetris_set.cpp:
 	.text       start:0x00E49059 end:0x00E49184
@@ -1192,6 +1198,9 @@ code/render_sys/buffer.cpp:
 
 code/steam/steam_controller.cpp:
 	.text       start:0x00EF8DEC end:0x00EF8ED8
+
+libs_daily/ca_libs/maths/maths_random.cpp:
+	.text       start:0x00F3AA90 end:0x00F3AC00
 
 libs_daily/ca_libs/core/pc_buffers.cpp:
 	.text       start:0x00F3BA40 end:0x00F3C4B0

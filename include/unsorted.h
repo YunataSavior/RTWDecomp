@@ -8,6 +8,7 @@
 #include <new.h>
 
 #include "for_scope.h"
+#include "maths_random.h"
 
 // A string of 16-bit characters (probably ca_libs\core\core_string.cpp).
 struct UniChar;
@@ -95,7 +96,7 @@ public:
     }
     iterator find(const T& item);           // 0x0097344A (4-byte items)
     T* add_unique(const T& item);           // 0x004A2C76 (Array<int>)
-    void insert(const T& item, int index);  // 0x004B6C3B (4-byte items)
+    void insert(const T& item, int index);  // 0x004B6C3B, 0x006B74EF (4-byte items)
 
     T* m_data;
     unsigned int m_capacity;
@@ -397,6 +398,8 @@ enum {
     OBJECT_CHARACTER = 0x1a,
 };
 
+struct TileUnk84;
+
 class StrategyObject {
 public:
     StrategyObject() : m_next(0), m_8(0), m_14(0), m_18(true), m_1c(1.0f), m_20(false) {}  // 0x0048F9B5
@@ -406,7 +409,7 @@ public:
     virtual void unk_0c();
     virtual int object_type();                                        // +0x10: OBJECT_CHARACTER for a character
     virtual void unk_14();
-    virtual void unk_18();
+    virtual TileUnk84* unk_18();                                      // +0x18 (not identified)
     virtual void unk_1c();
     virtual Settlement* settlement();                                 // +0x20: itself if it's a settlement, or 0
     virtual void unk_24();
@@ -442,12 +445,15 @@ public:
 class Army;
 class Unit;
 class Faction;
+class AISenateFaction;
+class SenateMissionImpl;
+template <class T> class LinkedList;
 class Character;
 class LandmarkManager;
 class Settlement;
 class CharacterRecord;
 struct RebelType;
-struct RevoltUnits;
+struct RecruitmentItems;
 struct UnitUnk50;
 
 // A settlement's figures for a turn (0x1c0 bytes): its growth factors and its public order, each as the lines of the
@@ -480,9 +486,13 @@ enum {
 
 struct SettlementStats {
     int growth(int factor) const { return m_growth[factor]; }
+    const int& growth_ref(int factor) const { return m_growth[factor]; }
     void set_growth(int factor, int value) { m_growth[factor] = value; }
+    Settlement* settlement() const { return m_settlement; }
+    int order(int slot) const { return m_order[slot]; }
+    void apply_growth(int faction, int level);  // 0x005C7DED
 
-    int m_0;
+    Settlement* m_settlement;           // +0x00
     int m_growth[16];                   // +0x04: factors 0-7 add to growth, 8-15 take from it (GROWTH_*)
     unsigned int m_population;          // +0x44
     int m_order[25];                    // +0x48: in units of 5%; slots 0-9 add to order, 10-24 take from it
@@ -506,10 +516,14 @@ enum {
     EFFECT_POPULATION_GROWTH_BONUS = 0,
     EFFECT_POPULATION_HEALTH_BONUS = 2,
     EFFECT_FARMING_LEVEL = 8,
+    EFFECT_ARMOUR = 14,
     EFFECT_STAGE_GAMES = 15,
     EFFECT_STAGE_RACES = 16,
+    EFFECT_WEAPON_SIMPLE = 18,          // then missile, bladed, siege and other
+    EFFECT_RECRUITS_EXP_BONUS = 25,
     EFFECT_HAPPINESS_BONUS = 26,
     EFFECT_LAW_BONUS = 27,
+    NUM_EFFECTS = 36,
 };
 
 // One building effect's value: a level, and a bonus that counts only when the level isn't negative (a guess).
@@ -521,14 +535,26 @@ struct BuildingEffect {
     short m_bonus;                      // +0x02
 };
 
+// A unit type a settlement's buildings can train, and the experience they give it.
+struct BuildingRecruit {
+    int m_unit;                         // its index in export_descr_unit.txt
+    BuildingEffect m_experience;        // +0x04
+};
+
 // A settlement's building effects (0x308 bytes).
 class BuildingEffects {
 public:
     BuildingEffects();                  // 0x005D451D
     short unk_005D48AE(int effect);     // 0x005D48AE
     BuildingEffect effect(int effect);  // 0x005D4973: none (0, 0) for an ID from 36 up
+    unsigned char unk_005D48F2(int effect);  // 0x005D48F2: the effect's total, from 0 to 255
+    unsigned int num_recruits();        // 0x005D4ADF
+    BuildingRecruit* recruit(BuildingRecruit* out, unsigned int index);  // 0x005D4AF1: none (unit count, -1) past the end
 
-    char m_pad0[0x308];
+    char m_pad0[0xb4];
+    BuildingRecruit m_recruits[0x40];   // +0xb4: the units its buildings can train
+    unsigned int m_num_recruits;        // +0x2b4
+    char m_pad2b8[0x308 - 0x2b8];
 };
 
 // What a settlement's +0xdd8 is: its turn's figures and how they're worked out (code\settlement_mechanics.cpp).
@@ -541,6 +567,7 @@ public:
     void unk_005C8F38(unsigned int population);  // 0x005C8F38: population lost to a riot or a revolt
     void unk_005C8F71(unsigned int population);  // 0x005C8F71: population lost (not identified)
     void update(bool mark_owner);       // 0x005C8729: works out m_current
+    void set_faction(Faction* faction); // 0x005C8A72
     void compute_growth(SettlementStats* stats, BuildingEffects* effects);  // 0x005CC583
     void compute_order(SettlementStats* stats, BuildingEffects* effects, int* religion, int* religion_effects);  // 0x005CC9D7
     void unk_005CDB6A(SettlementStats* stats, BuildingEffects* effects);  // 0x005CDB6A: fills +0xb0 (income? a guess)
@@ -566,8 +593,11 @@ public:
     int unk_0049E906();                 // 0x0049E906: public order slot 18
     bool unk_0049E979();                // 0x0049E979
     SettlementUnk184* unk_0049EF76();   // 0x0049EF76: another one (its +0x78), or 0
+    Faction* unk_0049E4B4();            // 0x0049E4B4: its settlement's owner
 
-    char m_pad24[0x48 - 0x24];
+    char m_pad24[0x3c - 0x24];
+    int m_3c;                           // +0x3c: a port the senate can ask to blockade has it above 0
+    char m_pad40[0x48 - 0x40];
     Army* m_48;                         // +0x48: an army in it, or 0
     char m_pad4c[0x6c - 0x4c];
     int m_6c;                           // +0x6c
@@ -599,6 +629,7 @@ public:
 class SettlementUnk1E0 {
 public:
     void unk_005C2497();                // 0x005C2497
+    void unk_005C26DB();                // 0x005C26DB: after a load
 
     char m_pad0[0x138];
 };
@@ -607,6 +638,7 @@ public:
 class SettlementUnk318 {
 public:
     void unk_005C5559();                // 0x005C5559
+    void unk_005C56E9();                // 0x005C56E9: after a load
 
     char m_pad0[0x1ec];
 };
@@ -763,24 +795,66 @@ struct SettlementSiege {
     int m_4;
 };
 
+// Something told when an object it points at goes, so the pointer can be cleared (not identified; its first word is
+// probably a vtable).
+class Watcher {
+public:
+    void watch(void* object);           // 0x00E4B15F: adds it to the object's watchers
+    virtual void unk_00();
+    virtual void unk_04();
+    virtual void unk_08();
+    virtual bool valid();               // +0x0c: whether it points at something (a guess)
+};
+
+// A pointer that watches its object (8 bytes).
+template <class T>
+class WatchedPointer : public Watcher {
+public:
+    T* get() const { return m_object; }
+    // After a load: the object's new address, watched again (the old one's watchers went with the old game).
+    void restore(T* object)
+    {
+        m_object = object;
+        if (m_object)
+            watch(m_object);
+    }
+
+    T* m_object;
+};
+
+// A pointer to a character that watches it, so it's cleared when the character goes. Its code is shared with the same
+// pointers to settlements (Campaign's Rome and Constantinople): the linker folded the copies.
+class WatchedCharacter : public Watcher {
+public:
+    void set(Character* character);     // 0x0056B311
+    void restore(Character* character); // 0x004D69C7: the same as WatchedPointer::restore
+    Character* get() const { return m_character; }
+
+    Character* m_character;             // +0x04
+};
+
 // What settlements and forts have in common (not identified).
+class FogOfWarEntry;
+
 class SettlementBase : public StrategyObject {
 public:
     int faction() const { return m_faction; }
     Army* garrison() const { return unk_40(); }
-    Army* unk_40() const { return m_garrison; }
+    Army* unk_40() const { return m_garrison.m_object; }
     bool besieged() const { return m_84; }
-    Siege* siege(int index) const { return m_sieges[index].m_siege; }
+    Siege* siege(int index) const { return m_sieges[index].m_object; }
     bool has_plague() const { return m_plague; }
 
     void catch_plague();                                    // 0x0049ABD1: and so do the characters on its tile
     void plague_tick();                                     // 0x0049ACAA: the fourth tick ends the plague
+    void unk_0049A464();                                    // 0x0049A464: does nothing
+    unsigned int num_characters(bool governor);             // 0x0049BE82: the characters in it (the governor too, when asked)
 
-    virtual void unk_74();
+    virtual FogOfWarEntry* unk_74();                        // +0x74: its fog of war entry, new
     virtual void unk_78();
     virtual void unk_7c();
     virtual void unk_80();
-    virtual void unk_84();
+    virtual void unk_84(Army* army);                        // +0x84
     virtual void unk_88();
     virtual int region_id();                                // +0x8c: 0x005BE77E
     virtual void unk_90();
@@ -794,11 +868,9 @@ public:
     virtual void unk_b0();
     virtual Region* unk_b4();
 
-    char m_pad24[0x40 - 0x24];
-    Army* m_garrison;                   // +0x40 (a guess)
-    char m_pad44[0x48 - 0x44];
-    SettlementSiege m_sieges[7];        // +0x48 (a guess)
-    char m_pad80[0x84 - 0x80];
+    char m_pad24[0x3c - 0x24];
+    WatchedPointer<Army> m_garrison;    // +0x3c (a guess)
+    WatchedPointer<Siege> m_sieges[8];  // +0x44 (a guess; 8 fill the space before m_84)
     unsigned char m_84;                 // +0x84: how many of m_sieges there are; no riots while it's non-zero
     char m_pad85[0x8c - 0x85];
     int m_8c;                           // +0x8c: public order slot 17 is twice this
@@ -815,10 +887,23 @@ public:
 
 // A fort (code/fort.cpp).
 class Fort : public SettlementBase {
+public:
+    void unk_00498B82(int faction);                         // 0x00498B82: at the start of each faction's turn
+};
+
+// The campaign's forts (not identified).
+class CampaignForts {
+public:
+    void unk_0049954D(Fort* fort);      // 0x0049954D: takes it off the map (a guess)
+
+    Fort** m_items;
+    int m_capacity;
+    unsigned int m_count;
 };
 
 class Settlement : public SettlementBase {
 public:
+    virtual FogOfWarEntry* unk_74();                        // +0x74: 0x005B1440
     virtual int region_id();                                // +0x8c: 0x005BE77E
     virtual Faction* unk_9c();                              // +0x9c: the same function as owner()
     virtual Faction* owner();                               // +0xa0: 0x005BE753
@@ -826,12 +911,14 @@ public:
     virtual void unk_ac(Character* leader);                 // +0xac: 0x005B9745, after a revolt
 
     void unk_0049B680(Faction* faction, int reason);        // 0x0049B680
+    int unk_005B1486();                                     // 0x005B1486: fn_008F6174 of the owner
+    bool better_governor(Character* character);             // 0x005B67A7
+    void set_governor(Character* character);                // 0x005B9959
     void set_rebels(RebelType* type, int faction);          // 0x0049C42E: m_rebel_type and m_rebel_faction
 
-    void unk_0049A464();                                    // 0x0049A464: does nothing (also called on forts)
-    unsigned int num_characters(bool governor);             // 0x0049BE82: the characters in it (the governor too, when asked)
     Character* character(unsigned int index, bool governor);  // 0x0049C13F
     void start_turn();                                      // 0x005B6476
+    void unk_005BD3CE(int faction);                         // 0x005BD3CE: at the start of each faction's turn
     void end_turn();                                        // 0x005B656F
     bool unk_005BC86B();                                    // 0x005BC86B: m_entertainment % 3 > 0
     void unk_005BC88A(int);                                 // 0x005BC88A
@@ -845,13 +932,14 @@ public:
     Army* revolt(int type, int, int reason, int faction);   // 0x005B38D1: the rebels' army, or 0
     float revolt_strength();                                // 0x005B4C85
     void find_defectors(Array<Character*>* defectors, Faction* faction);  // 0x005B4ED3: who goes over in a civil war
-    void unk_005B9E7C(RevoltUnits* units, BuildingEffects* effects, int, int);  // 0x005B9E7C
+    int unit_cost(BuildingEffects* effects);                // 0x005B9BFC: in percent
+    void recruitable_units(RecruitmentItems* units, BuildingEffects* effects, bool ships, bool owned_only);  // 0x005B9E7C
     void unk_005C58A1(int faction, BuildingEffects* effects);  // 0x005C58A1
     void unk_0049B043(Faction* faction, int reason, bool);  // 0x0049B043: ends with change_owner
     void unk_0049B15C(Character* leader, int, int reason, bool);  // 0x0049B15C: ends with change_owner
     void unk_0049A894(bool);                                // 0x0049A894
     void unk_0049BC60(Character* character);                // 0x0049BC60
-    Character* governor() const { return m_governor; }
+    Character* governor() const { return m_governor.m_character; }
     int level() const { return m_level; }
     int tax_level() const { return m_tax_level; }
     int plague_deaths() const { return m_plague_deaths; }
@@ -871,7 +959,10 @@ public:
     void unk_005BCA50(BuildingEffects* effects);            // 0x005BCA50: works out its building effects
     bool unk_005BA3F0(TilePosition* position);              // 0x005BA3F0
     int unk_005BB0ED(Unit* unit, UnitUnk4D469D& experience);  // 0x005BB0ED
+    void unk_005B9837(Unit* unit);      // 0x005B9837: updates its mechanics (SettlementDD8::update) after a unit leaves
+    void unk_005BBDAA(Unit* unit, int, int);  // 0x005BBDAA: takes the unit out of its queue (+0x1e0)
     void unk_005B5D57();                                    // 0x005B5D57
+    void unk_005B5F04();                                    // 0x005B5F04: at the end of a round
     int owner_id();                                         // 0x005B14AB
     Region* region();                                       // 0x005B7D41
     void unk_005B5849(int* religion, int* religion_effects);  // 0x005B5849: BI's religion
@@ -880,6 +971,8 @@ public:
     SettlementUnk5B5975 unk_005B5975();                     // 0x005B5975
     int unk_005BC80B();                                     // 0x005BC80B: public order slot 8, times 5
     int unk_005BCDC4();                                     // 0x005BCDC4: public order slot 11 (distance to the capital?)
+    void after_load();                                      // 0x005B2241
+    void unk_005BACCE(TilePosition* position);              // 0x005BACCE: puts it on the map there (a guess)
 
     RebelType* m_rebel_type;            // +0xb4: who rebels in it (a guess, from what sets it)
     int m_rebel_faction;                // +0xb8: the faction they're for (21 for none)
@@ -887,7 +980,8 @@ public:
     SettlementUnkE0 m_e0;               // +0xe0
     SettlementUnk120 m_120;             // +0x120
     SettlementUnk184* m_184;            // +0x184
-    char m_pad188[0x194 - 0x188];
+    char m_pad188[0x190 - 0x188];
+    UniString m_name;                   // +0x190: its name as shown (a guess)
     Faction* m_owner;                   // +0x194
     char m_pad198[0x19c - 0x198];
     unsigned char m_population_share[0x1b4 - 0x19c];  // +0x19c: each faction's share of the population, by faction
@@ -911,12 +1005,15 @@ public:
     char m_pada7f[1];
     unsigned int m_turns_since_revolt;  // +0xa80
     int m_entertainment;                // +0xa84: 0-2 hold games, 3-5 races, 6-8 both (at three levels? a guess)
-    char m_pada88[0xa8a - 0xa88];
+    bool m_is_capital;                  // +0xa88: its owner's capital (Faction::set_capital)
+    char m_pada89;
     bool m_a8a;                         // +0xa8a: cleared by a change of owner
     bool m_a8b;                         // +0xa8b: cleared by a change of owner
-    char m_pada8c[0xa98 - 0xa8c];
-    Character* m_governor;              // +0xa98
-    char m_pada9c[0xac8 - 0xa9c];
+    char m_pada8c[0xa94 - 0xa8c];
+    WatchedCharacter m_governor;        // +0xa94
+    WatchedCharacter m_a9c;             // +0xa9c
+    char m_padaa4[0xabc - 0xaa4];
+    Array<void*> m_abc;                 // +0xabc: type 8 of the saved pointers (not identified)
     int m_tax_level;                    // +0xac8: 0 low to 3 very high
     char m_padacc[0xdd5 - 0xacc];
     bool m_dd5;                         // +0xdd5
@@ -929,8 +1026,15 @@ struct Date {
     Date() { m_year = 0; m_season = 2; }
     Date(int year, int season) { m_year = year; m_season = season; }
     int season() const;                         // 0x0043C687: 2 in summer, 0 in winter (a guess)
+    void unk_0043C59F();                        // 0x0043C59F: the next season (a guess)
     Date& next_turn();                          // 0x0043BEFE: summer to winter, or winter to the next year's summer
                                                 //   (skipping year 0)
+    int turns_since(const Date& earlier) const; // 0x0043C046
+    Date& previous_turn();                      // 0x0043BF44
+    bool operator==(const Date& other) const;   // 0x0043BDDD
+    bool operator!=(const Date& other) const;   // 0x0043BEA4
+    void add_turns(int turns);                  // 0x0043BF77: back for a negative count
+    bool operator>=(const Date& other) const;   // 0x0043BEE0
 
     int m_year;
     int m_season;
@@ -1080,14 +1184,15 @@ struct Tile {
     unsigned char m_24_0 : 1;           // +0x24
     unsigned char m_24_1 : 1;
     unsigned char m_24_2 : 1;           // a structure stands on it
-    unsigned char m_24_3 : 2;
+    unsigned char m_24_3 : 1;
+    unsigned char m_24_4 : 1;
     unsigned char m_24_5 : 1;
     unsigned char m_24_6 : 1;
     unsigned char m_24_7 : 1;
     unsigned char m_25;                 // the directions it can't be entered from (0xff: none)
     char m_pad26[2];
     unsigned int m_28;                  // +0x28
-    char m_pad2c[4];
+    int m_2c;                           // +0x2c: 0 when no character is on it (a guess)
     float m_movement_factor;            // +0x30
 };
 
@@ -1140,10 +1245,12 @@ public:
 // A region of the strategy map (0x1d8 bytes).
 class Region {
 public:
+    void unk_00483B67();                // 0x00483B67: at the start of each round
     int id() const { return m_id; }
     int unk_00485627(int resource, int);  // 0x00485627: how many of the resource it has (a guess)
     unsigned char road_level() const { return m_road_level; }
     Port* port() const { return m_port; }
+    Settlement* settlement() const { return (Settlement*)m_port; }  // what StrategyMap::set_settlement keeps there
     int num_neighbours() const { return m_neighbours.size(); }
     void set_port_road(Road* road) { m_port_road = road; }
     int creator_faction() const { return m_creator_faction; }
@@ -1166,7 +1273,9 @@ public:
     bool has_rebel_type();                   // 0x00483BC5
     bool has_resource(unsigned int resource) const { return (m_resources[resource >> 5] & (1 << (resource & 0x1f))) != 0; }
 
-    char m_pad0[0x1c];
+    char m_pad0[8];
+    String m_settlement_name;           // +0x08: its settlement's name in descr_regions.txt (a guess)
+    char m_pad10[0x1c - 0x10];
     int m_id;                           // +0x1c
     unsigned char m_road_level;         // +0x20: 0 none, 1 roads, 2 paved roads, 3 highways
     char m_pad21[3];
@@ -1200,7 +1309,9 @@ public:
     bool m_1ac;                         // +0x1ac
     char m_pad1ad[3];
     int m_1b0;                          // +0x1b0: a revolt there is 1.5 times as strong while it's set (not identified)
-    char m_pad1b4[0x1c0 - 0x1b4];
+    char m_pad1b4[0x1b8 - 0x1b4];
+    UniString m_settlement_display_name;  // +0x1b8: its settlement's name as shown (a guess)
+    char m_pad1bc[0x1c0 - 0x1bc];
     String m_rebel_type;                // +0x1c0: its rebel type's name
     char m_pad1c8[0x1d8 - 0x1c8];
 };
@@ -1209,6 +1320,8 @@ public:
 class FactionSet {
 public:
     int bits() const { return m_bits; }
+    void add(int faction) { m_bits |= 1 << faction; }
+    bool contains(int faction) const { return (m_bits & (1 << faction)) != 0; }
     unsigned int count() const
     {
         unsigned int bits = m_bits;
@@ -1288,9 +1401,64 @@ public:
 
 class AncillaryDescription;
 
-// A faction's AI (not identified).
+class FactionAIUnk34 {
+public:
+    void unk_0050625A(int, int);        // 0x0050625A
+};
+
+// A faction's AI's figures for one faction (not identified; 0x2c bytes).
+struct FactionAIUnk20Entry {
+    char m_pad0[8];
+    int m_8;                            // +0x08
+    int m_c;                            // +0x0c: AISenateFaction adds it to its view's m_threat
+    bool m_10;                          // +0x10
+    char m_pad11[0x1c - 0x11];
+    int m_1c;                           // +0x1c: and this to m_c
+    char m_pad20[0x28 - 0x20];
+    int m_28;                           // +0x28: and this to m_10
+};
+
+// A faction's AI's war targets, probably (not identified; built at 0x00517247, on 0x00514BFB; 0x3cc bytes).
+class FactionAIUnk20 {
+public:
+    bool unk_18() const { return m_18; }
+    int unk_1c() const { return m_1c; }
+
+    char m_pad0[0x18];
+    bool m_18;                          // +0x18: m_1c is set
+    char m_pad19[3];
+    int m_1c;                           // +0x1c: a region's index
+    char m_pad20[0x28 - 0x20];
+    FactionAIUnk20Entry m_entries[21];  // +0x28: one per faction
+    char m_pad3c4[0x3cc - 0x3c4];
+};
+
+// A faction's AI's figures for one faction in its global strategy director (not identified; 0x20 bytes).
+struct FactionAIUnk38Entry {
+    char m_pad0[0x1e];
+    bool m_1e;                          // +0x1e
+    char m_pad1f[1];
+};
+
+// A faction's AI's global strategy director, probably (codeii_global_strategy_director.cpp; built at
+// 0x0050AFCA; 0x370 bytes).
+class FactionAIUnk38 {
+public:
+    bool unk_1e(int faction) const { return m_entries[faction].m_1e; }
+
+    char m_pad0[0xc];
+    FactionAIUnk38Entry m_entries[21];  // +0x0c: one per faction
+    char m_pad2ac[0x370 - 0x2ac];
+};
+
+// A faction's AI (not identified; 0x44 bytes).
 class FactionAI {
 public:
+    FactionAI(Faction* faction);        // 0x004FD904
+    FactionAIUnk20* unk_20() const { return m_20; }
+    FactionAIUnk34* unk_34() const { return m_34; }
+    FactionAIUnk38* unk_38() const { return m_38; }
+
     virtual void unk_00();
     virtual void unk_04();
     virtual void unk_08();
@@ -1299,12 +1467,50 @@ public:
     virtual void unk_14();
     virtual void unk_18();
     virtual void unk_1c();
+
+    char m_pad4[0x20 - 4];
+    FactionAIUnk20* m_20;               // +0x20
+    char m_pad24[0x34 - 0x24];
+    FactionAIUnk34* m_34;               // +0x34
+    FactionAIUnk38* m_38;               // +0x38
+    char m_pad3c[0x44 - 0x3c];
 };
 
-// Something a faction keeps a list of (not identified).
-class FactionUnkF4 {
+// Something of a faction's, updated at the start of its turn (not identified).
+class FactionUnk4F8 {
 public:
-    void unk_00719E61();                // 0x00719E61
+    void unk_004DBCBD();                // 0x004DBCBD
+};
+
+// A faction's finances (not identified beyond its update).
+// A faction's figures for one turn in its finances (not identified; 0x58 bytes).
+class FinanceRecord {
+public:
+    void unk_004D7EAA();                // 0x004D7EAA
+
+    char m_pad0[0x58];
+};
+
+// A faction's last turns' finances (0x378 bytes).
+struct FinanceHistory {
+    FinanceRecord& current() { return m_records[m_current]; }
+
+    FinanceRecord m_records[10];
+    int m_370;                          // +0x370
+    unsigned int m_current;             // +0x374
+};
+
+// A faction's money (0x38c bytes).
+class FactionFinance {
+public:
+    void end_turn();                    // 0x004D8197: adds the turn's income, and the AI's cash
+    void unk_004D8396(bool, bool);      // 0x004D8396: at the start of its turn
+
+    Faction* m_faction;                 // +0x00
+    int m_treasury;                     // +0x04
+    int m_income;                       // +0x08: the turn's
+    FinanceHistory m_history;           // +0x0c
+    char m_pad384[0x38c - 0x384];
 };
 
 // Something of a human faction's (not identified).
@@ -1326,6 +1532,26 @@ public:
     int m_14;                           // +0x14: a faction (21 for none; set so when a named character dies in a riot)
 };
 
+struct FactionGoneEvent;
+
+// A faction's listeners, told of events of its (not identified).
+class FactionListeners {
+public:
+    void unk_004D71CF(const FactionGoneEvent& event);  // 0x004D71CF: tells each of them
+
+    char m_pad0[0x10];
+};
+
+// Something of a faction's, told at the start of each round (not identified).
+class FactionUnkD4 {
+public:
+    virtual void unk_00();
+    virtual void unk_04();
+    virtual void unk_08();
+    virtual void unk_0c();
+    virtual void unk_10();
+};
+
 // A faction's campaign record (code\faction.cpp).
 class Faction {
 public:
@@ -1336,30 +1562,44 @@ public:
     bool has_cash_crisis() const { return !no_cash_crisis(); }
     bool at_war_with(Faction* other);   // 0x004CFC65
     bool unk_4f4() const { return m_4f4; }
-    int unk_a8() const { return m_a8; }
+    Settlement* capital() const { return m_capital; }
+    FactionAI* ai() const { return m_ai; }
+    bool unk_a7() const { return m_description->m_a7; }
     bool unk_1d4() const { return m_1d4; }
     int id() const { return m_id; }
     int culture() const { return m_culture; }
     FactionDescription* description() const { return m_description; }
     bool is_unk_a7() const { return m_description->m_a7; }
+    bool shadowed_by_set() const { return m_description->m_10 != 0; }
+    int shadowed_by() const { return shadowed_by_set() ? m_description->m_shadowed_by : 21; }
+    bool shadowing_set() const { return m_description->m_1c != 0; }
+    int shadowing() const { return shadowing_set() ? m_description->m_shadowing : 21; }
+    bool unk_4fc() const { return m_4fc; }
     FactionUnk180* unk_180() const { return m_180; }
 
     bool unk_00445B2B();                // 0x00445B2B: description's +0xa4 set and +0xa7 clear
     bool unk_004584F1();                // 0x004584F1: has_cash_crisis() or +0x4f0 is a faction
+    Character* unk_004C41EF(const char* name);          // 0x004C41EF: its character on the map with that name
     Settlement* unk_004C44F0(CharacterRecord* father);  // 0x004C44F0
     int unk_004C4589(CharacterRecord* record);          // 0x004C4589
     void unk_004C4CE7(CharacterRecord* record);         // 0x004C4CE7
     bool unk_004C5093(Character* character, bool, bool);  // 0x004C5093
     void unk_004CA5BA(Army* army);                      // 0x004CA5BA
+    void unk_004CA308(bool);                            // 0x004CA308: makes or replaces its AI (a guess)
     void unk_004CAC88();                                // 0x004CAC88: its turn update
-    void unk_004CB391();                                // 0x004CB391: works out m_neighbours (a guess)
+    bool unk_004CAEDB();                                // 0x004CAEDB: its part of the end of a round
+    void marian_reforms();                              // 0x004D411D
+    void unk_004CB391();                                // 0x004CB391: works out m_neighbours
     void unk_004CB56C();                                // 0x004CB56C
+    void start_turn();                                  // 0x004CB6EA
     void unk_004C9616(Character* spy);                  // 0x004C9616
     void plague_tick();                                 // 0x004CB040
     void catch_spy(Character* spy, float strength, Settlement* settlement);  // 0x004CB5A9
     void unk_004CF14F();                                // 0x004CF14F
     Army* unk_004C9515(Character* leader, int);         // 0x004C9515: an army for the new character
-    void unk_004CDFCF(Character* leader);               // 0x004CDFCF
+    void unk_004CDFCF(Character* leader);               // 0x004CDFCF: it comes back
+    CharacterRecord* unk_004CE1E1();                    // 0x004CE1E1: its first record with m_flag17
+    void set_leader(CharacterRecord* record);           // 0x004CEC05
     int stance(Faction* other);                         // 0x004CFC0B: 0 allied, 600 at war (DiplomaticRelation); 200 for itself or none
     int stance(int other);                              // 0x004CFBD3: the same, by the other's index
     void* display_name();                               // 0x004C3F6B: its name's text (a guess)
@@ -1367,30 +1607,52 @@ public:
     int average_order();                                // 0x004CEB90: its settlements' public order percentages' average
     void give_first_cohort();                           // 0x004D245E: a "roman legionary first cohort i" or "ii", 50-50, once the +0x2b6 flag is set
     void unk_004D3E6F(int);                             // 0x004D3E6F
+    void destroy();                                     // 0x004CE245: it's gone (the kill_faction command too)
+    void unk_004CE839(int faction);                     // 0x004CE839
+    void unk_004CE844(int faction, int);                // 0x004CE844
+    void unk_004CE943(int faction, int);                // 0x004CE943: hands its ... to the faction (a guess)
+    void unk_004CEA1C(int faction, int, int);           // 0x004CEA1C: the same (a guess)
+    void unk_004CEAC8(int faction, int);                // 0x004CEAC8: the same (a guess)
+    void unk_004CED7E();                                // 0x004CED7E
+    void set_capital(Settlement* capital);              // 0x004CF09A: moves the settlements' m_is_capital too
+    void unk_004D13E8(AISenateFaction* senate);         // 0x004D13E8: checks its senate missions, and drops those done
+    void unk_004D0905(Array<Region*>* regions);         // 0x004D0905: its settlements' regions (a guess)
+    void unk_004D6EC0(LinkedList<Character*>* characters, int type);  // 0x004D6EC0: its characters of a type
 
-    char m_pad0[0xa0];
+    char m_pad0[0x90];
+    FactionListeners m_listeners;       // +0x90
     int m_id;                           // +0xa0
     int m_culture;                      // +0xa4
-    int m_a8;                           // +0xa8
+    Settlement* m_capital;              // +0xa8
     CharacterRecord* m_leader;          // +0xac
-    char m_padb0[4];
+    CharacterRecord* m_heir;            // +0xb0 (a guess: its record's m_flag4 is cleared with it)
     FactionDescription* m_description;  // +0xb4
     int m_control;                      // +0xb8 (1: human)
     FactionAI* m_ai;                    // +0xbc
-    char m_padc0[0xdc - 0xc0];
+    int m_c0;                           // +0xc0
+    int m_c4;                           // +0xc4
+    char m_padc8[0xd4 - 0xc8];
+    FactionUnkD4* m_d4;                 // +0xd4
+    char m_padd8[4];
     PointerList<CharacterRecord> m_records;     // +0xdc
     PointerList<Character> m_characters;        // +0xe8
-    PointerList<FactionUnkF4> m_f4;             // +0xf4
-    PointerList<Region> m_regions;              // +0x100
+    PointerList<Army> m_armies;                 // +0xf4
+    Array<int> m_regions;                       // +0x100: its regions' indices
     PointerList<Settlement> m_settlements;      // +0x10c
     PointerList<Fort> m_forts;                  // +0x118
-    char m_pad124[0x13c - 0x124];
+    char m_pad124[0x130 - 0x124];
+    PointerList<SettlementUnk184> m_ports;  // +0x130: its settlements' ports (a guess)
     FactionSet m_neighbours;            // +0x13c: the factions whose regions border this one's
-    char m_pad140[0x178 - 0x140];
+    Array<int> m_bordering_regions;     // +0x140: the other factions' regions beside its own
+    bool m_14c;                         // +0x14c: it holds a sea region (a guess)
+    char m_pad14d[0x170 - 0x14d];
+    float m_170;                        // +0x170: set from a global at the start of its turn
+    char m_pad174[0x178 - 0x174];
     int m_178;                          // +0x178
     char m_pad17c[4];
     FactionUnk180* m_180;               // +0x180
-    char m_pad184[0x1cc - 0x184];
+    PointerList<SenateMissionImpl> m_missions;  // +0x184: its senate missions under way
+    char m_pad190[0x1cc - 0x190];
     int m_triumph_order;                // +0x1cc: public order for a triumph, down by 1 a turn
     int m_wonder_order;                 // +0x1d0: public order for capturing a wonder, 4 then down by 1 a turn
     bool m_1d4;                         // +0x1d4
@@ -1400,20 +1662,13 @@ public:
     int m_4ec;                          // +0x4ec
     int m_4f0;                          // +0x4f0 (a faction index, 21 for none)
     bool m_4f4;                         // +0x4f4
-    char m_pad4f5[0x504 - 0x4f5];
-    int m_treasury;                     // +0x504
-    char m_pad508[0x88c - 0x508];
+    char m_pad4f5[0x4f8 - 0x4f5];
+    FactionUnk4F8* m_4f8;               // +0x4f8
+    bool m_4fc;                         // +0x4fc: it took over from the faction it shadows, so its end has no message
+    char m_pad4fd[0x500 - 0x4fd];
+    FactionFinance m_finance;           // +0x500
     FactionUnk88C m_88c;                // +0x88c
     FactionUnk898 m_898;                // +0x898
-};
-
-// The C runtime's rand(), kept per object (probably ca_libs).
-class Random {
-public:
-    int percent();                      // 0x00F3AAD0: 0 to 99
-    int range(int low, int high);       // 0x00F3ABB0
-
-    int m_seed;
 };
 
 // How one faction stands towards another.
@@ -1421,7 +1676,8 @@ class DiplomaticRelation {
 public:
     char m_pad0[4];
     int m_stance;                       // +0x04: 0 allied, 600 at war
-    char m_pad8[0x74 - 8];
+    unsigned int m_flags;               // +0x08: bit 1 is probably military access
+    char m_padc[0x74 - 0xc];
 };
 
 // One faction's relations with every faction.
@@ -1435,11 +1691,22 @@ public:
 // Every pair of factions' relations (probably code\faction_diplomacy.cpp).
 class DiplomacyMatrix {
 public:
-    int stance(int faction, int other) const { return m_factions[faction].stance(other); }
+    int stance(const int& faction, const int& other) const { return m_factions[faction].stance(other); }
     bool is_at_war(int faction);        // 0x005A11E9: at war with anyone
+    void unk_005A2EEE();                // 0x005A2EEE: at the end of a round
+    void unk_005A2C6A();                // 0x005A2C6A
     void unk_005A1417(int faction, int other, int incident);  // 0x005A1417: an incident between two factions
+    bool unk_005A0ABE(int faction, int other);  // 0x005A0ABE: probably whether they have a trade agreement
+    bool unk_005A0F3E(int faction, int other);  // 0x005A0F3E: bit 3 of their relation's flags
+    bool unk_005A0FB1(int faction);     // 0x005A0FB1: 0x005A0F3E's flag with any faction
 
     FactionRelations m_factions[21];
+};
+
+// Something of the campaign's (not identified).
+class CampaignUnkCD5C {
+public:
+    void unk_005F2A2F();                // 0x005F2A2F: at the end of a round
 };
 
 // The campaign (probably code\campaign.cpp).
@@ -1449,14 +1716,25 @@ struct CampaignSettings {
     char m_pad4[0x20 - 4];
 };
 
+// A human player of the campaign (not identified beyond its faction).
+struct CampaignHuman {
+    int m_0;
+    int m_faction;                      // +0x04
+};
+
+class AISenateFaction;
+
 class Campaign {
 public:
+    int unk_004529FB(int faction);      // 0x004529FB: m_114
     Faction* faction(int index);        // 0x004548DD
+    bool senate_at_war_with(Faction* faction);  // 0x0045425F: AISenateFaction::at_war_with, or false without a senate
     int difficulty(int faction);        // 0x004529E3: 0 easy to 3 very hard; always 1 for the AI
     float unit_scale();                 // 0x00452964
     CampaignSettings* settings();       // 0x00B4DC5F: lbl_018DC384's +0x29f8
     bool unk_00452977();                // 0x00452977: +0x238
     bool is_faction_alive(int faction); // 0x0045491C
+    bool unk_00454978();                // 0x00454978: lbl_02921AE0 and the battle's +0x46 are set
     int human_faction(int index);       // 0x00457158: the index'th human faction, or 21
     bool is_prologue() const { return m_prologue; }
     int unk_2e4() const { return m_date.m_year; }
@@ -1473,27 +1751,57 @@ public:
     void unk_004562B8();                                // 0x004562B8: after a load
     bool unk_0045460A();                                // 0x0045460A
     Faction* unk_00454960(int faction);                 // 0x00454960: by its index
+    Settlement* unk_004543F1(const char* name);         // 0x004543F1: a settlement by its name (a guess)
     bool last_britain_region(Region* region);           // 0x00457A73
+    void unk_004537F2();                                // 0x004537F2: the end of a round
+    void unk_004544AA();                                // 0x004544AA
+    Settlement* rome();                                 // 0x004576C4
+    void set_rome(Settlement* settlement);              // 0x004576DD
+    Settlement* constantinople();                       // 0x004576F9
+    void set_constantinople(Settlement* settlement);    // 0x00457712
+    Settlement* get_rome() const { return m_rome; }
     void unk_00457C3C();                                // 0x00457C3C
+    void unk_00452A2D();                                // 0x00452A2D
+    void unk_00452A62();                                // 0x00452A62
+    void unk_0045361A();                                // 0x0045361A: the start of a round
+    void unk_00453B9B();                                // 0x00453B9B: the start of a faction's turn
+    void unk_0045732F();                                // 0x0045732F
+    void unk_00453942();                                // 0x00453942
 
-    char m_pad0[4];
+    bool m_0;                           // +0x00: set once the campaign has started (0x00452AD6); unk_00452A2D and unk_00452A62 clear it
+    char m_pad1[3];
     int m_4;                            // +0x04
-    char m_pad8[0xb8 - 8];
-    int m_b8;                           // +0xb8 (1: the advisor's triggers run)
-    char m_padbc[0x168 - 0xbc];
-    Faction* m_factions[42];            // +0x168 (how many is a guess)
+    char m_pad8[0x10 - 8];
+    CampaignHuman m_humans[21];         // +0x10
+    unsigned int m_b8;                  // +0xb8: how many human factions there are (a guess; 1: the advisor's triggers run)
+    char m_padbc[0xc0 - 0xbc];
+    int m_difficulty[21];               // +0xc0: each faction's difficulty
+    int m_114[21];                      // +0x114: something for each faction
+    Faction* m_factions[21];            // +0x168: in turn order
+    Faction* m_factions_by_id[21];      // +0x1bc
     unsigned int m_num_factions;        // +0x210
-    char m_pad214[0x22c - 0x214];
-    Faction* m_22c;                     // +0x22c
-    char m_pad230[0x24c - 0x230];
+    char m_pad214[0x218 - 0x214];
+    AISenateFaction* m_senate;          // +0x218: or 0
+    char m_pad21c[0x22c - 0x21c];
+    Faction* m_22c;                     // +0x22c: the faction whose turn it is (a guess)
+    unsigned int m_230;                 // +0x230: its index in m_factions (a guess)
+    char m_pad234[0x24c - 0x234];
     unsigned int m_turn;                // +0x24c: the turn number (a guess: things are timed by it)
-    char m_pad250[0x2b4 - 0x250];
+
+    unsigned int turn() { return m_turn; }
+
+    char m_pad250[0x254 - 0x250];
+    Watcher m_rome_watcher;             // +0x254: m_rome's (a WatchedCharacter's code sets it)
+    Settlement* m_rome;                 // +0x258: the settlement named Rome (Settlement::after_load)
+    Watcher m_constantinople_watcher;   // +0x25c
+    Settlement* m_constantinople;       // +0x260: the settlement named Constantinople
+    char m_pad264[0x2b4 - 0x264];
     bool m_2b4;                         // +0x2b4: the families' popularity is kept to 65 or less (not identified)
     bool m_prologue;                    // +0x2b5 (a guess: it lowers brigand spawns and changes taxes and garrisons)
     bool unk_2b8() const { return m_2b8; }
 
-    bool m_marian_reforms;              // +0x2b6 (a guess: the senate's gift of a first cohort needs it)
-    char m_pad2b7[0x2b8 - 0x2b7];
+    bool m_marian_reforms;              // +0x2b6: set by descr_strat.txt's marian_reforms_activated, or by unk_004537F2
+    bool m_marian_reforms_disabled;     // +0x2b7: descr_strat.txt's marian_reforms_disabled
     bool m_2b8;                         // +0x2b8: characters can go over in a civil war (not identified)
     bool m_2b9;                         // +0x2b9: every revolt is to rebels (not identified)
     char m_pad2ba[0x2c4 - 0x2ba];
@@ -1503,8 +1811,11 @@ public:
     char m_pad2ec[0x528 - 0x2ec];
     Random m_random;                    // +0x528
     DiplomacyMatrix m_diplomacy;        // +0x52c
-    char m_padcd00[0xcd4c - 0xcd00];
+    char m_padcd00[0xcd28 - 0xcd00];
+    CampaignForts m_forts;              // +0xcd28
+    char m_padcd34[0xcd4c - 0xcd34];
     char m_road_manager[0x10];          // +0xcd4c: a RoadManager (road.h's campaign_roads())
+    CampaignUnkCD5C m_cd5c;             // +0xcd5c
 };
 
 // The strategy map (probably code\strategy_map.cpp).
@@ -1523,7 +1834,10 @@ public:
     void add_road(int region, int other, Road* road);  // 0x004812B2
     bool can_cross_river(int from_x, int from_y, int to_x, int to_y);  // 0x0047C6B8: at a bridge, while planning roads
     void add_landmark(int region, Landmark* landmark); // 0x00481251
+    void set_settlement(int region, Settlement* settlement);  // 0x004811B7: and the region's owner follows it
     void unk_0048204D(Army* army, int region);         // 0x0048204D
+    void unk_00482CC0();                               // 0x00482CC0: at the end of each round in summer
+    void unk_00479BE9();                               // 0x00479BE9: filter_coastlines
     unsigned char unk_00471495(RoadPoint position);    // 0x00471495: the tile's unk_0048A97F()
     void unk_00481FA4(int region);                     // 0x00481FA4: sets the region's m_1ac
     void unk_004826A1(TilePosition* position);         // 0x004826A1
@@ -1547,15 +1861,6 @@ public:
     Region m_regions[199];              // +0x70 (how many is a guess)
     char m_pad16f58[0x17128 - 0x16f58];
     PointerList<Region> m_region_list;  // +0x17128 (a guess: only its count, +0x17130, is known)
-};
-
-// A pointer to a character that observes it, so it's cleared when the character goes (not identified).
-class WatchedCharacter {
-public:
-    void set(Character* character);     // 0x0056B311
-
-    char m_pad0[4];
-    Character* m_character;             // +0x04
 };
 
 // What PathFinder::unk_004A76B7 finds on a tile (not identified).
@@ -1594,10 +1899,19 @@ public:
     char m_pad0[4];
 };
 
+// Probably code\extents_manager.cpp's (not identified).
+class ExtentsManager {
+public:
+    void unk_00490EE4();                // 0x00490EE4: at the end of a round
+
+    char m_pad0[4];
+};
+
 // The campaign map's path planning (code\strategy_map.cpp).
 class PathFinder {
 public:
     int find_road_path(const RoadPoint& from, const RoadPoint& to);  // 0x004AE64B
+    void unk_004AFB1E(TilePosition* position);                      // 0x004AFB1E
     void plan_roads(int region, unsigned char level);               // 0x004B1B5B
     void build_roads(int region, unsigned char level);              // 0x004B21E2
     bool unk_004A605B(const RoadPoint& point);                      // 0x004A605B
@@ -1611,6 +1925,8 @@ public:
     void set_character(Character* character);                       // 0x004B64C3: 0 for roads
     void unk_004A4E73();                                            // 0x004A4E73: before a load
     void unk_004B3011();                                            // 0x004B3011
+    void unk_004B31E9();                                            // 0x004B31E9: at the start of each round
+    void unk_004A434A();                                            // 0x004A434A
     void unk_004AFADF();                                            // 0x004AFADF
     bool is_blocked(const RoadPoint& from, const RoadPoint& to, Tile* tile);  // 0x004A6862: by the terrain
     int unk_004AB253(const RoadPoint& from, const RoadPoint& to);   // 0x004AB253
@@ -1621,6 +1937,11 @@ public:
     void unk_004A99D9(TilePosition* position, Array<Character*>* characters, Faction* faction, int type);  // 0x004A99D9:
                                                                     //   the faction's living characters of a type there
     void unk_004AB5CC(Settlement* settlement);                      // 0x004AB5CC
+    void unk_004A4C7F();                                            // 0x004A4C7F: at the start of each faction's turn
+    bool unk_004B13A2(int, int from, int to, Array<int>* path, float* cost, int);  // 0x004B13A2: a land route
+                                                                    //   between two regions (a guess)
+    void unk_004ACEB2(float* cost);                                 // 0x004ACEB2: a cost per turn (a guess)
+    void unk_004AC808(Character* character);                        // 0x004AC808
     void unk_004AC1DB(Settlement* settlement);                      // 0x004AC1DB
     void unk_004AC371(Settlement* settlement);                      // 0x004AC371
     int unk_004A7D84(Faction* faction, const RoadPoint& point);     // 0x004A7D84
@@ -1633,7 +1954,8 @@ public:
     bool unk_004A7097(const RoadPoint& point, int, int);            // 0x004A7097
     Character* unk_004A95F3(Faction* faction, const RoadPoint& point, bool* flag);  // 0x004A95F3
     bool unk_004AC9E5(Faction* faction, Character* character);      // 0x004AC9E5
-    bool unk_004AA85D(const RoadPoint& point);                      // 0x004AA85D
+    bool unk_004AA85D(const RoadPoint& point);                      // 0x004AA85D: m_25 isn't 0xff, and bits 0, 1, 3, 5
+                                                                    //   and 6 of +0x24 are clear
     void unk_004B68A4(Character* character, const RoadPoint& point, Array<int>* tiles, int);  // 0x004B68A4
     int unk_004A7F3C(Faction* faction, const RoadPoint& point);     // 0x004A7F3C
     float step_cost(const RoadPoint& from, const RoadPoint& to);    // 0x004B634D
@@ -1646,9 +1968,13 @@ public:
     int m_c;                            // +0x0c: 3 for ships? (a guess)
     Faction* m_faction;                 // +0x10: the character's faction, or 0 (for roads)
     int m_status;                       // +0x14: of the last search (0 found, 1 bad goal, 2 no path)
-    char m_pad18[0x6c - 0x18];
+    char m_pad18[4];
+    int m_1c;                           // +0x1c: set to 3 at the start of each faction's turn
+    char m_pad20[0x6c - 0x20];
     PathFinderUnk6C m_6c;               // +0x6c
-    char m_pad70[0xbc - 0x70];
+    char m_pad70[0x84 - 0x70];
+    ExtentsManager m_84;                // +0x84
+    char m_pad88[0xbc - 0x88];
     Array<RoadPoint> m_path;            // +0xbc: the last path found, goal first
 };
 
@@ -1756,58 +2082,124 @@ struct UnitSoldier {
 
 struct UnitUnk50 {
     char m_pad0[0x2c];
-    int m_2c;                           // +0x2c: its category (0 infantry, 1 cavalry; a guess)
-    char m_pad30[0x1f4 - 0x30];
+    int m_2c;                           // +0x2c: its category (0 infantry, 1 cavalry, 4 ships, 5 animals; a guess)
+    char m_pad30[0x80 - 0x30];
+    unsigned short m_turns;             // +0x80: stat_cost's turns to train it
+    unsigned short m_cost;              // +0x82: stat_cost's cost
+    char m_pad84[0xc0 - 0x84];
+    unsigned short m_c0;                // +0xc0: its soldiers before the unit size scales them (a guess)
+    char m_padc2[0xd0 - 0xc2];
+    unsigned int m_d0;                  // +0xd0: bit 0 when its weapon can be upgraded (a guess)
+    char m_padd4[0xe0 - 0xd4];
+    int m_weapon;                       // +0xe0: its weapon's kind, 0 simple to 4 other (a guess)
+    char m_pade4[0x154 - 0xe4];
+    int m_154;                          // +0x154: added to its soldiers (not identified)
+    char m_pad158[0x1f4 - 0x158];
     unsigned int m_ownership;           // +0x1f4: the factions that own it, a bit each
     char m_pad1f8[0x200 - 0x1f8];
-    unsigned int m_attributes_0 : 23;   // +0x200: its attributes from export_descr_unit.txt, one bit each
+    unsigned int m_attributes_0 : 7;    // +0x200: its attributes from export_descr_unit.txt, one bit each
+    unsigned int m_attribute_7 : 1;     // bit 7 (not identified)
+    unsigned int m_attributes_8 : 6;
+    unsigned int m_command : 1;         // bit 14: command (an eagle or standard)
+    unsigned int m_attributes_15 : 8;
     unsigned int m_is_peasant : 1;      // bit 23: is_peasant
-    unsigned int m_attributes_24 : 8;
+    unsigned int m_general_unit : 1;    // bit 24: general_unit (general_unit_upgrade sets it too)
+    unsigned int m_general_unit_upgrade : 1;  // bit 25: general_unit_upgrade
+    unsigned int m_attributes_26 : 6;
     char m_pad204[0x20c - 0x204];
+
+    int soldiers();                     // 0x00918878: m_c0 scaled by the unit size (a guess)
+
+    bool owned_by(int faction) const { return (m_ownership & (1 << faction)) != 0; }
+    bool is_animal() const { return m_2c == 5; }
 };
 
-// A unit a revolt raises (not identified; 0x20 bytes).
-struct RevoltUnit {
-    void unk_005AE4F0(Settlement* settlement, UnitUnk50* type, int experience, int, int, int);  // 0x005AE4F0
+// The unit types of export_descr_unit.txt (code\unit_db.cpp).
+class UnitDB {
+public:
+    int count() const { return m_count; }
+    bool has_general_upgrade(int faction);  // 0x0091B995
 
-    char m_pad0[0x20];
+    char m_pad0[4];
+    UnitUnk50 m_types[500];             // +0x04
+    int m_count;                        // +0x3ff74
 };
 
-// The units a revolt raises, up to 256 (not identified).
-struct RevoltUnits {
-    RevoltUnits()
+// A unit in a settlement's recruitment queue, or one it could recruit (code\recruitment_item.cpp; 0x20 bytes).
+struct RecruitmentItem {
+    RecruitmentItem();                  // 0x005AE26D
+    void reset();                       // 0x005AE2D6
+    void unk_005AE4F0(Settlement* settlement, UnitUnk50* type, unsigned char experience, unsigned char armour,
+                      unsigned char weapon, int percent);  // 0x005AE4F0
+    void unk_005AE6C3(Settlement* settlement, UnitUnk50* type, unsigned char experience, unsigned char armour,
+                      unsigned char weapon, int percent);  // 0x005AE6C3: the same, with m_0d set (for a ship; a guess)
+
+    UnitUnk50* m_type;                  // +0x00
+    char m_pad4[4];
+    Settlement* m_settlement;           // +0x08
+    unsigned char m_0c;                 // +0x0c
+    unsigned char m_0d;                 // +0x0d: set by unk_005AE6C3
+    unsigned char m_experience;         // +0x0e
+    unsigned char m_armour;             // +0x0f
+    unsigned char m_weapon;             // +0x10
+    unsigned char m_11;                 // +0x11
+    unsigned char m_12;                 // +0x12
+    unsigned char m_13;                 // +0x13
+    unsigned char m_turns;              // +0x14: the turns it takes to train
+    unsigned short m_cost;              // +0x16
+    unsigned short m_soldiers;          // +0x18
+    unsigned short m_turn;              // +0x1a: the turn it was made on
+    unsigned char m_1c;                 // +0x1c
+};
+
+// The units a settlement can recruit (a revolt's too), up to 256 (not identified).
+struct RecruitmentItems {
+    RecruitmentItems()
     {
-        m_data = m_items;
+        m_data = (RecruitmentItem*)m_items;
         m_count = 0;
         m_2008 = 0;
     }
-    ~RevoltUnits()
+    ~RecruitmentItems()
     {
         while (m_count != 0)
             m_count--;
     }
     unsigned int count();               // 0x005AF300
-    RevoltUnit* add();                  // 0x005AF319
+    RecruitmentItem* add();             // 0x005AF319
 
-    RevoltUnit m_items[256];
-    RevoltUnit* m_data;                 // +0x2000
+    char m_items[256 * sizeof(RecruitmentItem)];  // made as they're added
+    RecruitmentItem* m_data;            // +0x2000
     unsigned int m_count;               // +0x2004
     int m_2008;
 };
 
-// A unit of an army (probably code\unit.cpp).
+// What a unit's +0x44 points to (not identified).
+class UnitUnk44 {
+public:
+    virtual void unk_00();
+    virtual void unk_04();
+    virtual void unk_08(Unit* unit);    // +0x08: the unit leaves (a guess)
+};
+
+// A unit of an army (code/unit.cpp).
 class Unit {
 public:
+    UnitUnk44* unk_44() const { return m_44; }
+    Settlement* unk_48() const { return m_48; }
     UnitUnk50* unk_50() const { return m_50; }
-    int unk_278() const { return m_278; }
+    Character* unk_278() const { return m_278; }
     unsigned int num_soldiers() const { return m_num_soldiers; }
 
     void unk_007C28A2();                // 0x007C28A2
     void unk_007C2E5E();                // 0x007C2E5E
     void unk_007B64D2(Army* army, int, int);  // 0x007B64D2: moves it into the army (a guess)
+    int unk_60() const { return m_60; }
+    bool unk_007C8444();                // 0x007C8444: still fighting in a battle (a guess)
     int unk_007B9438();                 // 0x007B9438: how many of its four m_298 slots are filled
 
-    virtual void vf_000(); virtual void vf_004(); virtual void vf_008(); virtual void vf_00c(); virtual void vf_010(); virtual void vf_014();
+    virtual ~Unit();
+    virtual void vf_004(); virtual void vf_008(); virtual void vf_00c(); virtual void vf_010(); virtual void vf_014();
     virtual void vf_018(); virtual void vf_01c(); virtual void vf_020(); virtual void vf_024(); virtual void vf_028(); virtual void vf_02c();
     virtual void vf_030(); virtual void vf_034(); virtual void vf_038(); virtual void vf_03c(); virtual void vf_040(); virtual void vf_044();
     virtual void vf_048(); virtual void vf_04c(); virtual void vf_050(); virtual void vf_054(); virtual void vf_058(); virtual void vf_05c();
@@ -1838,15 +2230,25 @@ public:
     virtual void vf_2a0(); virtual void vf_2a4(); virtual void vf_2a8();
     virtual int kill_soldiers(int percent);  // +0x2ac: returns how many died
 
-    char m_pad4[0x50 - 0x4];
+    char m_pad4[0x40 - 0x4];
+    int m_40;                           // +0x40
+    UnitUnk44* m_44;                    // +0x44
+    Settlement* m_48;                   // +0x48: the settlement it's queued to retrain in, or 0 (a guess)
+    char m_pad4c[0x50 - 0x4c];
     UnitUnk50* m_50;                    // +0x50
-    char m_pad54[0x278 - 0x54];
-    int m_278;                          // +0x278: its general? (a guess)
+    char m_pad54[0x60 - 0x54];
+    int m_60;                           // +0x60: its state in a battle (a guess); 18 to 21 count as out of it
+    char m_pad64[0x278 - 0x64];
+    Character* m_278;                   // +0x278: the character it's the bodyguard of, or 0
     float m_27c;                        // +0x27c
     unsigned int m_num_soldiers;        // +0x280
-    char m_pad284[0x298 - 0x284];
+    char m_pad284[0x288 - 0x284];
+    int m_288;                          // +0x288
+    char m_pad28c[0x298 - 0x28c];
     void* m_298[4];                     // +0x298
-    char m_pad2a8[0x30c - 0x2a8];
+    char m_pad2a8[0x2b8 - 0x2a8];
+    int m_2b8;                          // +0x2b8
+    char m_pad2bc[0x30c - 0x2bc];
     UnitSoldier* m_soldiers;            // +0x30c
 };
 
@@ -1872,17 +2274,29 @@ public:
     int num_units() const { return m_units.size(); }
     Unit* unit_at(int index) { return m_units[index]; }
     int unk_134() const { return m_134; }
+    bool unk_ac() const { return m_ac; }
+    Region* unk_007199A3();             // 0x007199A3: the region it's in (a guess)
+    int unk_007216D2(int, int, TilePosition* position);  // 0x007216D2
+    void unk_0071EBF6(int faction, int);    // 0x0071EBF6
+    int unk_bc() const { return m_bc; }
 
     TilePosition* unk_00719BB2();       // 0x00719BB2
+    void unk_00719E61();                // 0x00719E61
     Unit* unk_0071DADD(Character* character, int, int, int, int);  // 0x0071DADD
     void unk_007201B3(RebelType* type, int faction);  // 0x007201B3: m_rebel_type and m_rebel_faction
     Unit* unit(int index);              // 0x0072212A
     int garrison_soldiers();            // 0x00722341
-    void unk_0071E460(Unit* unit);      // 0x0071E460: removes the unit (a guess)
+    Character* leader() const { return m_leader; }
+
+    void remove_unit(Unit* unit);       // 0x0071E460: and deletes it; a command unit lost in the field gives the enemy its eagle
+    StrategyObject* unk_11c() const { return m_11c; }
+    void unk_0071E2C8(Unit* unit);      // 0x0071E2C8: takes it out of m_units
+    void update_strength();             // 0x0071B41D
+    unsigned int compute_strength();    // 0x0071B451: the sum of its units' values, rounded
     int unk_00722430();                 // 0x00722430: its soldiers (each unit's +0x280 and unk_007B9438())
     int kill_soldiers(int percent);     // 0x0071FE0D: each unit loses that share of its soldiers; returns the dead
-    unsigned int strength();            // 0x0071B3EB: +0x140, the sum of its units' values (0x0071B451)
-    void unk_00720D26(int type, float strength, int min_units, int max_units, RevoltUnits* units);  // 0x00720D26
+    unsigned int strength();            // 0x0071B3EB
+    void unk_00720D26(int type, float strength, int min_units, int max_units, RecruitmentItems* units);  // 0x00720D26
     void unk_007201D6(int type, float strength, int min_units, int max_units, RebelType* rebel);  // 0x007201D6
     int unk_007225D5(bool, bool);       // 0x007225D5: how many units are ... (not identified)
     bool unk_007233E0(bool);            // 0x007233E0
@@ -1890,13 +2304,34 @@ public:
     void unk_00725C23(Army* army);      // 0x00725C23
     Faction* unk_00721587();            // 0x00721587: its faction (+0x54)
     Character* unk_007216B9();          // 0x007216B9: its leader (+0xf0)
+    void unk_0071B214(Character* character, int);  // 0x0071B214: takes it out of m_characters (a guess)
+    void unk_0071E3F1(Unit* unit);      // 0x0071E3F1: takes it out (a guess)
     bool unk_0072309A();                // 0x0072309A
 
-    char m_pad10[0x5c - 0x10];
+    char m_pad10[0x54 - 0x10];
+    Faction* m_faction;                 // +0x54
+    char m_pad58[0x5c - 0x58];
     Array<Unit*> m_units;               // +0x5c
-    char m_pad68[0x134 - 0x68];
+    char m_pad68[0xac - 0x68];
+    bool m_ac;                          // +0xac
+    char m_padad[0xbc - 0xad];
+    int m_bc;                           // +0xbc
+    char m_padc0[0xf0 - 0xc0];
+    Character* m_leader;                // +0xf0
+    char m_padf4[0x10c - 0xf4];
+    PointerList<Character> m_characters;  // +0x10c: the characters with it besides its leader (a guess)
+    char m_pad118[0x11c - 0x118];
+    StrategyObject* m_11c;              // +0x11c: where it is (a settlement or fort it's in?)
+    char m_pad120[0x129 - 0x120];
+    bool m_129;                         // +0x129: set when a battle is set up with it (0x0071C970), cleared at 0x0071CFA4
+    bool m_in_battle;                   // +0x12a: set by the battle code (a guess)
+    char m_pad12b[0x134 - 0x12b];
     int m_134;                          // +0x134
-    char m_pad138[0x164 - 0x138];
+    bool m_captured_eagle;              // +0x138: it took an enemy's eagle (a guess)
+    bool m_139;                         // +0x139: while it's set, its strength is 0
+    char m_pad13a[0x140 - 0x13a];
+    unsigned int m_strength;            // +0x140
+    char m_pad144[0x164 - 0x144];
     RebelType* m_rebel_type;            // +0x164: who a settlement it takes rebels for (a guess)
     int m_rebel_faction;                // +0x168
 };
@@ -1912,6 +2347,7 @@ class BattleSide {
 public:
     bool unk_0() const { return m_0; }
     Army* army(int index) { return m_armies[index].m_army; }
+    Army* first_army() { return army(0); }
     unsigned int num_armies() const { return m_1b58; }
     unsigned int num_reinforcements() const { return m_1bfc; }
 
@@ -1930,15 +2366,25 @@ public:
     int unk_8() const { return m_8; }
     bool unk_c() const { return m_c; }
     bool unk_24() const { return m_24; }
+    bool unk_46() const { return m_46; }
 
     int side_of(Army* army);            // 0x005FF179: -1 for neither
     BattleSide* side(int index);        // 0x005FF3BB
+    BattleSide* unk_005FF3D9(int index);  // 0x005FF3D9: the same as side()
+    int side_of_faction(int faction);   // 0x005FF3F7
+    void force_victory(int side);       // 0x005FD5D1: every other side loses (the force_battle_ commands)
+    unsigned int num_sides() const { return m_num_sides; }
 
     char m_pad0[8];
     int m_8;                            // +0x08
     bool m_c;                           // +0x0c
     char m_padd[0x24 - 0xd];
     bool m_24;                          // +0x24
+    char m_pad25[0x46 - 0x25];
+    bool m_46;                          // +0x46
+    char m_pad47[0xe1f8 - 0x47];
+    int m_side_of_faction[21];          // +0xe1f8
+    unsigned int m_num_sides;           // +0xe24c
 };
 
 // (Not identified: told when a character's record changes.)
@@ -2156,9 +2602,16 @@ struct AIFactionStrength {
     char m_pad4[0x40 - 4];
 };
 
+// The AI's record of each pair of factions (0xc bytes from 0x012D1548, by faction × 21 + other; set in 0x004E18FA).
 struct AIFactionPair {
-    bool m_strongest_neighbour;         // set in 0x004E18FA
+    bool m_strongest_neighbour;         // +0x0a
     char m_pad1[0xc - 1];
+};
+
+// The same records' +0x00: the length of the land border between the faction's regions and the other's (0x004E3FAD).
+struct AIFactionBorder {
+    int m_length;
+    char m_pad4[0xc - 4];
 };
 
 // A save game being written or read (probably ca_libs).
@@ -2420,6 +2873,59 @@ public:
     Settlement* m_settlement;
 };
 
+// The CeasedFactionLeader event.
+class CeasedFactionLeaderEvent : public TriggerEvent {
+public:
+    CeasedFactionLeaderEvent(CharacterRecord* record);  // 0x008A4F3A
+    virtual LinkedList<Trigger>* triggers() const;
+    virtual const void* unk_7c() const;
+
+    CharacterRecord* m_record;
+};
+
+// The BecomesFactionLeader event.
+class BecomesFactionLeaderEvent : public TriggerEvent {
+public:
+    BecomesFactionLeaderEvent(CharacterRecord* record);  // 0x008A48C2
+    virtual LinkedList<Trigger>* triggers() const;
+    virtual const void* unk_7c() const;
+
+    CharacterRecord* m_record;
+};
+
+// The CityRebels event.
+class CityRebelsEvent : public TriggerEvent {
+public:
+    CityRebelsEvent(Settlement* settlement, Faction* faction);  // 0x008A9319
+    virtual LinkedList<Trigger>* triggers() const;
+    virtual const void* unk_7c() const;
+
+    Settlement* m_settlement;
+    Faction* m_faction;
+};
+
+// The GovernorCityRebels event.
+class GovernorCityRebelsEvent : public TriggerEvent {
+public:
+    GovernorCityRebelsEvent(CharacterRecord* governor, Settlement* settlement, Faction* faction);  // 0x008A9400
+    virtual LinkedList<Trigger>* triggers() const;
+    virtual const void* unk_7c() const;
+
+    CharacterRecord* m_governor;
+    Settlement* m_settlement;
+    Faction* m_faction;
+};
+
+// The FactionTurnStart event.
+class FactionTurnStartEvent : public TriggerEvent {
+public:
+    FactionTurnStartEvent(Faction* faction);  // 0x008A3B75
+    virtual LinkedList<Trigger>* triggers() const;
+    virtual const void* unk_7c() const;
+
+    Faction* m_faction;
+};
+
 // The CityRiots event.
 class CityRiotsEvent : public TriggerEvent {
 public:
@@ -2455,6 +2961,7 @@ public:
 // What lbl_012CED70 is (not identified): it keeps EventUnk437A36s.
 class EventsUnk12CED70 {
 public:
+    void unk_0043900D();                // 0x0043900D: at the start of each round
     void unk_004392F9(const EventUnk437A36& event);  // 0x004392F9: adds it, unless the campaign's settings say not to
 };
 
@@ -2477,11 +2984,29 @@ struct RevoltSize {
     int m_max;
 };
 
-class Unk02921A38 {
-public:
-    void unk_00C098DC(Settlement* settlement);  // 0x00C098DC: passes the settlement on, when some flag (0x00C803D8) allows
+// Something about a settlement that the notices are told of (not identified; 16 bytes).
+struct UnkB5DC7E {
+    UnkB5DC7E(Settlement* settlement);  // 0x00B5DC7E
+
+    char m_pad0[0x10];
 };
 
+// The same for a fort (4 bytes).
+struct UnkB5C51D {
+    UnkB5C51D(Fort* fort);              // 0x00B5C51D
+
+    int m_0;
+};
+
+class Unk02921A38 {
+public:
+    void unk_00C09FDE(Character* character);  // 0x00C09FDE
+    void unk_00C0A4F4(UnkB5DC7E unk);   // 0x00C0A4F4
+    void unk_00C0A592(UnkB5C51D unk);   // 0x00C0A592
+    void unk_00C098DC(Settlement* settlement);  // 0x00C098DC: passes the settlement on, when some flag (0x00C803D8) allows
+    void unk_00C0A2EE(Unit* unit);      // 0x00C0A2EE: the same for a unit
+    void unk_00C0A689(Fort* fort);      // 0x00C0A689
+};
 
 extern "C" {
 extern Campaign* lbl_018CD818;
@@ -2489,10 +3014,12 @@ extern StrategyMap* lbl_018CD80C;
 extern int lbl_01181378;  // the rebel faction's index
 extern unsigned int lbl_015C95B4;    // how many unit types there are
 extern UnitUnk50 lbl_01589644[];     // the unit types
+extern UnitDB lbl_01589640;          // the same, with their count
 extern RevoltSize lbl_00FEC4E8[];    // by settlement level
 extern AIFactionSummary lbl_012D0F78[21];
 extern AIFactionStrength lbl_012D0F74[21];  // the total strength of each faction's armies
 extern AIFactionStrength lbl_012D0F68[21];  // the total strength of each faction's fleets
+extern AIFactionBorder lbl_012D1548[21 * 21];
 extern AIFactionPair lbl_012D1552[21 * 21];
 extern const float lbl_00FE4970;  // 1.0
 
@@ -2518,6 +3045,43 @@ inline PathFinder* path_finder()
     return lbl_02921A1C;
 }
 extern Unk02921A38* lbl_02921A38;
+
+class UnkB4CFDA {
+public:
+    Faction* unk_00B4CFDA();            // 0x00B4CFDA: the player's faction (a guess)
+};
+
+inline Campaign* campaign()
+{
+    Campaign* campaign = lbl_02921A30;
+    return campaign;
+}
+inline Unk02921A38* unk_02921A38()
+{
+    Unk02921A38* unk = lbl_02921A38;
+    return unk;
+}
+
+// (Not identified: told when a character enters a settlement or a fort.)
+class Unk02921A18 {
+public:
+    void unk_004BE7CB(Settlement* settlement);  // 0x004BE7CB
+    void unk_004BE81C(Fort* fort);      // 0x004BE81C
+};
+extern Unk02921A18* lbl_02921A18;
+
+inline Unk02921A18* unk_02921A18()
+{
+    Unk02921A18* unk = lbl_02921A18;
+    return unk;
+}
+
+// Armies (codermy.cpp's callees)
+extern Battle* lbl_018BF5E0;        // the battle being fought
+extern bool lbl_02921AE0;
+float fn_00432C9F(Unit* unit);      // a unit's value in a battle
+float fn_004335A9(Unit* unit);      // a unit's value on the campaign map, from its type, soldiers and m_298 slots
+void fn_00CB67A8(Faction* faction); // a message (type 0x60) to the faction: it lost its eagle (a guess)
 extern SettlementLevel lbl_012DAFC8[];
 RebelType* fn_00903C7E(const String& name);    // the rebel type of this name, or 0
 int fn_008F99BC(const RegionColour* colour);   // from the descr_regions.txt entry of this colour (+0x4c)
@@ -2533,6 +3097,7 @@ void fn_00CB4122(const SettlementDamage* damage);    // the riot's message (a gu
 extern EventsUnk12CED70 lbl_012CED70;
 extern BuildingDB lbl_014DA2B0;
 FactionDescription* fn_008F60D5(const String& name);  // the faction description of this name
+int fn_008F6278(String name);       // the index of the faction of this name
 void fn_008FF5CB(Random* random, int faction, int, int* first_name, int* surname);  // picks a name
 void fn_004E4403(int faction, int region, ArmyStrengths* strengths);  // the armies in the region (and its settlements)
 int fn_004E282B(Faction* faction, int* count);  // the faction's armies' total strength (those without +0xac set)

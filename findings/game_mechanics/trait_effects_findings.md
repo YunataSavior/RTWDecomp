@@ -2,7 +2,7 @@
 
 > **NYD (Not Yet Decompiled):** a claim marked NYD comes from disassembly of code that isn't decompiled yet, so it's an inference the matching source can't confirm yet. A heading marked NYD covers its whole section. Unmarked claims come from the matching source in [`src/`](../../src/), or from in-game tests.
 
-**Short version:** when a trigger's negative `Affects` lowers a trait's level, the trait drops (or disappears), but **the old level's effects stay in the character's stored attributes**, permanently and in the save (confirmed in game). Age plays no part (NYD). Removing a trait through its `AntiTraits` (confirmed in game), or with the `give_trait` console command (NYD), keeps the attributes correct.
+**Short version:** when a trigger's negative `Affects` lowers a trait's level, the trait drops (or disappears), but **the old level's effects stay in the character's stored attributes**, permanently and in the save (confirmed in game). Age plays no part (NYD). Removing a trait through its `AntiTraits` (confirmed in game), or with the `give_trait` console command, keeps the attributes correct.
 
 Sources:
 
@@ -13,8 +13,10 @@ Sources:
 - The decompiled triggers, [`src/code/triggers.cpp`](../../src/code/triggers.cpp) and [`triggers.h`](../../src/code/triggers.h).
   - They read the `Trigger` blocks and fire them when their event happens.
   - All but two of its functions match the original; the two left (a hash table's insert and `free_triggers`) play no part in these findings.
+- The decompiled console, [`src/code/env/dev_console.cpp`](../../src/code/env/dev_console.cpp), which works the same as the original but isn't byte-identical.
+  - It holds the `give_trait` and `give_trait_points` commands; [console_commands_findings.md](console_commands_findings.md) covers the rest of the console.
 - Disassembly of `RomeTW.exe` (Steam Rome: Total War Gold) for the other code that calls it, which isn't decompiled yet (NYD).
-  - That includes the console commands and the character scroll.
+  - That includes the character scroll.
 - In-game tests (see [Confirmed in-game](#confirmed-in-game)).
 
 Addresses are virtual addresses in that exe (image base `0x400000`). Barbarian Invasion runs `RomeTW-BI.exe`, which wasn't examined.
@@ -59,7 +61,7 @@ Things the parser does that the file format doesn't make obvious:
 There are two lookups, with different case rules:
 
 - `find_trait(const char*)` (`0x8E4C92`) ignores case (`_stricmp`). The triggers use it, and so does other game code (NYD).
-- `find_trait(String)` (`0x8E4CF9`) is case-sensitive. The `give_trait` and `give_trait_points` console commands (`0xDE405D`, `0xDE4BEC`; NYD) and the `AntiTraits` resolution use it.
+- `find_trait(String)` (`0x8E4CF9`) is case-sensitive. The `give_trait` and `give_trait_points` console commands (`GiveTraitCommand::execute` and `GiveTraitPointsCommand::execute`) and the `AntiTraits` resolution use it.
 
 ## Data layout
 
@@ -95,14 +97,18 @@ A character's trait entry (`CharacterTrait`) holds the definition at `+0`, a poi
 ## How attributes are stored
 
 - A character keeps a 55-slot attribute array at `char+0x2c + id*4`.
-  - The attribute IDs come from the name-to-ID function `0xE41B13`, which the parser also uses for `Effect` lines: `Command` is 0, `Influence` 1, `Management` 2, `Subterfuge` 3, and so on (NYD).
+  - The attribute IDs come from the name-to-ID function `0xE41B13` ([`code/enum_names.cpp`](../../src/code/enum_names.cpp)), which the parser also uses for `Effect` lines: `Command` is 0, `Influence` 1, `Management` 2, `Subterfuge` 3, and so on.
+  - `Negotiation` gives 1, the same ID as `Influence`, so an `Effect Negotiation` line changes Influence, and no name gives 27.
+  - `Combat_V_<culture>` gives 34 plus the culture (34 to 40), `Combat_V_Slave` gives 41, and `Combat_V_` with an unknown culture also gives 41.
   - 55 means an unknown name.
 - The array is **saved in the savegame and loaded back as-is** (`CharacterRecord::load`, `0x5933E8`). It's never rebuilt from the current traits and ancillaries.
   - It changes only through `set_attribute(id, value)` (`0x590B15`), which the trait and ancillary code calls with `current ± level effect`.
 - The character scroll's getters:
-  - Management (`0x49C5B6`) and Influence (`0x4D496D`) return the stored value, clamped to 0–10 (NYD).
+  - Influence (`CharacterRecord::influence`, in [`code/faction.cpp`](../../src/code/faction.cpp)) returns the stored value, clamped to 0–10, and so does Management (`CharacterRecord::management`, in [`code/garrison.cpp`](../../src/code/garrison.cpp)).
   - Command (`0x590EC6`) returns the stored value plus battle-situation modifiers, clamped to 0–10.
-  - None of them read age (NYD for Management and Influence).
+  - None of them read age.
+  - Management also picks the governor: a named character who enters a settlement, or comes in with a revolt's army, becomes its governor when there's none or his Management is higher (`Settlement::better_governor`, in [`code/settlement.cpp`](../../src/code/settlement.cpp)).
+    - A tie keeps the old governor.
 - `descr_strat.txt`'s `character_record` entries accept base `command`, `influence`, `management`, `subterfuge` and `age` values (parsed at `0x449A1A`–`0x449D08`; NYD).
   - They're range-checked and then **discarded**: the create call at `0x449EF4` never receives them.
 
@@ -208,10 +214,10 @@ What each line needs:
 - **`AcquireAncillary`:** the record must have a character on the map, not of type 4, and the culture of its faction must not be in the ancillary's `ExcludeCultures`.
 - **`AdviceThread`:** a campaign setting (`campaign+0xb8`, not identified) must be 1.
 
-**The `Chance` roll succeeds when `roll <= Chance`**, with the roll from 0 to 99 (the random function `0xF3AAD0`, NYD). So:
+**The `Chance` roll succeeds when `roll <= Chance`**, with the roll from 0 to **100**, each value about equally likely (`Random::percent`; see below). So:
 
 - `Chance 100` always succeeds.
-- `Chance N` succeeds N + 1 times in 100, so even **`Chance 0` succeeds 1 time in 100**.
+- `Chance N` succeeds N + 1 times in 101, so even **`Chance 0` succeeds about 1 time in 101** (0.99%).
 - Traits and ancillaries roll the same way, comparing in floating point against `1.0 × Chance`.
 
 Consequences:
@@ -220,6 +226,11 @@ Consequences:
 - Triggers that remove a trait's levels written highest level first chain all the way down in one turn, which is still the buggy path.
 - `Chance` is rolled separately for each `Affects` line, so a chain with a `Chance` below 100 can stop partway.
 - `Chance 0` can't switch a line off; remove the line or give the trigger a condition that never holds.
+
+`Random::percent` ([`maths_random.cpp`](../../src/libs_daily/ca_libs/maths/maths_random.cpp)) is the C runtime's `rand()` step (`seed × 214013 + 2531011`, keeping bits 16–30), scaled as `(r × 101 − 1) / 32767`.
+
+- So it returns 0 to 100, not 0 to 99: 0 and 100 each come up 325 times in 32768, and every other value 324 or 325 times.
+- `Random::up_to(n)` and `Random::range(low, high)` scale the same way, so both include their upper bound.
 
 ## Removing traits past `NoGoingBackLevel` with triggers ("middle ground")
 
@@ -244,7 +255,7 @@ With `E(n)` meaning the effects listed for level n (each level lists its full ef
 
 ### `give_trait <char> <trait> <opt:level>`
 
-The handler is `0xDE3FED`, and the level defaults to 1. It looks the trait up with the case-sensitive `find_trait(String)`, then calls set-trait `0x58F70E(trait, level, 1)` (NYD up to here). Set-trait (`CharacterRecord::set_trait`) does nothing for a character of type 4; otherwise it:
+The handler is `GiveTraitCommand::execute` (`0xDE3FED`), and the level defaults to 1. It finds the character by name among the characters on the map, the player's faction first, so a family member who isn't on the map can't be given a trait this way. It looks the trait up with the case-sensitive `find_trait(String)`, then calls `CharacterRecord::set_trait(trait, level, true)`. Set-trait (`CharacterRecord::set_trait`) does nothing for a character of type 4; otherwise it:
 
 1. If the character already has that trait, subtracts its **current level's** effects from the stored attributes and deletes the trait entry.
 2. Calls add-points with the requested level's threshold (`levels[level].threshold`).
@@ -262,7 +273,10 @@ Results:
 
 ### `give_trait_points <char> <trait> <points>`
 
-This calls add-points `0x58F9D7(trait, points, 1)` (at `0xDE4C41`; NYD), the **same path as a trigger's `Affects`**.
+The handler is `GiveTraitPointsCommand::execute` (`0xDE4B7C`). It finds the character and the trait the same way, then calls `CharacterRecord::add_trait_points(trait, points, true)`, the **same path as a trigger's `Affects`**.
+
+- The points default to 1.
+- The game's console (the ~ key) can't run it, because the command isn't flagged for it; a campaign script's `console_command` can (see [console_commands_findings.md](console_commands_findings.md)).
 
 - Negative points have the same bug: the level drops, and the effects stay.
 - On a trait the character doesn't have, it gives the trait with `|points|`.

@@ -26,6 +26,7 @@ public:
         iterator(Node* node) : m_node(node) {}
         T& operator*() const { return m_node->m_data; }
         iterator& operator++() { m_node = m_node->m_next; return *this; }
+        iterator& operator--() { m_node = m_node->m_prev; return *this; }
         bool operator==(const iterator& other) const { return m_node == other.m_node; }
         bool operator!=(const iterator& other) const { return !(*this == other); }
 
@@ -54,6 +55,7 @@ public:
 
     Node* head() { return m_head; }
     iterator begin() { return head(); }
+    iterator end() { return iterator(); }
     Node* tail() { return m_tail; }
     iterator last() { return m_tail; }
     Node* push_back(const T& item) { return append(item).tail(); }

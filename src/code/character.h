@@ -59,18 +59,33 @@ public:
     float unk_c4() const { return m_c4; }
     bool has_plague() const { return m_plague; }
     Army* led_army() const { return m_army; }
+    Settlement* current_settlement() const { return m_settlement; }
+    bool in_field() const { return current_settlement() == 0; }
 
     void catch_plague();                        // 0x0058AD99
     bool plague_tick(int* soldiers_lost);       // 0x0058ADEA
+    void enter_settlement(Settlement* settlement);  // 0x005890B8
+    void enter_fort(Fort* fort);                // 0x00589202
+    void unk_00581E22();                        // 0x00581E22
+    void unk_00581638(float cost, int);         // 0x00581638: uses up the movement points (a guess)
+    void unk_00588989(TilePosition position);   // 0x00588989: moves it there (a guess)
+    void unk_00580F8F();                        // 0x00580F8F: for a character leading an army
+    void unk_005805DC(int faction);             // 0x005805DC: at the start of each faction's turn
+    void set_settlement(Settlement* settlement);  // 0x0058AF39: a character entering a settlement with plague catches it, and the other way round
 
     Faction* unk_00580C1E();                    // 0x00580C1E: the first item of m_7c
     bool unk_0058D0C5();                        // 0x0058D0C5
     StrategyObject* unk_00586278(Array<int>* tiles);  // 0x00586278
     bool unk_00585CF4(Array<int>* tiles, int);  // 0x00585CF4
     Army* army();                               // 0x00580C40: the army it leads, or 0
+    void unk_00580620(int faction, int);        // 0x00580620
     bool unk_0058B8D9(Faction* faction);  // 0x0058B8D9
     void unk_00580DC3(Army* army);              // 0x00580DC3
     bool unk_005814BA();                        // 0x005814BA
+    void unk_005813AC();                        // 0x005813AC: for a general (type 4) after a revolt
+    void unk_0057E5A1();                        // 0x0057E5A1: at the start of its faction's turn; fires CharacterTurnStart (a guess)
+    void marian_reforms();                      // 0x00581223
+    void unk_00581268();                        // 0x00581268: replaces its bodyguard unit (a guess: with the upgraded one)
     float unk_005815D7();                       // 0x005815D7
     void unk_00581619(float);                   // 0x00581619
     void unk_0057DD3B();                        // 0x0057DD3B

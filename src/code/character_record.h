@@ -23,6 +23,7 @@ enum Attribute {
     ATTR_LOYALTY = 4,
     ATTR_PUBLIC_SECURITY = 0x10,
     ATTR_ELECTABILITY = 0x13,
+    ATTR_TRAINING_UNITS = 0x15,
     ATTR_LOCAL_POPULARITY = 0x19,
     ATTR_FARMING = 0x1c,
     ATTR_GRAIN_TRADING = 0x2a,
@@ -33,6 +34,7 @@ enum Attribute {
     ATTR_LAW = 0x2f,
     ATTR_SENATE_STANDING = 0x31,
     ATTR_POPULAR_STANDING = 0x32,
+    ATTR_TRAINING_ANIMAL_UNITS = 0x35,
     NUM_ATTRIBUTES = 55,
 };
 
@@ -156,8 +158,9 @@ public:
 
     int& attribute(int id) { return m_attributes[id]; }
     int attribute_value(const int& id) { return m_attributes.m_items[id]; }
+    int attribute_at(int id) { int index = id; return attribute_value(index); }
     CharacterRecord*& child(int index) { return m_children[index]; }
-    bool flag3() const { return m_flag3; }
+    bool is_leader() const { return m_leader; }
 
     static int s_next_id;
 
@@ -186,7 +189,7 @@ public:
     CharacterRecord* m_father;                  // +0x198
     CharacterRecord* m_spouse;                  // +0x19c
     FixedArray<CharacterRecord*, 4> m_children; // +0x1a0
-    SenateMissionSlot m_senate_mission;         // +0x1b0
+    SenateCareer m_career;                      // +0x1b0: his senate offices
     int m_1c0;                                  // +0x1c0
     String m_1c4;                               // +0x1c4
     String m_1cc;                               // +0x1cc
@@ -194,7 +197,7 @@ public:
     unsigned int m_alive : 1;                   // +0x1d8
     unsigned int m_male : 1;
     unsigned int m_flag2 : 1;
-    unsigned int m_flag3 : 1;
+    unsigned int m_leader : 1;                  // the faction leader
     unsigned int m_flag4 : 1;
     unsigned int m_flag5 : 1;
     unsigned int m_age : 7;
