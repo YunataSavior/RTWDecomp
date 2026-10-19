@@ -7,7 +7,6 @@ static char THIS_FILE[] = __FILE__;
 
 #include "character.h"
 #include "character_record.h"
-#include "ai/ai_cheat_manager.h"
 
 // Runs at the end of the faction's turn: its characters age and act, its settlements are updated, and the public
 // order bonuses for a triumph and for capturing a wonder each wind down by 1.
@@ -409,17 +408,4 @@ int CharacterRecord::influence()
     return m_attributes[ATTR_INFLUENCE] > 0
         ? ((unsigned int)m_attributes[ATTR_INFLUENCE] < 10 ? m_attributes[ATTR_INFLUENCE] : 10)
         : 0;
-}
-
-// Adds the turn's income to the treasury, and for an AI faction its cash from the difficulty: ai_turn_cash for each
-// settlement, plus 0 to 100.
-void FactionFinance::end_turn()
-{
-    if (m_faction->unk_178() != 0)
-        return;
-    m_treasury += m_income;
-    int cash = AICheatManager::ai_turn_cash(m_faction->id());
-    if (cash != 0)
-        m_treasury += cash * m_faction->m_settlements.size() + lbl_018CD818->m_random.range(0, 100);
-    m_history.current().unk_004D7EAA();
 }

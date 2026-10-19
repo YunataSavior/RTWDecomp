@@ -316,7 +316,7 @@ def main():
         else:
             result[u][0] = min(result[u][0], a)
             result[u][1] = max(result[u][1], b)
-    # (units of splits.txt with no path in .data, such as main.cpp, keep their place inside a gap)
+    # (units of splits.txt with no path in .data, such as enum_names.cpp, keep their place inside a gap)
     anchors = [(s, e, u) for s, e, u in placed if u in order]
     for k in range(len(anchors) + 1):
         lo_address = anchors[k - 1][1] if k else image.text_start

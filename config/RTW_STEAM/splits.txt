@@ -11,7 +11,7 @@ code/auto_optimise.cpp:
 auto/game/00402967.cpp:
 	.text       start:0x00402967 end:0x00403090
 
-code/main.cpp:
+code/romans.cpp:
 	.text       start:0x00403090 end:0x00403412
 
 auto/game/00403412.cpp:
@@ -159,10 +159,10 @@ code/watchtower.cpp:
 	.text       start:0x004BEC0D end:0x004BFBE6
 
 code/faction.cpp:
-	.text       start:0x004BFBE6 end:0x004D8248
+	.text       start:0x004BFBE6 end:0x004D787D
 
 code/faction_economics.cpp:
-	.text       start:0x004D8248 end:0x004D9295
+	.text       start:0x004D787D end:0x004D9295
 
 code/faction_render.cpp:
 	.text       start:0x004D9295 end:0x004DB3F7
@@ -3300,10 +3300,10 @@ libs_daily/cas_loader/cas_loader.cpp:
 	.text       start:0x00FA45D0 end:0x00FA55F0
 
 libs_daily/cas_loader/cas_scene_data.cpp:
-	.text       start:0x00FA55F0 end:0x00FA61D0
+	.text       start:0x00FA55F0 end:0x00FA5F00
 
-auto/libs/00FA61D0.cpp:
-	.text       start:0x00FA61D0 end:0x00FA6200
+auto/libs/00FA5F00.cpp:
+	.text       start:0x00FA5F00 end:0x00FA6200
 
 libs_daily/cas_loader/cas_anim_data.cpp:
 	.text       start:0x00FA6200 end:0x00FA7020

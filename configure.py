@@ -41,8 +41,6 @@ LIBS = [
         "lib": "game",
         "category": "game",
         "objects": [
-            # (WinMain's file is not named in the original)
-            Object(Matching, "code/main.cpp"),
             Object(NonMatching, "code/act_animal_attack.cpp"),
             Object(NonMatching, "code/act_animal_walk.cpp"),
             Object(NonMatching, "code/act_animate.cpp"),
@@ -714,7 +712,7 @@ LIBS = [
             Object(NonMatching, "code/resources.cpp"),
             Object(NonMatching, "code/river_placement.cpp"),
             Object(NonMatching, "code/road.cpp"),
-            Object(NonMatching, "code/romans.cpp"),
+            Object(Matching, "code/romans.cpp"),
             Object(NonMatching, "code/romans_cmd_line.cpp"),
             Object(NonMatching, "code/romans_event_handler.cpp"),
             Object(Matching, "code/romans_file.cpp"),

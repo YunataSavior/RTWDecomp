@@ -121,7 +121,7 @@ Settlement income is built in `0x5CDB6A`.
 
 ### AI treasury: cash every turn
 
-In the faction's end-of-turn finance update (`FactionFinance::end_turn`, in [`code/faction.cpp`](../../src/code/faction.cpp); `faction+0x504` is the treasury and `+0x508` the turn's income), after the normal income is added, and only while the faction is still in the game (`faction+0x178` is 0):
+In the faction's end-of-turn finance update (`FactionFinance::end_turn`, in [`code/faction_economics.cpp`](../../src/code/faction_economics.cpp); `faction+0x504` is the treasury and `+0x508` the turn's income), after the normal income is added, and only while the faction is still in the game (`faction+0x178` is 0):
 
 ```
 bonus = AICheatManager::ai_turn_cash(faction)
