@@ -110,6 +110,8 @@ Project structure
 - `tools/split.py`: splits the original into one COFF object per unit (see below).
 - `tools/locate_units.py`: finds units' code from the source paths their asserts push, and adds them to `splits.txt`
   and their functions to `symbols.txt` (see below).
+- `tools/fill_splits.py`: splits the rest of `.text` into units, from where each unit's code starts and the link order
+  of the source paths in `.data` (see below).
 - `tools/check.py`: checks a compiled unit against its split.
 - `tools/cl.py`: runs VC6's `CL.EXE` with its environment, and writes the header dependencies VC6 cannot.
 - `tools/vc6_locals.py`: predicts the stack order VC6 gives locals from their names (see
@@ -128,7 +130,25 @@ overlaps. A unit's functions before its first assert or after its last are not i
 `splits.txt` when you find them.
 
 The other units have no asserts in their code, but most still hold their path in `.data` (unreferenced, like MFC's
-`THIS_FILE`), which marks where their data sits in link order. Placing them from that is still to do.
+`THIS_FILE`), which marks where their data sits in link order. `tools/fill_splits.py` places them, and the code
+before and after each located unit's asserts:
+
+- Where a unit starts: CA's units all include a header that defines Unicode character constants (`0`, `0xFEFF`,
+  `' '`, `'_'`, ...) as statics with dynamic initializers, so each unit's code opens with their initializers. In the
+  C++ initializer table (`__xc_a` to `__xc_z`, in link order), the one that clears a word followed by the one that
+  stores `0xFEFF` is a unit's first function: 1116 of them.
+- Which unit it is: the linker lays out each object's `.text` and `.data` in the same order, so the source paths in
+  `.data` are the link order of the units they name (the 409 units located by their asserts are in the same order in
+  both). Between two located units, the code from one unit start to the next is matched in order to the units named
+  between theirs in `.data`, favouring a one-to-one pairing (most gaps have exactly as many starts as names) and the
+  units whose `.data` the code refers to.
+- The game's own code is not padded and the libraries linked after it are aligned to 16 bytes, so the first padding
+  after the game's last unit ends the game's code.
+
+A located unit grows over the rest of its code, except a Matching unit, whose source would no longer match. Code no
+name is matched to (a unit without a path, or a library that does not include CA's header: libpng, zlib, NvTriStrip,
+the C runtime) becomes an `auto/<category>/<address>.cpp` unit, which `configure.py` adds by itself. It prints what
+it could not place.
 
 How splitting works
 -------------------
@@ -147,4 +167,6 @@ Known limits:
 - Import names carry no `__stdcall` suffix (`__imp__ExitProcess`, not `__imp__ExitProcess@4`), because the import
   table does not record it. Name the slot in `symbols.txt` to match a compiled reference.
 - Only `.text` is split per unit so far; units' data is not.
-- Only units in `splits.txt` count toward progress, so the totals cover the located part of the executable.
+- `fill_splits.py`'s ranges are only as good as its evidence: a unit with neither a path nor CA's header is merged
+  into the unit before it, and a function that only looks like a function start (a `push ebp; mov ebp, esp` in a
+  jump table, say) splits a function in two.

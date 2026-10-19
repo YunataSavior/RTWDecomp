@@ -25,7 +25,7 @@ sys.path.insert(0, str(Path(__file__).parent / "tools"))
 from split import read_splits
 
 VERSIONS = ["RTW_STEAM"]
-CATEGORIES = {"game": "Game", "libs": "CA libraries", "crt": "MSVC runtime"}
+CATEGORIES = {"game": "Game", "libs": "CA libraries", "sdk": "Third-party libraries", "crt": "MSVC runtime"}
 
 Matching, NonMatching, Equivalent = "Matching", "NonMatching", "Equivalent"
 
@@ -1238,6 +1238,11 @@ def main():
             if obj["name"] in objects:
                 raise SystemExit(f"configure.py: {obj['name']} is listed twice")
             objects[obj["name"]] = (obj, lib)
+    # (code no source file is named for: tools/fill_splits.py names these units auto/<category>/<address>.cpp)
+    for unit, _ in units:
+        if unit.startswith("auto/") and unit not in objects:
+            category = unit.split("/")[1]
+            objects[unit] = (Object(NonMatching, unit), {"lib": "auto", "category": category, "auto": True})
     missing = [unit for unit, _ in units if unit not in objects]
     if missing:
         raise SystemExit("configure.py: splits.txt units not in LIBS: " + ", ".join(missing))
@@ -1290,7 +1295,7 @@ def main():
         metadata = {
             "complete": obj["status"] == Matching,
             "progress_categories": [lib["category"]],
-            "auto_generated": False,
+            "auto_generated": lib.get("auto", False),
         }
         entry = {"name": stem, "target_path": target}
         if source.is_file():
