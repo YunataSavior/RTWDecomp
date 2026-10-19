@@ -264,7 +264,8 @@ void CharacterRecord::set_trait(TraitDefinition* definition, unsigned int level,
         return;
     if (level > definition->m_num_levels)
         level = definition->m_num_levels;
-    for (LinkedList<CharacterTrait*>::iterator it = m_traits.begin(); it != LinkedList<CharacterTrait*>::iterator();
+    for (LinkedList<CharacterTrait*>::iterator it = LinkedList<CharacterTrait*>::iterator(m_traits.begin());
+         it != LinkedList<CharacterTrait*>::iterator();
          ++it) {
         if ((*it)->definition() == definition) {
             Array<TraitEffect>& effects = (*it)->level()->m_effects;

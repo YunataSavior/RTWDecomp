@@ -3368,14 +3368,791 @@ auto/libs/00FBCC30.cpp:
 libs_daily/cas_render/arrow_geometry.cpp:
 	.text       start:0x00FBDEA0 end:0x00FC4FA0
 
-auto/crt/00FC4FA0.cpp:
-	.text       start:0x00FC4FA0 end:0x00FC9680
+crt/delete.cpp:
+	.text       start:0x00FC4FA0 end:0x00FC4FAB
 
-crt/crt0.c:
+crt/xlock.cpp:
+	.text       start:0x00FC4FAB end:0x00FC505C
+
+crt/string.cpp:
+	.text       start:0x00FC505C end:0x00FC53BB
+
+crt/fpinit.c:
+	.text       start:0x00FC53BB end:0x00FC5410
+
+crt/intel/llmul.asm:
+	.text       start:0x00FC5410 end:0x00FC5444
+
+crt/onexit.c:
+	.text       start:0x00FC5444 end:0x00FC5510
+
+crt/intel/chkstk.asm:
+	.text       start:0x00FC5510 end:0x00FC553F
+
+crt/sprintf.c:
+	.text       start:0x00FC553F end:0x00FC5591
+
+crt/sscanf.c:
+	.text       start:0x00FC5591 end:0x00FC55C5
+
+crt/crt0dat.c:
+	.text       start:0x00FC55C5 end:0x00FC56E5
+
+crt/new.cpp:
+	.text       start:0x00FC56E5 end:0x00FC5700
+
+crt/intel/strspn.asm:
+	.text       start:0x00FC5700 end:0x00FC573E
+
+crt/atof.c:
+	.text       start:0x00FC573E end:0x00FC5795
+
+crt/atox.c:
+	.text       start:0x00FC5795 end:0x00FC5830
+
+crt/intel/strncmp.asm:
+	.text       start:0x00FC5830 end:0x00FC5870
+
+crt/intel/strncpy.asm:
+	.text       start:0x00FC5870 end:0x00FC596E
+
+crt/strtok.c:
+	.text       start:0x00FC596E end:0x00FC5A12
+
+crt/purevirt.c:
+	.text       start:0x00FC5A12 end:0x00FC5A1C
+
+crt/i386/ftol.asm:
+	.text       start:0x00FC5A1C end:0x00FC5A43
+
+crt/fread.c:
+	.text       start:0x00FC5A43 end:0x00FC5B5A
+
+crt/fwrite.c:
+	.text       start:0x00FC5B5A end:0x00FC5C93
+
+crt/fopen.c:
+	.text       start:0x00FC5C93 end:0x00FC5CD7
+
+crt/fclose.c:
+	.text       start:0x00FC5CD7 end:0x00FC5D54
+
+crt/i386/filter.c:
+	.text       start:0x00FC5D54 end:0x00FC67A4
+
+crt/i386/exsup.asm:
+	.text       start:0x00FC67A4 end:0x00FC6894
+
+crt/i386/exsup3.asm:
+	.text       start:0x00FC6894 end:0x00FC6974
+
+crt/fprintf.c:
+	.text       start:0x00FC6974 end:0x00FC69B0
+
+crt/i386/sqrt.asm:
+	.text       start:0x00FC69B0 end:0x00FC6A70
+
+crt/i386/87ctriga.asm:
+	.text       start:0x00FC6A70 end:0x00FC6A84
+
+crt/fabs.c:
+	.text       start:0x00FC6A84 end:0x00FC6B40
+
+crt/i386/acos.asm:
+	.text       start:0x00FC6B40 end:0x00FC6C0B
+
+crt/floor.c:
+	.text       start:0x00FC6C0B end:0x00FC6CDA
+
+crt/ceil.c:
+	.text       start:0x00FC6CDA end:0x00FC6DB0
+
+crt/intel/strstr.asm:
+	.text       start:0x00FC6DB0 end:0x00FC6E30
+
+crt/i386/log10.asm:
+	.text       start:0x00FC6E30 end:0x00FC6F00
+
+crt/i386/tan.asm:
+	.text       start:0x00FC6F00 end:0x00FC6FC0
+
+crt/i386/atan.asm:
+	.text       start:0x00FC6FC0 end:0x00FC705F
+
+crt/qsort.c:
+	.text       start:0x00FC705F end:0x00FC722D
+
+crt/vsprintf.c:
+	.text       start:0x00FC722D end:0x00FC727E
+
+crt/splitpat.c:
+	.text       start:0x00FC727E end:0x00FC73D0
+
+crt/i386/asin.asm:
+	.text       start:0x00FC73D0 end:0x00FC74A0
+
+crt/intel/memmove.asm:
+	.text       start:0x00FC74A0 end:0x00FC77D5
+
+crt/i386/trnsctrl.cpp:
+	.text       start:0x00FC77D5 end:0x00FC7ABC
+
+crt/i386/ehprolog.asm:
+	.text       start:0x00FC7ABC end:0x00FC7AE0
+
+crt/intel/strrchr.asm:
+	.text       start:0x00FC7AE0 end:0x00FC7B07
+
+crt/asctime.c:
+	.text       start:0x00FC7B07 end:0x00FC7BF9
+
+crt/localtim.c:
+	.text       start:0x00FC7BF9 end:0x00FC7D59
+
+crt/time.c:
+	.text       start:0x00FC7D59 end:0x00FC7E40
+
+crt/intel/strchr.asm:
+	.text       start:0x00FC7E40 end:0x00FC7F10
+
+crt/intel/strncat.asm:
+	.text       start:0x00FC7F10 end:0x00FC8040
+
+crt/i386/log.asm:
+	.text       start:0x00FC8040 end:0x00FC8110
+
+crt/i386/87ctran.asm:
+	.text       start:0x00FC8110 end:0x00FC8130
+
+crt/i386/87fmod.asm:
+	.text       start:0x00FC8130 end:0x00FC8170
+
+crt/i386/pow.asm:
+	.text       start:0x00FC8170 end:0x00FC838D
+
+crt/_ctype.c:
+	.text       start:0x00FC838D end:0x00FC8439
+
+crt/findfile.c:
+	.text       start:0x00FC8439 end:0x00FC8660
+
+crt/i386/sin.asm:
+	.text       start:0x00FC8660 end:0x00FC870E
+
+crt/vsnprint.c:
+	.text       start:0x00FC870E end:0x00FC8760
+
+crt/intel/llshl.asm:
+	.text       start:0x00FC8760 end:0x00FC877F
+
+crt/div.c:
+	.text       start:0x00FC877F end:0x00FC87A4
+
+crt/fullpath.c:
+	.text       start:0x00FC87A4 end:0x00FC8849
+
+crt/makepath.c:
+	.text       start:0x00FC8849 end:0x00FC88E0
+
+crt/i386/cos.asm:
+	.text       start:0x00FC88E0 end:0x00FC898E
+
+crt/i386/ieee87.c:
+	.text       start:0x00FC898E end:0x00FC8B50
+
+crt/free.c:
+	.text       start:0x00FC8B50 end:0x00FC8C39
+
+crt/strtod.c:
+	.text       start:0x00FC8C39 end:0x00FC8CE3
+
+crt/toupper.c:
+	.text       start:0x00FC8CE3 end:0x00FC8E1E
+
+crt/malloc.c:
+	.text       start:0x00FC8E1E end:0x00FC8F58
+
+crt/realloc.c:
+	.text       start:0x00FC8F58 end:0x00FC9287
+
+crt/tolower.c:
+	.text       start:0x00FC9287 end:0x00FC93C1
+
+crt/printf.c:
+	.text       start:0x00FC93C1 end:0x00FC9402
+
+crt/fgets.c:
+	.text       start:0x00FC9402 end:0x00FC9464
+
+crt/strtol.c:
+	.text       start:0x00FC9464 end:0x00FC9680
+
+crt/wincrt0.c:
 	.text       start:0x00FC9680 end:0x00FC97D1
 
-auto/crt/00FC97D1.cpp:
-	.text       start:0x00FC97D1 end:0x00FE2910
+crt/ieeemisc.c:
+	.text       start:0x00FC97D1 end:0x00FC9877
+
+crt/ehvecdtr.cpp:
+	.text       start:0x00FC9877 end:0x00FC996B
+
+crt/ehvecctr.cpp:
+	.text       start:0x00FC996B end:0x00FC99F0
+
+crt/i386/longjmp.asm:
+	.text       start:0x00FC99F0 end:0x00FC9A6C
+
+crt/i386/setjmp3.asm:
+	.text       start:0x00FC9A6C end:0x00FC9AF0
+
+crt/intel/ullshr.asm:
+	.text       start:0x00FC9AF0 end:0x00FC9B0F
+
+crt/calloc.c:
+	.text       start:0x00FC9B0F end:0x00FC9C50
+
+crt/intel/llrem.asm:
+	.text       start:0x00FC9C50 end:0x00FC9D10
+
+crt/intel/lldiv.asm:
+	.text       start:0x00FC9D10 end:0x00FC9DBA
+
+crt/chdir.c:
+	.text       start:0x00FC9DBA end:0x00FC9E40
+
+crt/wchdir.c:
+	.text       start:0x00FC9E40 end:0x00FC9ECE
+
+crt/getcwd.c:
+	.text       start:0x00FC9ECE end:0x00FCA001
+
+crt/wgetcwd.c:
+	.text       start:0x00FCA001 end:0x00FCA107
+
+crt/unlink.c:
+	.text       start:0x00FCA107 end:0x00FCA131
+
+crt/wunlink.c:
+	.text       start:0x00FCA131 end:0x00FCA15B
+
+crt/rename.c:
+	.text       start:0x00FCA15B end:0x00FCA189
+
+crt/wrename.c:
+	.text       start:0x00FCA189 end:0x00FCA1B7
+
+crt/mkdir.c:
+	.text       start:0x00FCA1B7 end:0x00FCA1E3
+
+crt/wmkdir.c:
+	.text       start:0x00FCA1E3 end:0x00FCA20F
+
+crt/rmdir.c:
+	.text       start:0x00FCA20F end:0x00FCA239
+
+crt/wrmdir.c:
+	.text       start:0x00FCA239 end:0x00FCA263
+
+crt/wfindfil.c:
+	.text       start:0x00FCA263 end:0x00FCA3F8
+
+crt/stat.c:
+	.text       start:0x00FCA3F8 end:0x00FCA7DB
+
+crt/wstat.c:
+	.text       start:0x00FCA7DB end:0x00FCABE3
+
+crt/chmod.c:
+	.text       start:0x00FCABE3 end:0x00FCAC22
+
+crt/wchmod.c:
+	.text       start:0x00FCAC22 end:0x00FCAC61
+
+crt/utime.c:
+	.text       start:0x00FCAC61 end:0x00FCADCF
+
+crt/wutime.c:
+	.text       start:0x00FCADCF end:0x00FCAE06
+
+crt/ftell.c:
+	.text       start:0x00FCAE06 end:0x00FCAF89
+
+crt/fseek.c:
+	.text       start:0x00FCAF89 end:0x00FCB042
+
+crt/wfopen.c:
+	.text       start:0x00FCB042 end:0x00FCB086
+
+crt/_file.c:
+	.text       start:0x00FCB086 end:0x00FCB1E6
+
+crt/fputc.c:
+	.text       start:0x00FCB1E6 end:0x00FCB231
+
+crt/fflush.c:
+	.text       start:0x00FCB231 end:0x00FCB397
+
+crt/gmtime.c:
+	.text       start:0x00FCB397 end:0x00FCB4B0
+
+crt/intel/ulldiv.asm:
+	.text       start:0x00FCB4B0 end:0x00FCB518
+
+crt/fputs.c:
+	.text       start:0x00FCB518 end:0x00FCB566
+
+crt/swprintf.c:
+	.text       start:0x00FCB566 end:0x00FCB5E0
+
+crt/intel/ullrem.asm:
+	.text       start:0x00FCB5E0 end:0x00FCB655
+
+crt/clock.c:
+	.text       start:0x00FCB655 end:0x00FCB6CD
+
+crt/stdexcpt.cpp:
+	.text       start:0x00FCB6CD end:0x00FCB793
+
+crt/typinfo.cpp:
+	.text       start:0x00FCB793 end:0x00FCB7E0
+
+crt/intel/strlen.asm:
+	.text       start:0x00FCB7E0 end:0x00FCB85B
+
+crt/throw.cpp:
+	.text       start:0x00FCB85B end:0x00FCB8A0
+
+crt/intel/memcpy.asm:
+	.text       start:0x00FCB8A0 end:0x00FCBBD5
+
+crt/intel/fp8.c:
+	.text       start:0x00FCBBD5 end:0x00FCBBE7
+
+crt/i386/testfdiv.c:
+	.text       start:0x00FCBBE7 end:0x00FCBC4E
+
+crt/cvt.c:
+	.text       start:0x00FCBC4E end:0x00FCC074
+
+crt/msize.c:
+	.text       start:0x00FCC074 end:0x00FCC162
+
+crt/_flsbuf.c:
+	.text       start:0x00FCC162 end:0x00FCC27A
+
+crt/output.c:
+	.text       start:0x00FCC27A end:0x00FCCAD4
+
+crt/input.c:
+	.text       start:0x00FCCAD4 end:0x00FCD585
+
+crt/mlock.c:
+	.text       start:0x00FCD585 end:0x00FCD624
+
+crt/cfin.c:
+	.text       start:0x00FCD624 end:0x00FCD6A3
+
+crt/isctype.c:
+	.text       start:0x00FCD6A3 end:0x00FCD718
+
+crt/tidtable.c:
+	.text       start:0x00FCD718 end:0x00FCD7E6
+
+crt/_filbuf.c:
+	.text       start:0x00FCD7E6 end:0x00FCD8C2
+
+crt/read.c:
+	.text       start:0x00FCD8C2 end:0x00FCDB00
+
+crt/write.c:
+	.text       start:0x00FCDB00 end:0x00FCDCF0
+
+crt/_open.c:
+	.text       start:0x00FCDCF0 end:0x00FCDE60
+
+crt/stream.c:
+	.text       start:0x00FCDE60 end:0x00FCDF28
+
+crt/close.c:
+	.text       start:0x00FCDF28 end:0x00FCE008
+
+crt/_freebuf.c:
+	.text       start:0x00FCE008 end:0x00FCE033
+
+crt/i386/filter_simd.c:
+	.text       start:0x00FCE033 end:0x00FCF2B6
+
+crt/_sftbuf.c:
+	.text       start:0x00FCF2B6 end:0x00FCF370
+
+crt/i386/87disp.asm:
+	.text       start:0x00FCF370 end:0x00FCF540
+
+crt/i386/genexcep.asm:
+	.text       start:0x00FCF540 end:0x00FCF5A0
+
+crt/i386/common.asm:
+	.text       start:0x00FCF5A0 end:0x00FCF730
+
+crt/i386/87triga.asm:
+	.text       start:0x00FCF730 end:0x00FCF7E0
+
+crt/i386/87cdisp.asm:
+	.text       start:0x00FCF7E0 end:0x00FCFA4A
+
+crt/fpexcept.c:
+	.text       start:0x00FCFA4A end:0x00FD0102
+
+crt/util.c:
+	.text       start:0x00FD0102 end:0x00FD0246
+
+crt/i386/fpctrl.c:
+	.text       start:0x00FD0246 end:0x00FD02DC
+
+crt/i386/frnd.c:
+	.text       start:0x00FD02DC end:0x00FD02F0
+
+crt/i386/87tran.asm:
+	.text       start:0x00FD02F0 end:0x00FD04F7
+
+crt/mbctype.c:
+	.text       start:0x00FD04F7 end:0x00FD08EB
+
+crt/mbsnbcpy.c:
+	.text       start:0x00FD08EB end:0x00FD0985
+
+auto/crt/00FD0985.cpp:
+	.text       start:0x00FD0985 end:0x00FD09B0
+
+crt/frame.cpp:
+	.text       start:0x00FD09B0 end:0x00FD11C0
+
+crt/i386/lowhelpr.asm:
+	.text       start:0x00FD11C0 end:0x00FD120C
+
+crt/hooks.cpp:
+	.text       start:0x00FD120C end:0x00FD12C3
+
+crt/tzset.c:
+	.text       start:0x00FD12C3 end:0x00FD1885
+
+crt/dtoxtime.c:
+	.text       start:0x00FD1885 end:0x00FD1950
+
+crt/i386/adj_fdiv.asm:
+	.text       start:0x00FD1950 end:0x00FD26DB
+
+crt/powhlp.c:
+	.text       start:0x00FD26DB end:0x00FD2870
+
+crt/intel/mbscat.asm:
+	.text       start:0x00FD2870 end:0x00FD2960
+
+crt/dosmap.c:
+	.text       start:0x00FD2960 end:0x00FD29E5
+
+crt/mbsdec.c:
+	.text       start:0x00FD29E5 end:0x00FD2A52
+
+crt/winsig.c:
+	.text       start:0x00FD2A52 end:0x00FD2C11
+
+crt/heapinit.c:
+	.text       start:0x00FD2C11 end:0x00FD2DE3
+
+crt/sbheap.c:
+	.text       start:0x00FD2DE3 end:0x00FD3FF8
+
+crt/setlocal.c:
+	.text       start:0x00FD3FF8 end:0x00FD466E
+
+crt/a_map.c:
+	.text       start:0x00FD466E end:0x00FD48BD
+
+crt/handler.cpp:
+	.text       start:0x00FD48BD end:0x00FD48D8
+
+crt/winxfltr.c:
+	.text       start:0x00FD48D8 end:0x00FD4A50
+
+crt/wincmdln.c:
+	.text       start:0x00FD4A50 end:0x00FD4AA8
+
+crt/stdenvp.c:
+	.text       start:0x00FD4AA8 end:0x00FD4B61
+
+crt/stdargv.c:
+	.text       start:0x00FD4B61 end:0x00FD4DAE
+
+crt/a_env.c:
+	.text       start:0x00FD4DAE end:0x00FD4EE0
+
+crt/ioinit.c:
+	.text       start:0x00FD4EE0 end:0x00FD509C
+
+crt/crt0msg.c:
+	.text       start:0x00FD509C end:0x00FD5228
+
+crt/intel/sehsupp.c:
+	.text       start:0x00FD5228 end:0x00FD5290
+
+crt/intel/memset.asm:
+	.text       start:0x00FD5290 end:0x00FD52E8
+
+crt/mbtoupr.c:
+	.text       start:0x00FD52E8 end:0x00FD5363
+
+crt/towupper.c:
+	.text       start:0x00FD5363 end:0x00FD544E
+
+crt/wcscat.c:
+	.text       start:0x00FD544E end:0x00FD5473
+
+crt/mbsicmp.c:
+	.text       start:0x00FD5473 end:0x00FD5608
+
+crt/mbsrchr.c:
+	.text       start:0x00FD5608 end:0x00FD567A
+
+crt/drive.c:
+	.text       start:0x00FD567A end:0x00FD56BD
+
+crt/mbtolwr.c:
+	.text       start:0x00FD56BD end:0x00FD5738
+
+crt/mbspbrk.c:
+	.text       start:0x00FD5738 end:0x00FD57CD
+
+crt/wcsicmp.c:
+	.text       start:0x00FD57CD end:0x00FD58AC
+
+crt/wcsrchr.c:
+	.text       start:0x00FD58AC end:0x00FD58EC
+
+crt/wcslen.c:
+	.text       start:0x00FD58EC end:0x00FD5909
+
+crt/wfullpat.c:
+	.text       start:0x00FD5909 end:0x00FD59B6
+
+crt/towlower.c:
+	.text       start:0x00FD59B6 end:0x00FD5AA5
+
+crt/wcspbrk.c:
+	.text       start:0x00FD5AA5 end:0x00FD5AE3
+
+crt/open.c:
+	.text       start:0x00FD5AE3 end:0x00FD5DC9
+
+crt/osfinfo.c:
+	.text       start:0x00FD5DC9 end:0x00FD60AA
+
+crt/wopen.c:
+	.text       start:0x00FD60AA end:0x00FD6391
+
+crt/lseek.c:
+	.text       start:0x00FD6391 end:0x00FD6469
+
+crt/_wopen.c:
+	.text       start:0x00FD6469 end:0x00FD65DF
+
+crt/closeall.c:
+	.text       start:0x00FD65DF end:0x00FD6660
+
+crt/commit.c:
+	.text       start:0x00FD6660 end:0x00FD66F3
+
+crt/initcon.c:
+	.text       start:0x00FD66F3 end:0x00FD6720
+
+crt/woutput.c:
+	.text       start:0x00FD6720 end:0x00FD6F50
+
+crt/intel/strcmp.asm:
+	.text       start:0x00FD6F50 end:0x00FD6FD4
+
+crt/unhandld.cpp:
+	.text       start:0x00FD6FD4 end:0x00FD7038
+
+crt/intrncvt.c:
+	.text       start:0x00FD7038 end:0x00FD7424
+
+crt/_fptostr.c:
+	.text       start:0x00FD7424 end:0x00FD749B
+
+crt/cfout.c:
+	.text       start:0x00FD749B end:0x00FD75AD
+
+crt/crt0fp.c:
+	.text       start:0x00FD75AD end:0x00FD75B6
+
+crt/_getbuf.c:
+	.text       start:0x00FD75B6 end:0x00FD75FA
+
+crt/isatty.c:
+	.text       start:0x00FD75FA end:0x00FD7623
+
+crt/wctomb.c:
+	.text       start:0x00FD7623 end:0x00FD76E5
+
+crt/mbtowc.c:
+	.text       start:0x00FD76E5 end:0x00FD780B
+
+crt/ungetc.c:
+	.text       start:0x00FD780B end:0x00FD7879
+
+crt/strgtold.c:
+	.text       start:0x00FD7879 end:0x00FD7D4A
+
+crt/a_str.c:
+	.text       start:0x00FD7D4A end:0x00FD7E93
+
+crt/i386/xmmi2_fp_emul.c:
+	.text       start:0x00FD7E93 end:0x00FD9277
+
+crt/i386/xmmi_fp_emul.c:
+	.text       start:0x00FD9277 end:0x00FDA118
+
+crt/i386/87except.c:
+	.text       start:0x00FDA118 end:0x00FDA1E8
+
+crt/validate.cpp:
+	.text       start:0x00FDA1E8 end:0x00FDA238
+
+crt/abort.c:
+	.text       start:0x00FDA238 end:0x00FDA24F
+
+crt/getenv.c:
+	.text       start:0x00FDA24F end:0x00FDA2CC
+
+crt/inittime.c:
+	.text       start:0x00FDA2CC end:0x00FDA83B
+
+crt/initnum.c:
+	.text       start:0x00FDA83B end:0x00FDAA47
+
+crt/initmon.c:
+	.text       start:0x00FDAA47 end:0x00FDAC82
+
+crt/initctyp.c:
+	.text       start:0x00FDAC82 end:0x00FDAED0
+
+crt/intel/strcspn.asm:
+	.text       start:0x00FDAED0 end:0x00FDAF10
+
+crt/intel/strpbrk.asm:
+	.text       start:0x00FDAF10 end:0x00FDAF4A
+
+crt/getqloc.c:
+	.text       start:0x00FDAF4A end:0x00FDB7F1
+
+crt/ismbbyte.c:
+	.text       start:0x00FDB7F1 end:0x00FDB833
+
+crt/crtmbox.c:
+	.text       start:0x00FDB833 end:0x00FDB8BC
+
+crt/w_map.c:
+	.text       start:0x00FDB8BC end:0x00FDBAF5
+
+crt/iswctype.c:
+	.text       start:0x00FDBAF5 end:0x00FDBB50
+
+crt/intel/stricmp.asm:
+	.text       start:0x00FDBB50 end:0x00FDBC20
+
+crt/chsize.c:
+	.text       start:0x00FDBC20 end:0x00FDBD45
+
+crt/fputwc.c:
+	.text       start:0x00FDBD45 end:0x00FDBE3E
+
+crt/mantold.c:
+	.text       start:0x00FDBE3E end:0x00FDBFDF
+
+crt/x10fout.c:
+	.text       start:0x00FDBFDF end:0x00FDC272
+
+crt/tenpow.c:
+	.text       start:0x00FDC272 end:0x00FDC50E
+
+crt/mbsnbico.c:
+	.text       start:0x00FDC50E end:0x00FDC54D
+
+crt/wtombenv.c:
+	.text       start:0x00FDC54D end:0x00FDC5BB
+
+crt/inithelp.c:
+	.text       start:0x00FDC5BB end:0x00FDC6F3
+
+crt/w_str.c:
+	.text       start:0x00FDC6F3 end:0x00FDC8B8
+
+crt/xtoa.c:
+	.text       start:0x00FDC8B8 end:0x00FDC950
+
+crt/intel/strnicmp.asm:
+	.text       start:0x00FDC950 end:0x00FDCA51
+
+crt/setmode.c:
+	.text       start:0x00FDCA51 end:0x00FDCAB2
+
+crt/_flswbuf.c:
+	.text       start:0x00FDCAB2 end:0x00FDCBD9
+
+crt/a_cmp.c:
+	.text       start:0x00FDCBD9 end:0x00FDCE56
+
+crt/setenv.c:
+	.text       start:0x00FDCE56 end:0x00FDD09C
+
+crt/w_loc.c:
+	.text       start:0x00FDD09C end:0x00FDD1AF
+
+crt/a_loc.c:
+	.text       start:0x00FDD1AF end:0x00FDD2CD
+
+crt/mbschr.c:
+	.text       start:0x00FDD2CD end:0x00FDD364
+
+crt/strdup.c:
+	.text       start:0x00FDD364 end:0x00FDD390
+
+crt/_ios.cpp:
+	.text       start:0x00FDD390 end:0x00FDD4ED
+
+crt/ifstream.cpp:
+	.text       start:0x00FDD4ED end:0x00FDD654
+
+crt/filebuf.cpp:
+	.text       start:0x00FDD654 end:0x00FDD9FA
+
+crt/mtlock.c:
+	.text       start:0x00FDD9FA end:0x00FDDA26
+
+crt/istrgetl.cpp:
+	.text       start:0x00FDDA26 end:0x00FDDB1C
+
+crt/istream.cpp:
+	.text       start:0x00FDDB1C end:0x00FDDD4B
+
+crt/filebuf1.cpp:
+	.text       start:0x00FDDD4B end:0x00FDDEC1
+
+crt/streamb.cpp:
+	.text       start:0x00FDDEC1 end:0x00FDE173
+
+crt/streamb1.cpp:
+	.text       start:0x00FDE173 end:0x00FDE21D
+
+crt/ostream.cpp:
+	.text       start:0x00FDE21D end:0x00FDE2C0
+
+auto/sdk/00FDE2C0.cpp:
+	.text       start:0x00FDE2C0 end:0x00FE28D0
+
+auto/crt/00FE28D0.cpp:
+	.text       start:0x00FE28D0 end:0x00FE2910
 
 auto/libs/00FE2910.cpp:
 	.text       start:0x00FE2910 end:0x00FE36C8

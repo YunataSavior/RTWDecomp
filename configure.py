@@ -1171,11 +1171,10 @@ LIBS = [
         ],
     },
     {
+        # (tools/match_libs.py names these units for the objects of VC6's LIBCMT, LIBCPMT and LIBCIMT it finds)
         "lib": "msvc_crt",
         "category": "crt",
-        "objects": [
-            Object(NonMatching, "crt/crt0.c"),
-        ],
+        "objects": [],
     },
 ]
 
@@ -1236,11 +1235,15 @@ def main():
             if obj["name"] in objects:
                 raise SystemExit(f"configure.py: {obj['name']} is listed twice")
             objects[obj["name"]] = (obj, lib)
-    # (code no source file is named for: tools/fill_splits.py names these units auto/<category>/<address>.cpp)
+    # (code no source file is named for: tools/fill_splits.py names these units auto/<category>/<address>.cpp; and the
+    # runtime's objects: tools/match_libs.py names these crt/<source file>)
+    runtime = next(lib for lib in LIBS if lib["lib"] == "msvc_crt")
     for unit, _ in units:
         if unit.startswith("auto/") and unit not in objects:
             category = unit.split("/")[1]
             objects[unit] = (Object(NonMatching, unit), {"lib": "auto", "category": category, "auto": True})
+        elif unit.startswith("crt/") and unit not in objects:
+            objects[unit] = (Object(NonMatching, unit), runtime)
     missing = [unit for unit, _ in units if unit not in objects]
     if missing:
         raise SystemExit("configure.py: splits.txt units not in LIBS: " + ", ".join(missing))

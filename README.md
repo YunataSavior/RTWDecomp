@@ -8,7 +8,8 @@ Supported versions:
 - `RTW_STEAM`: Rome: Total War Gold, Steam (`RomeTW.exe`, SHA-1 `bf5fb6e7b1cfe6ac94ebaef5c08ff1dfb2bf8812`)
 
 The game was built with **Microsoft Visual C++ 6.0 Service Pack 6**: its Rich header records compiler build 9782, the
-build of SP6's `C1XX.DLL` and `C2.DLL`. It links the C runtime statically. Its game code is compiled with `/MT /Os
+build of SP6's `C1XX.DLL` and `C2.DLL` (for 1064 of its C++ objects). It links the C runtime statically, and its
+runtime is SP6's `LIBCMT.LIB` (every function found matches it exactly). Its game code is compiled with `/MT /Os
 /Ob1 /Op /G6`, without `/GX`: `/Op` shows in float conversions going through memory, and `/G6` in zero-extensions
 written `xor eax, eax; mov al, cl` rather than `movzx`. It has no relocation table, debug symbols or RTTI names, but its
 asserts name about 1,100 of its source files, so the source tree is known.
@@ -42,7 +43,9 @@ The compiler only needs to be copied, not installed:
    compiler stops with error C1900, an IL version mismatch. `MSSE.DLL` is the Standard Edition's, which does not
    optimize.)
 
-`CL.EXE` should then report version 12.00.8804, and the objects it writes carry `@comp.id` build 9782.
+`CL.EXE` should then report version 12.00.8804, and the objects it writes carry `@comp.id` build 9782. Visual C++
+6.0's first release (12.00.8168) will not do: its code differs (it keeps a temporary SP6 drops, in
+`CharacterRecord::set_trait`), and its libraries lack the functions SP5 added.
 
 Building
 ========
@@ -112,6 +115,8 @@ Project structure
   and their functions to `symbols.txt` (see below).
 - `tools/fill_splits.py`: splits the rest of `.text` into units, from where each unit's code starts and the link order
   of the source paths in `.data` (see below).
+- `tools/match_libs.py`: finds the objects of static libraries (VC6's `LIBCMT.LIB`, `LIBCPMT.LIB`, `LIBCIMT.LIB`) in
+  `.text`, and names their units and functions (see below).
 - `tools/check.py`: checks a compiled unit against its split.
 - `tools/cl.py`: runs VC6's `CL.EXE` with its environment, and writes the header dependencies VC6 cannot.
 - `tools/vc6_locals.py`: predicts the stack order VC6 gives locals from their names (see
@@ -147,8 +152,32 @@ before and after each located unit's asserts:
 
 A located unit grows over the rest of its code, except a Matching unit, whose source would no longer match. Code no
 name is matched to (a unit without a path, or a library that does not include CA's header: libpng, zlib, NvTriStrip,
-the C runtime) becomes an `auto/<category>/<address>.cpp` unit, which `configure.py` adds by itself. It prints what
-it could not place.
+D3DX) becomes an `auto/<category>/<address>.cpp` unit, which `configure.py` adds by itself. It prints what it could
+not place.
+
+The C runtime (`0x00FC4FA0` to `0x00FDE2C0`) is VC6's `LIBCMT.LIB`, with `LIBCPMT.LIB` (`std::string`, the locks)
+and `LIBCIMT.LIB` (the old `<iostream.h>` streams). `tools/match_libs.py` finds each of their objects there:
+
+```
+python tools/match_libs.py RTW_STEAM LIBCMT.LIB LIBCPMT.LIB LIBCIMT.LIB --start 0x00FC4FA0 --end 0x00FDE2C0 --write
+```
+
+- The libraries are built with function-level linking, and the linker drops the functions nothing calls, so an
+  object is found as a chain of its functions in their order, each on its alignment. Their bytes are compared with
+  the bytes the relocations fix up left out.
+- Each relocation is then checked: what it points to in the original must agree with where the objects already
+  placed put that symbol, and with the import table. That tells apart objects whose code is the same but for what it
+  calls (`fprintf` calls `_output`, `fwprintf` `_woutput`; `_chmod` calls `GetFileAttributesA`, `_wchmod`
+  `GetFileAttributesW`).
+- A function that has changed since the libraries' version is placed by its symbol where the placed code points at
+  it (`_free`, `__output`), or by its likeness beside the rest of its object.
+- Each unit is named for the source file its object's `.file` symbol records (`crt/output.c`,
+  `crt/i386/ftol.asm`, `crt/frame.cpp`), and `configure.py` adds the `crt/` units by itself. The functions found are
+  named in `symbols.txt`, with their sizes when found exactly.
+
+Run against Service Pack 6's libraries (VC6's first release's lack SP5's SSE floating-point emulation, and their
+heap, `_output` and `_free` differ), every function found matches exactly: 259 objects, and 0x2B bytes no object is
+found for, left in an `auto/crt/` unit.
 
 How splitting works
 -------------------

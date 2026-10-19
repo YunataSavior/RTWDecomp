@@ -1,4 +1,4 @@
-#line 2 "E:\Perforce\Rome\Rome,BI-1.5,1.6\Dev\barbi_daily\code\faction_economics.cpp"
+#line 2 "E:\\Perforce\\Rome\\Rome,BI-1.5,1.6\\Dev\\barbi_daily\\code\\faction_economics.cpp"
 // (The original's path: its THIS_FILE comes between faction.cpp's and faction_render.cpp's, though nothing asserts.)
 static char THIS_FILE[] = __FILE__;
 

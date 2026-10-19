@@ -1,4 +1,4 @@
-#line 2 "E:\Perforce\Rome\Rome,BI-1.5,1.6\Dev\barbi_daily\code\romans.cpp"
+#line 2 "E:\\Perforce\\Rome\\Rome,BI-1.5,1.6\\Dev\\barbi_daily\\code\\romans.cpp"
 // (The original's path: nothing asserts, but its THIS_FILE comes between auto_optimise.cpp's and romans_cmd_line.cpp's,
 // as its code comes between theirs, and its code refers to its .data.)
 static char THIS_FILE[] = __FILE__;
