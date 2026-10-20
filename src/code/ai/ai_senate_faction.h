@@ -76,6 +76,7 @@ public:
     void appoint(CharacterRecord* record);      // 0x00528643: fires Become<office>, until today + the duration
     void vacate();                              // 0x00528855: fires Ceased<office>
     static void appoint_first(int type, CharacterRecord* record);   // 0x00528AAD: to the first office of the type
+    CharacterRecord* holder() const { return m_holder; }
 
     int m_title;                        // +0x00: its name's text (0x106 + 2 * type; 0x51b when unknown)
     int m_text;                         // +0x04: the text after that (0x107 + 2 * type)
@@ -97,17 +98,17 @@ public:
     virtual void* title();              // +0x04: its name's text
     virtual void unk_08(int* a, int* b);
     virtual int unk_0c();
-    virtual void unk_10();
-    virtual void unk_14();
-    virtual void unk_18();
-    virtual void unk_1c();
-    virtual void unk_20();
-    virtual void unk_24();
+    virtual int turns_left();           // +0x10
+    virtual bool reward_title(void** title);    // +0x14: its reward's name, and whether it's a reward
+    virtual bool unk_18();
+    virtual int unk_1c();               // 0x005470F2
+    virtual int unk_20();               // (0 in the base)
+    virtual void unk_24();              // +0x24: adds it to the faction's list
     virtual void unk_28();
-    virtual int unk_2c();
+    virtual int run_out();              // +0x2c: on its last turn, fails it and returns true
     virtual Faction* faction();         // +0x30: whom it was given to
     virtual int result();               // +0x34: MISSION_FAILED or MISSION_SUCCEEDED when it's over
-    virtual bool unk_38(int a);
+    virtual bool possible(AISenateFaction* senate); // +0x38: false (and cancelled) when it can't be done any more
     virtual bool save(SaveStream& stream);  // +0x3c
     virtual SenateMissionImpl* build(); // +0x40: a builder's mission (a builder deletes itself)
     virtual ~SenateMissionImpl();       // +0x44: 0x005470E0
@@ -317,7 +318,7 @@ public:
     virtual void unk_08();
     virtual void unk_0c();
     virtual void unk_10();
-    virtual void unk_14();
+    virtual bool unk_14(int faction);   // +0x14 (not identified)
     virtual bool unk_18(int faction);   // +0x18 (not identified)
 };
 
@@ -328,6 +329,12 @@ public:
     void mission_finished(SenateMissionImpl* mission);  // 0x0052B168
     void start_appreciation();                      // 0x0052B22C
     void start_displeasure();                       // 0x0052B24B
+    void withhold_offices();                        // 0x0052B26A: sets m_offices_withheld
+    void promise_appointment();                     // 0x0052B27D: sets m_appointment_promised
+    // Whether the first Censor (or Quaestor) office is empty or held by one of the faction's men: then its
+    // investigations do nothing.
+    bool censor_protects(Faction* faction);         // 0x0052B940
+    bool quaestor_protects(Faction* faction);       // 0x0052B9DD
     bool at_war_with(Faction* faction);             // 0x0052B8F2: with a family or the senate
     void unk_0052E033();                            // 0x0052E033: runs what's due today from 0x014D5F70's list
     void update_families();                         // 0x0052E178

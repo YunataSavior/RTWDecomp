@@ -43,6 +43,20 @@ public:
     unsigned int size() const { return m_count; }
     T* operator[](unsigned int index) const { return m_items[index]; }
 
+    class iterator {
+    public:
+        iterator(T** p) : m_p(p) {}
+        T*& operator*() const { return *m_p; }
+        iterator& operator++() { ++m_p; return *this; }
+        bool operator==(const iterator& other) const { return m_p == other.m_p; }
+        bool operator!=(const iterator& other) const { return !(*this == other); }
+
+        T** m_p;
+    };
+
+    iterator begin() { return m_items; }
+    iterator end() { return m_items + m_count; }
+
     T** m_items;
     int m_capacity;
     int m_count;
@@ -307,7 +321,7 @@ public:
     int word_length();                          // 0x00E2D0D4
     const char* word();                         // 0x00E2D501: the current word
     int read_int();                             // 0x00E2D3F0
-    short read_short();                         // 0x00E2D408
+    unsigned int read_uint();                   // 0x00E2D408
     float read_float();                         // 0x00E2D468
     const char* rest_of_line();                 // 0x00E2D6E9: to the end of the line, less its trailing spaces
     bool at_number();                           // 0x00E2DA40: the current word starts with a digit or "-digit"
@@ -594,6 +608,8 @@ public:
     bool unk_0049E979();                // 0x0049E979
     SettlementUnk184* unk_0049EF76();   // 0x0049EF76: another one (its +0x78), or 0
     Faction* unk_0049E4B4();            // 0x0049E4B4: its settlement's owner
+    Army* unk_0049E4D1(Unit* unit);     // 0x0049E4D1: puts the unit in its fleet (virtual +0x98), when it has one
+    int unk_3c() const { return m_3c; }
 
     char m_pad24[0x3c - 0x24];
     int m_3c;                           // +0x3c: a port the senate can ask to blockade has it above 0
@@ -849,6 +865,7 @@ public:
     void plague_tick();                                     // 0x0049ACAA: the fourth tick ends the plague
     void unk_0049A464();                                    // 0x0049A464: does nothing
     unsigned int num_characters(bool governor);             // 0x0049BE82: the characters in it (the governor too, when asked)
+    bool has_room(bool count);                              // 0x0049A49F: no garrison, or one with room for COUNT more units
 
     virtual FogOfWarEntry* unk_74();                        // +0x74: its fog of war entry, new
     virtual void unk_78();
@@ -958,6 +975,7 @@ public:
     int entertainment();                                    // 0x005BC859
     void unk_005BCA50(BuildingEffects* effects);            // 0x005BCA50: works out its building effects
     bool unk_005BA3F0(TilePosition* position);              // 0x005BA3F0
+    bool unk_005BA4CA(TilePosition* position, int, int, int);  // 0x005BA4CA: a free tile beside it (a guess)
     int unk_005BB0ED(Unit* unit, UnitUnk4D469D& experience);  // 0x005BB0ED
     void unk_005B9837(Unit* unit);      // 0x005B9837: updates its mechanics (SettlementDD8::update) after a unit leaves
     void unk_005BBDAA(Unit* unit, int, int);  // 0x005BBDAA: takes the unit out of its queue (+0x1e0)
@@ -1487,8 +1505,13 @@ public:
 class FinanceRecord {
 public:
     void unk_004D7EAA();                // 0x004D7EAA
+    int total_income();                 // 0x004D7DA7: its ten incomes
+    int total_costs();                  // 0x004D7DE1: its twelve costs
+    int unk_004D7E1C();                 // 0x004D7E1C: its first four incomes
+    int unk_004D7E74();                 // 0x004D7E74: its first two costs
 
-    char m_pad0[0x58];
+    int m_income[10];                   // +0x00
+    int m_costs[12];                    // +0x28
 };
 
 // A faction's last turns' finances (0x378 bytes).
@@ -1505,6 +1528,16 @@ class FactionFinance {
 public:
     void end_turn();                    // 0x004D8197: adds the turn's income, and the AI's cash
     void unk_004D8396(bool, bool);      // 0x004D8396: at the start of its turn
+    void earn(int amount, int income);  // 0x004D8248: to the treasury, and to the turn's record under an income
+    void spend(int amount, int cost);   // 0x004D829C: from the treasury, and to the turn's record under a cost
+    // The turn's income less its costs.
+    int net()
+    {
+        // NONMATCHING - its locals' stack slots are in another order
+        FinanceRecord& record = m_history.current();
+        int net = record.total_income() - record.total_costs();
+        return net;
+    }
 
     Faction* m_faction;                 // +0x00
     int m_treasury;                     // +0x04
@@ -1553,6 +1586,14 @@ public:
 };
 
 // A faction's campaign record (code\faction.cpp).
+// A unit the senate gives, and where it is.
+struct RewardUnit {
+    RewardUnit() : m_unit(0), m_place(0) {}
+
+    Unit* m_unit;
+    Settlement* m_place;
+};
+
 class Faction {
 public:
     int unk_178() const { return m_178; }
@@ -1584,6 +1625,7 @@ public:
     int unk_004C4589(CharacterRecord* record);          // 0x004C4589
     void unk_004C4CE7(CharacterRecord* record);         // 0x004C4CE7
     bool unk_004C5093(Character* character, bool, bool);  // 0x004C5093
+    Army* unk_004C9439(TilePosition* position, int);    // 0x004C9439: a new army of its, there (a guess)
     void unk_004CA5BA(Army* army);                      // 0x004CA5BA
     void unk_004CA308(bool);                            // 0x004CA308: makes or replaces its AI (a guess)
     void unk_004CAC88();                                // 0x004CAC88: its turn update
@@ -1615,9 +1657,30 @@ public:
     void unk_004CEAC8(int faction, int);                // 0x004CEAC8: the same (a guess)
     void unk_004CED7E();                                // 0x004CED7E
     void set_capital(Settlement* capital);              // 0x004CF09A: moves the settlements' m_is_capital too
-    void unk_004D13E8(AISenateFaction* senate);         // 0x004D13E8: checks its senate missions, and drops those done
     void unk_004D0905(Array<Region*>* regions);         // 0x004D0905: its settlements' regions (a guess)
-    void unk_004D6EC0(LinkedList<Character*>* characters, int type);  // 0x004D6EC0: its characters of a type
+    unsigned int unk_004D6EC0(LinkedList<Character*>* characters, int type);  // 0x004D6EC0: adds its characters of a type; how many
+    bool unk_004CF466();                // 0x004CF466: one of its settlements is at 70% public order or less
+    Settlement* unk_004CF4E5();         // 0x004CF4E5: its settlement with the lowest public order
+    unsigned int unk_004D0EC5(Array<Region*>& regions); // 0x004D0EC5: the same as get_regions
+    unsigned int get_regions(Array<Region*>& regions);  // 0x004D0F3F: adds its regions; how many there are then
+    void add_mission(SenateMissionImpl* mission);   // 0x004D0FB9: adds a senate mission under way
+    void add_offer(SenateMissionImpl* mission);     // 0x004D0FD6: adds a senate mission it's offered
+    void accept_offer(SenateMissionImpl* mission);  // 0x004D0FF3: takes on an offered mission
+    void drop_offer(SenateMissionImpl* mission);    // 0x004D1054: lets an offered mission go
+    void unk_004D10BD(Array<SenateMissionImpl*>& missions); // 0x004D10BD: its missions whose unk_18 is true
+    void drop_mission(Array<SenateMissionImpl*>::iterator& it); // 0x004D114E
+    void end_missions();                            // 0x004D11EE: at the end of its turn
+    void drop_mission(SenateMissionImpl* mission);  // 0x004D136A
+    void check_missions(AISenateFaction* senate);   // 0x004D13E8: drops those that can't be done any more
+    void build_missions();                          // 0x004D1479: after a load
+    unsigned int buildable_units(Array<int>& units);    // 0x004D15FB: cheapest first; returns how many it found
+    void give_units(int type, int count, RewardUnit* unit);  // 0x004D1BF3: COUNT units of the type, at its capital
+    // The senate's unit rewards: COUNT units, and the last one's unit and place.
+    void give_buildable_units(int count, RewardUnit* unit);  // 0x004D1F29: one of the dearer half of buildable_units
+    void give_best_buildable_units(int count, RewardUnit* unit);  // 0x004D1F9B: the dearest of buildable_units
+    void give_triarii(int count, RewardUnit* unit);     // 0x004D1FEF: "roman triarii"
+    void give_minor_exotic_units(int count, RewardUnit* unit);  // 0x004D2036
+    void give_major_exotic_units(int count, RewardUnit* unit);  // 0x004D21DF
 
     char m_pad0[0x90];
     FactionListeners m_listeners;       // +0x90
@@ -1651,8 +1714,9 @@ public:
     int m_178;                          // +0x178
     char m_pad17c[4];
     FactionUnk180* m_180;               // +0x180
-    PointerList<SenateMissionImpl> m_missions;  // +0x184: its senate missions under way
-    char m_pad190[0x1cc - 0x190];
+    Array<SenateMissionImpl*> m_missions;   // +0x184: its senate missions under way
+    Array<SenateMissionImpl*> m_offers;     // +0x190: the senate missions it's offered
+    char m_pad19c[0x1cc - 0x19c];
     int m_triumph_order;                // +0x1cc: public order for a triumph, down by 1 a turn
     int m_wonder_order;                 // +0x1d0: public order for capturing a wonder, 4 then down by 1 a turn
     bool m_1d4;                         // +0x1d4
@@ -1696,6 +1760,7 @@ public:
     void unk_005A2EEE();                // 0x005A2EEE: at the end of a round
     void unk_005A2C6A();                // 0x005A2C6A
     void unk_005A1417(int faction, int other, int incident);  // 0x005A1417: an incident between two factions
+    void declare_war(int faction, int other);   // 0x005A21DD: sets their stance to 600 (war), with what follows
     bool unk_005A0ABE(int faction, int other);  // 0x005A0ABE: probably whether they have a trade agreement
     bool unk_005A0F3E(int faction, int other);  // 0x005A0F3E: bit 3 of their relation's flags
     bool unk_005A0FB1(int faction);     // 0x005A0FB1: 0x005A0F3E's flag with any faction
@@ -1714,6 +1779,12 @@ public:
 struct CampaignSettings {
     float m_unit_scale;                 // +0x00: the unit size option (20, 40, 80 or 160) / 40, kept to 0.33-4
     char m_pad4[0x20 - 4];
+};
+
+// Something of the campaign's that names the senate's faction (not identified; 8 bytes).
+struct CampaignSenateSlot {
+    int m_faction;
+    int m_4;
 };
 
 // A human player of the campaign (not identified beyond its faction).
@@ -1744,6 +1815,9 @@ public:
     unsigned int num_factions() const { return m_num_factions; }
     Faction* faction_at(unsigned int index) const { return m_factions[index]; }
     Faction* unk_22c() const { return m_22c; }
+    AISenateFaction* senate() const { return m_senate; }
+    Faction* senate_faction();                          // 0x00445AE7: the senate's faction, or 0
+    void mission_finished(SenateMissionImpl* mission);  // 0x0045420B: tells the senate, if there is one
     void unk_004531EF(const TriggerEvent& event);       // 0x004531EF: told of each event before the triggers
     void unk_00452674();                                // 0x00452674: before a load
     bool unk_00454CE1(SaveStream& stream);              // 0x00454CE1: loads the campaign
@@ -1800,13 +1874,16 @@ public:
     bool m_prologue;                    // +0x2b5 (a guess: it lowers brigand spawns and changes taxes and garrisons)
     bool unk_2b8() const { return m_2b8; }
 
+    bool marian_reforms() const { return m_marian_reforms; }
     bool m_marian_reforms;              // +0x2b6: set by descr_strat.txt's marian_reforms_activated, or by unk_004537F2
     bool m_marian_reforms_disabled;     // +0x2b7: descr_strat.txt's marian_reforms_disabled
     bool m_2b8;                         // +0x2b8: characters can go over in a civil war (not identified)
     bool m_2b9;                         // +0x2b9: every revolt is to rebels (not identified)
     char m_pad2ba[0x2c4 - 0x2ba];
     bool m_2c4;                         // +0x2c4
-    char m_pad2c5[0x2e4 - 0x2c5];
+    char m_pad2c5[0x2c8 - 0x2c5];
+    Array<CampaignSenateSlot> m_2c8;    // +0x2c8: its first item's m_faction is the senate's
+    char m_pad2d4[0x2e4 - 0x2d4];
     Date m_date;                        // +0x2e4 (its year is compared with 100; perhaps the turn number)
     char m_pad2ec[0x528 - 0x2ec];
     Random m_random;                    // +0x528
@@ -2081,12 +2158,18 @@ struct UnitSoldier {
 };
 
 struct UnitUnk50 {
-    char m_pad0[0x2c];
+    char m_pad0[0x20];
+    const UniString* m_name;            // +0x20: its name's text, as shown
+    char m_pad24[0x2c - 0x24];
     int m_2c;                           // +0x2c: its category (0 infantry, 1 cavalry, 4 ships, 5 animals; a guess)
     char m_pad30[0x80 - 0x30];
     unsigned short m_turns;             // +0x80: stat_cost's turns to train it
     unsigned short m_cost;              // +0x82: stat_cost's cost
-    char m_pad84[0xc0 - 0x84];
+    unsigned short m_upkeep;            // +0x84: stat_cost's upkeep
+    unsigned short m_weapon_cost;       // +0x86: stat_cost's cost of a weapon upgrade
+    unsigned short m_armour_cost;       // +0x88: stat_cost's cost of an armour upgrade
+    unsigned short m_custom_cost;       // +0x8a: stat_cost's cost in a custom battle
+    char m_pad8c[0xc0 - 0x8c];
     unsigned short m_c0;                // +0xc0: its soldiers before the unit size scales them (a guess)
     char m_padc2[0xd0 - 0xc2];
     unsigned int m_d0;                  // +0xd0: bit 0 when its weapon can be upgraded (a guess)
@@ -2119,6 +2202,8 @@ class UnitDB {
 public:
     int count() const { return m_count; }
     bool has_general_upgrade(int faction);  // 0x0091B995
+    int find(const String& name);       // 0x0091B93A: the index of the type of that name, or -1
+    Unit* unk_0091AEAA(Region* region, int type, int faction, int, int);  // 0x0091AEAA: a new unit of the type (a guess)
 
     char m_pad0[4];
     UnitUnk50 m_types[500];             // +0x04
@@ -2197,6 +2282,7 @@ public:
     int unk_60() const { return m_60; }
     bool unk_007C8444();                // 0x007C8444: still fighting in a battle (a guess)
     int unk_007B9438();                 // 0x007B9438: how many of its four m_298 slots are filled
+    int category();                     // 0x007B9414: its type's m_2c (4 for ships)
 
     virtual ~Unit();
     virtual void vf_004(); virtual void vf_008(); virtual void vf_00c(); virtual void vf_010(); virtual void vf_014();
@@ -2299,7 +2385,9 @@ public:
     void unk_00720D26(int type, float strength, int min_units, int max_units, RecruitmentItems* units);  // 0x00720D26
     void unk_007201D6(int type, float strength, int min_units, int max_units, RebelType* rebel);  // 0x007201D6
     int unk_007225D5(bool, bool);       // 0x007225D5: how many units are ... (not identified)
-    bool unk_007233E0(bool);            // 0x007233E0
+    bool unk_007233E0(bool);            // 0x007233E0: it has room for that many more units, up to 20
+    void unk_0071D66C(Unit* unit, int); // 0x0071D66C: takes the unit in (a guess)
+    void unk_00721E6B(TilePosition* position);  // 0x00721E6B: puts it on the map there (a guess)
     void unk_00724043(int, int, int, int);  // 0x00724043
     void unk_00725C23(Army* army);      // 0x00725C23
     Faction* unk_00721587();            // 0x00721587: its faction (+0x54)
@@ -2816,6 +2904,43 @@ public:
 class LeaderSenateMissionFailedEvent : public TriggerEvent {
 public:
     LeaderSenateMissionFailedEvent(CharacterRecord* leader);  // 0x008A7D9D
+    virtual LinkedList<Trigger>* triggers() const;
+    virtual const void* unk_7c() const;
+
+    CharacterRecord* m_leader;
+};
+
+// The senate's penalties' events, for the faction leader.
+class SenateExposureEvent : public TriggerEvent {
+public:
+    SenateExposureEvent(CharacterRecord* leader);  // 0x008A58EE
+    virtual LinkedList<Trigger>* triggers() const;
+    virtual const void* unk_7c() const;
+
+    CharacterRecord* m_leader;
+};
+
+class QuaestorInvestigationMinorEvent : public TriggerEvent {
+public:
+    QuaestorInvestigationMinorEvent(CharacterRecord* leader);  // 0x008A59BD
+    virtual LinkedList<Trigger>* triggers() const;
+    virtual const void* unk_7c() const;
+
+    CharacterRecord* m_leader;
+};
+
+class QuaestorInvestigationEvent : public TriggerEvent {
+public:
+    QuaestorInvestigationEvent(CharacterRecord* leader);  // 0x008A5A8C
+    virtual LinkedList<Trigger>* triggers() const;
+    virtual const void* unk_7c() const;
+
+    CharacterRecord* m_leader;
+};
+
+class QuaestorInvestigationMajorEvent : public TriggerEvent {
+public:
+    QuaestorInvestigationMajorEvent(CharacterRecord* leader);  // 0x008A5B5B
     virtual LinkedList<Trigger>* triggers() const;
     virtual const void* unk_7c() const;
 

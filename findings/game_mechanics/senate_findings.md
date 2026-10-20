@@ -15,11 +15,15 @@
 - **Only the human's family is given missions**, picked at random by weight from the senate's plans for the other factions; see [Missions and rewards](#missions-and-rewards-nyd-in-part).
   - The plan for a faction comes from how the senate sees it and how strong the Roman armies near it are against its own; see [How the plans are set](#how-the-plans-are-set).
 - **Most of the tuning in `descr_senate.txt` does nothing.** The four attitude coefficients, the six attitude boundaries and `probability_of_random_mission` are read, but nothing in the game reads them back.
+  - Neither do three of the four city-mission bounds, and the appreciation and displeasure durations start dates that nothing checks.
+- **A mission's reward or penalty is drawn at random from those of its table's code**, and several don't do what their names suggest; see [Rewards and penalties](#rewards-and-penalties).
+  - The fines are the wrong way round: `minor_fine` takes the whole of a turn's net income, and `major_fine` a tenth.
 
 Sources:
 
 - The decompiled [`code/ai/ai_senate_faction.cpp`](../../src/code/ai/ai_senate_faction.cpp): the `descr_senate.txt` and office parsers, the standings, the senate's gift and its turn.
 - The decompiled [`code/sm_demand_suicide.cpp`](../../src/code/sm_demand_suicide.cpp): the Demand_Suicide mission.
+- The decompiled [`code/senate_mission.cpp`](../../src/code/senate_mission.cpp): the rewards and penalties, the mission part of `descr_senate.txt`, and the classes every mission builds on.
 - The decompiled missions step and its candidates, the plans and the offices step, in `ai_senate_faction.cpp` too.
 - Disassembly of `RomeTW.exe` (Steam Rome: Total War Gold) for the rest, marked NYD.
 - Addresses are virtual addresses in that exe (image base `0x400000`).
@@ -99,10 +103,11 @@ So the senate likes a family the people know but don't love too much.
 **Appreciation and displeasure.** These are two counters on each family (`+8` and `+0xc`).
 
 - Each goes down by 2 a turn while it's above 0, so an odd value ends at −1, not 0, and stays there.
-  - A leftover −1 would cost 1 point of standing for good (appreciation) or give 1 (displeasure); whether the rewards ever set odd values is NYD.
-- Mission rewards and penalties set them (NYD; `senate_mission.cpp`, not decompiled yet).
-- `descr_senate.txt`'s `appreciation_duration` and `displeasure_duration` start two separate dates on the senate, that many turns ahead (`start_appreciation` and `start_displeasure`, called from `0x548C58` and `0x548714`).
-  - What those dates are checked for is NYD.
+  - A leftover −1 would cost 1 point of standing for good (appreciation) or give 1 (displeasure).
+- No mission reward or penalty sets them, not even `senate_gratitude` or `senate_displeasure` (see [Rewards and penalties](#rewards-and-penalties)); what does set them is NYD.
+- `descr_senate.txt`'s `appreciation_duration` and `displeasure_duration` start two separate dates on the senate, that many turns ahead (`start_appreciation` and `start_displeasure`, from the `senate_gratitude` reward and the `senate_displeasure` penalty).
+  - **Nothing checks those dates.** Only the senate's setup, its save and load, and those two functions touch them.
+    - This was checked across the whole exe, by searching all code for their offsets, not only in the decompiled code.
 
 ## The senate's gift
 
@@ -111,7 +116,7 @@ For each AI family, `SenateFamily::check_gift` (`0x529593`) runs every turn:
 - If its senate standing is above 80, and more than 10 turns have passed since its last gift, it has a 49.5% chance (`percent() > 50`, with `percent()` from 0 to 100).
 - Then the family gets a unit: `Faction::give_first_cohort` (`0x4D245E`) picks "roman legionary first cohort i" or "ii", 50–50.
   - It gives nothing until the [Marian reforms](marian_reforms_findings.md) have happened (the campaign's `+0x2b6`).
-  - Where the unit appears is NYD.
+  - The unit appears at the family's capital, as the senate's unit rewards do (see [Where the units appear](#where-the-units-appear)).
 - The human's family never gets this gift.
 
 ## The advisor
@@ -136,11 +141,23 @@ For each AI family, `SenateFamily::check_gift` (`0x529593`) runs every turn:
 | `turn_coefficient`, `strength_coefficient`, `relative_strength_coefficient`, `combined_strength_coefficient` | floats | **No** |
 | `attitude_boundary_1` … `attitude_boundary_6` | floats | **No** |
 | `Begin_Offices` … `End_Offices` | the offices (below) | Yes |
-| The rest (fines, rewards and each mission's table) | `0x5470FE`, in `senate_mission.cpp` (NYD) | Yes (NYD how) |
+| The rest (fines, rewards and each mission's table) | `load_senate_missions` (`0x5470FE`), in [`code/senate_mission.cpp`](../../src/code/senate_mission.cpp) | Yes, except three bounds (below) |
 
 - "No" means only the parser refers to where the value is stored.
   - This was checked across the whole exe, by searching all code for the address, not only in the decompiled code.
 - So changing the attitude coefficients or boundaries, or the random mission chance, has no effect.
+
+`load_senate_missions` reads the rest in this order, and fails if one is missing:
+
+1. `major_fine`, `moderate_fine` and `minor_fine`, then `major_reward`, `moderate_reward` and `minor_reward` (see [Rewards and penalties](#rewards-and-penalties)).
+2. Each mission's section, found by its name: from the next line, its `Duration` and its table, to its `End` (`SenateRewardTable::load`).
+   - Help_Player, Demand_Suicide, Attack_Outlaw_Faction, Give_Back_City, Exact_Tribute, Subjugate, Broker_Peace, Make_Trade_Agreement, Get_Map_Info, Appease, Make_Alliance, Give_Cash, Annex_City and Destroy_Rebel_City have only that.
+   - Assassinate, Break_Alliance, Cease_Hostilities, Declare_War, Blockade_Port, Capture_Rebel_City and Take_City are read by their own files' code, which reads their extra keys too, such as `difficulty_boundaries_0` and `reissue_delay_in_turns` (NYD what those do).
+   - A table line is an attitude (−3 to 3), a difficulty (`E`, `M` or `D`; any other letter fails) and a code; a line with an unknown code is skipped, and a code not given is 0 (none).
+3. `rebel_city_lower_boundary` and `rebel_city_higher_boundary` after Destroy_Rebel_City, and `take_city_lower_boundary` and `take_city_higher_boundary` after Take_City.
+   - **Only `rebel_city_lower_boundary` is ever used.** The four functions that give the bounds to the mission code all return it.
+   - The bounds split the ratio of strengths that sets a city mission's difficulty (`0x5621DA`, in `sm_take_city.cpp`, used by all the city missions; NYD in detail): below the lower bound it's `D`, at or above the higher one it's `E`, and between them `M`.
+   - So with both bounds at `rebel_city_lower_boundary` (0.8 in the file), a city mission is `M` only at a ratio of exactly 0.8.
   - The file's own comment says to tune them with "ai_senate_faction.cpp debug window outputs", so they were probably used by a debugging tool or an earlier design.
 
 ### Offices
@@ -252,12 +269,12 @@ The missions step, `AISenateFaction::unk_00530A0D` (`0x530A0D`), is decompiled, 
 - The senate keeps a list of the missions it has given (`senate+0x318`), and `AISenateFaction::given_recently(type, family, turns)` is true when it gave a mission of that type fewer than `turns` turns ago.
   - Each entry keeps the type, a faction index and the date.
   - The faction is the human's own for Demand_Suicide, Help_Player and the first turn's Occupy_City, and the target's for the others.
-- The rewards and penalties table, the fines (a percentage of annual income) and the cash rewards are read by `0x5470FE` and applied in `senate_mission.cpp` (NYD).
+- The rewards and penalties each code gives, and what they do, are in [Rewards and penalties](#rewards-and-penalties).
 
 ### The missions step, in order
 
 1. Nothing happens while the human's family is at war with the senate (the senate's stance towards it is 600 or more).
-2. The family's missions under way (`faction+0x184`) are checked, and the finished ones dropped (`Faction::unk_004D13E8`, NYD how).
+2. The family's missions under way (`faction+0x184`) that can no longer be done are cancelled and dropped (`Faction::check_missions`; see [How a mission ends](#how-a-mission-ends)).
 3. The senate judges each of last turn's faction events ([`code/faction_event.cpp`](../../src/code/faction_event.cpp)) that it hasn't judged yet, through the event's own virtual function (NYD what each one does).
 4. **Leave_Region** (type 18) is given for each of the family's armies that stands in a region held by a faction the senate counts as a friend (view state 4 or 5).
    - It's skipped when the family has a diplomatic flag with that faction (bit 1 of the relation's flags, probably military access).
@@ -276,6 +293,28 @@ The missions step, `AISenateFaction::unk_00530A0D` (`0x530A0D`), is decompiled, 
    - When that code is 0 (none), nothing is given this turn.
 10. When there are no candidates, **Help_Player** (type 7) is given if it wasn't given in the last 20 turns, it's after turn 10, and the family's level is 4 or more.
     - Its reward is its table's code at the family's level, column `E`, and code 0 gives nothing.
+
+### How a mission ends
+
+A faction keeps its missions under way at `faction+0x184` and the missions it's been offered at `+0x190` ([`code/faction.cpp`](../../src/code/faction.cpp)). A mission under way ends in one of three ways.
+
+1. **It succeeds** when its own type's code sees the goal met.
+   - That code gives the reward, with its message, and drops the mission (`Faction::drop_mission`, `0x4D136A`).
+2. **It's cancelled** when it can no longer be done, for example when its target is gone.
+   - The senate's missions step checks each one (`Faction::check_missions`), and the type's own check (vtable `+0x38`) shows the "cancelled" message.
+   - There's no penalty, and the result, `MISSION_CANCELLED`, counts as neither a success nor a failure.
+3. **It fails** when time runs out, at the end of the family's turn (`Faction::end_missions`, `0x4D11EE`, from `0x4CB8CC`).
+   - Each type's check (vtable `+0x2c`) fails the mission on the turn it has 1 turn left (`turns_left`, its `Duration` less the turns since it was given), and gives the penalty with its message.
+   - The pass stops at the first failed mission for which a check on the senate (`0x14` of its second vtable, with the family's index; not identified) is true, and the missions after it wait for the next turn.
+
+Each mission dropped is counted (`AISenateFaction::mission_finished`, which feeds the [missions term](#senate-standing)) and then deleted.
+
+- No mission is counted while the senate's own faction is out of the game (`faction+0x178` of 2 or more).
+- At the end of the family's turn in that state, every mission under way is deleted without a reward, a penalty or a message.
+
+An offer the family declines is deleted without being counted (`Faction::drop_offer`); one it accepts joins the missions under way (`Faction::accept_offer`).
+
+After a load, each mission is rebuilt from what the save kept of it, and then sends the family its message again (`Faction::build_missions`, from `0x456DE0`).
 
 ### The candidates
 
@@ -385,7 +424,7 @@ The mission itself is decompiled ([`code/sm_demand_suicide.cpp`](../../src/code/
 **The penalty is always Outlaw.** The step passes the penalty in, as reward code 1, so the mission's table in `descr_senate.txt` isn't used.
 
 - `DemandSuicideBuilder::create` (`0x5556A8`) looks up the table (at the family's level, column `E`) only when it's given no penalty, and makes no mission when the penalty is "none".
-- `0x54610E` turns code 1 into the first reward (`0x12D7654`), never the "none" one, so the mission is always made (NYD).
+- `choose_reward` (`0x54610E`) turns code 1 into the `outlaw` penalty, never the "none" one, so the mission is always made.
 - So changing the Demand_Suicide rows in `descr_senate.txt` should change nothing. This is read from the code and not tested in game.
 
 **What answering does** (decompiled):
@@ -395,13 +434,95 @@ The mission itself is decompiled ([`code/sm_demand_suicide.cpp`](../../src/code/
   2. Records the faction "romans_senate" as the one that killed him (`faction+0x898+0x14`, the same field a riot's deaths set).
   3. Shows message `0xDE` with the faction's name, and closes the mission.
 - Refusing (`DemandSuicideMission::declined`, `0x555902`) shows message `0xDD` with the faction's name, and closes the mission.
-  - The penalty is applied by the base mission's code (`senate_mission.cpp`, NYD).
+  - The base mission's code then gives the penalty (`SenateMissionOffer::report_declined`): Outlaw, so **refusing makes the senate declare war on the family**.
 - Both close the mission at once, so it's never kept as an active mission (its `Duration` is 0).
 
 Notes:
 
 - Standing that low usually comes from holding 65% or more of Rome's strength (−24) and popularity of 75 or more (−18); see [Senate standing](#senate-standing).
 - The Censor's `no_censor_suicide` benefit is a different path (the censor's investigation), not this mission.
+
+## Rewards and penalties
+
+A mission's table gives a code for the family's level and the mission's difficulty, and `choose_reward` (`0x54610E`) turns the code into one of the 24 rewards and penalties.
+
+- Codes 2 to 7 pick at random, each choice as likely as the others except where the table says.
+- **The same reward or penalty is never chosen twice running.** The last one chosen, for any mission, is kept, and the draw is made again until it gives another.
+- "Losing money" means the turn's figures so far show more costs than income (`FactionFinance::net`).
+
+| Code | In the file | Gives |
+|---|---|---|
+| 0 | (none) | `null_payback`, which does nothing; no mission is made |
+| 1 | `Outlaw` | `outlaw` |
+| 2 | `p3` | `censor_investigates_family` or `quaestor_investigates_for_corruption` |
+| 3 | `p2` | `censor_investigates_faction` or `quaestor_investigates_for_financial_irregularities` |
+| 4 | `p1` | `quaestor_investigates_for_accounting_irregularities`, `senate_displeasure`, `secret_information_exposure` or `offices_witheld` |
+| 5 | `r1` | `minor_reward` when losing money; else `throw_games` when one of its settlements is at 70% public order or less; else `one_buildable_unit`, `minor_reward`, `promise_of_appointment`, `senate_gratitude` or `throw_games` |
+| 6 | `r2` | `moderate_reward` when losing money; else `one_best_buildable_unit`, `one_minor_exotic_unit`, `moderate_reward` or `one_triarii` (`one_triarii` 2 in 5, the others 1 in 5) |
+| 7 | `r3` | `major_reward` when losing money; else `major_exotic_unit`, `two_minor_exotic_units`, `two_best_buildable_units` or `major_reward` |
+
+- **`two_triarii` is never chosen.** It exists, and a save can name it, but no code picks it.
+- A mission that succeeds gives its reward (`SenateMissionOffer::report_accepted`), and one that fails gives its penalty (`report_declined`).
+  - Either way the message shows what it did.
+
+What each does:
+
+| Name | Effect |
+|---|---|
+| `outlaw` | **The senate declares war on the faction** (`DiplomacyMatrix::declare_war`, stance 600; the senate's faction is the first in the campaign's list at `+0x2c8`) |
+| `censor_investigates_family` | One of the family's named characters, picked at random but never the faction leader, is killed, with the senate recorded as his killer; nothing happens when the family has only one |
+| `censor_investigates_faction` | One of its spies, assassins, diplomats or generals (not admirals or family men), picked at random, is killed in the same way |
+| `quaestor_investigates_for_corruption` | A fine: the net income divided by `major_fine` (below) |
+| `quaestor_investigates_for_financial_irregularities` | A fine: the net income divided by `moderate_fine` |
+| `quaestor_investigates_for_accounting_irregularities` | A fine: the net income divided by `minor_fine` |
+| `senate_displeasure` | Only starts the senate's displeasure date, which nothing checks, so **it does nothing**, and its message has no text |
+| `secret_information_exposure` | Only fires the `SenateExposure` trigger event for the faction leader, so only the traits' and ancillaries' triggers can make anything of it |
+| `offices_witheld` | The family is left out of the next appointments (see [How offices are filled](#how-offices-are-filled)) |
+| `major_exotic_unit`, `one_minor_exotic_unit`, `two_minor_exotic_units` | One or two units from a fixed list of exotic ones (below) |
+| `one_buildable_unit`, `one_best_buildable_unit`, `two_best_buildable_units` | One or two units its buildings can train: one of the dearer half at random, or the dearest (below) |
+| `one_triarii` | One "roman triarii" unit |
+| `major_reward`, `moderate_reward`, `minor_reward` | That many denari (10000, 5000 and 1000 in the file), booked as income line 6 |
+| `promise_of_appointment` | Only the family is considered at the next appointments (see [How offices are filled](#how-offices-are-filled)) |
+| `senate_gratitude` | Only starts the senate's appreciation date, which nothing checks, so **it does nothing** |
+| `throw_games` | Games are held, for free, in the faction's settlement with the lowest public order (`Settlement::unk_005BC88A`; NYD what games do) |
+
+**The censors' and quaestors' investigations do nothing when the first Censor (or Quaestor) office is empty, or held by one of the faction's own men** (`AISenateFaction::censor_protects` and `quaestor_protects`).
+
+- Then the message says so (texts `0x412` and `0x413`).
+- The offices' `no_censor_suicide` and `censor_immunity` benefits play no part in this.
+
+**The fines are a division, not a percentage.**
+
+- The fine is the turn's net income (its first four income lines less its first two cost lines), taken as a positive amount and divided by the file's figure.
+  - It's paid from the treasury and booked as cost line 6.
+- So a faction that's losing money is fined too, by the size of its loss.
+- `descr_senate.txt` calls the figures "percentages of current annual income", but with its figures (10, 5 and 1) the fines are a tenth, a fifth and **the whole** of the net income.
+- **So the mildest penalty code, `p1`, can give the biggest fine**, and the harshest, `p3`, the smallest.
+- Each investigation also fires a trigger event for the faction leader: `QuaestorInvestigationMajor`, `QuaestorInvestigation` and `QuaestorInvestigationMinor`.
+
+**The unit rewards** come from the faction's own code, in [`code/faction.cpp`](../../src/code/faction.cpp) (`Faction::give_major_exotic_units` and the others):
+
+- A major exotic unit is one of "roman arcani", "roman samnite gladiator", "roman mirmillo gladiator", "merc bastarnae", "merc elephants", "merc horse archers", "merc sarmatian cavalry" and "naval deceres", and after the [Marian reforms](marian_reforms_findings.md) also "roman legionary first cohort i" and "ii".
+  - Each is as likely as the others.
+- A minor exotic unit is one of "roman velite gladiator", "merc rhodian slingers", "merc greek hoplites", "merc barbarian infantry", "merc numidian cavalry", "merc barbarian cavalry" and "roman scorpion", each as likely as the others.
+- **The buildable units are ranked by their cost in custom battles**, the last figure of `stat_cost` in `export_descr_unit.txt`, not by their campaign cost (`Faction::buildable_units`).
+  - The list holds each unit type that any of the faction's settlements' buildings can train, sorted from cheapest to dearest.
+  - "Best" is the dearest; `one_buildable_unit` picks at random from the dearer half (from index n/2 to n−1 of the n types).
+  - General units (`general_unit`) are taken out of the list, but the count isn't lowered, so with general units trainable (a mod; no vanilla building trains one) the picks can land past the list's end.
+    - Since `Array::erase` leaves the old items there, the "best" is then always the dearest of the full list, general unit or not.
+  - With nothing trainable it gives nothing.
+- The message names the last unit made and shows where it is, or says there's none to give (text `0xFA`), which it also does when the second of two can't be made.
+
+### Where the units appear
+
+`Faction::give_units` (`0x4D1BF3`) makes each unit in the capital's region and puts it at the capital; the senate's unit rewards and its gift all use it.
+
+- A ship goes into the capital's port when the port's `+0x3c` is above 0, or else into the first of its settlements' ports where it is.
+  - That's a level from 0 to 3, which some finished buildings raise by one (`0x5D924F`), so probably the port building's level (a guess); [Blockade_Port](#the-candidates) needs it too.
+  - Failing those, it goes to the last settlement's port, and with no port there the game would probably crash (not tested).
+- Any other unit joins the capital's garrison when it has room (fewer than 20 units), making a garrison army when there's none.
+- Otherwise it's a new army on a free tile beside the capital (`Settlement::unk_005BA4CA`; NYD what happens when there's no free tile, since the code ignores that).
+- When a unit can't be made, the rest aren't either.
 
 ## Not verified
 

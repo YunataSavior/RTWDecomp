@@ -384,6 +384,348 @@ void Faction::set_leader(CharacterRecord* record)
     }
 }
 
+unsigned int Faction::unk_004D0EC5(Array<Region*>& regions)
+{
+    // NONMATCHING - the original copies the region's index and the region into temporaries of their own
+    for (unsigned int i = 0; i < num_regions(); i++) {
+        int id = m_regions[i];
+        regions.push_back(lbl_018CD80C->region(id));
+    }
+    return regions.size();
+}
+
+unsigned int Faction::get_regions(Array<Region*>& regions)
+{
+    // NONMATCHING - the original copies the region's index and the region into temporaries of their own
+    for (unsigned int i = 0; i < num_regions(); i++) {
+        int id = m_regions[i];
+        regions.push_back(lbl_018CD80C->region(id));
+    }
+    return regions.size();
+}
+
+void Faction::add_mission(SenateMissionImpl* mission)
+{
+    m_missions.push_back(mission);
+}
+
+void Faction::add_offer(SenateMissionImpl* mission)
+{
+    m_offers.push_back(mission);
+}
+
+void Faction::accept_offer(SenateMissionImpl* mission)
+{
+    m_missions.push_back(mission);
+    m_offers.erase(m_offers.find(mission));
+}
+
+void Faction::drop_offer(SenateMissionImpl* mission)
+{
+    m_offers.erase(m_offers.find(mission));
+#line 7306
+    CA_DELETE(mission);
+}
+
+void Faction::unk_004D10BD(Array<SenateMissionImpl*>& missions)
+{
+    for (Array<SenateMissionImpl*>::iterator it = m_missions.begin(); it != m_missions.end(); ++it) {
+        if ((*it)->unk_18())
+            missions.push_back(*it);
+    }
+}
+
+// The senate counts it as a success or a failure, unless the senate's faction is out of the game.
+void Faction::drop_mission(Array<SenateMissionImpl*>::iterator& it)
+{
+    // NONMATCHING - the original has one more stack slot, which it never uses, after erase's
+    Faction* senate = lbl_018CD818->senate_faction();
+    if (senate && senate->unk_178() < 2)
+        lbl_018CD818->mission_finished(*it);
+#line 7338
+    CA_DELETE(*it);
+    it = m_missions.erase(it);
+}
+
+// The missions that ran out fail (run_out gives the penalty). While the senate's faction is out of the game, they're
+// all deleted, uncounted.
+void Faction::end_missions()
+{
+    // NONMATCHING - the original has one more stack slot, which it never uses, after the loops' iterators
+    Faction* senate = lbl_018CD818->senate_faction();
+    if (!senate)
+        return;
+    Array<SenateMissionImpl*>::iterator it = m_missions.begin();
+    if (senate->unk_178() >= 2) {
+        while (it != m_missions.end()) {
+#line 7359
+            CA_DELETE(*it);
+            it = m_missions.erase(it);
+        }
+    } else {
+        while (it != m_missions.end()) {
+            if ((*it)->run_out() == 0) {
+                ++it;
+            } else {
+                if (lbl_018CD818->senate()->unk_44()->unk_14(m_id))
+                    return;
+                drop_mission(it);
+            }
+        }
+    }
+}
+
+void Faction::drop_mission(SenateMissionImpl* mission)
+{
+    Array<SenateMissionImpl*>::iterator it = m_missions.begin();
+    while (it != m_missions.end()) {
+        if (*it == mission) {
+            drop_mission(it);
+            break;
+        }
+        ++it;
+    }
+}
+
+void Faction::check_missions(AISenateFaction* senate)
+{
+    Array<SenateMissionImpl*>::iterator it = m_missions.begin();
+    while (it != m_missions.end()) {
+        if ((*it)->possible(senate))
+            ++it;
+        else
+            drop_mission(it);
+    }
+}
+
+// A save keeps each mission's builder, which builds the mission and deletes itself. Each mission then tells the
+// faction of it again.
+void Faction::build_missions()
+{
+    Array<SenateMissionImpl*>::iterator it = m_missions.begin();
+    for (; it != m_missions.end(); ++it)
+        *it = (*it)->build();
+    for (it = m_offers.begin(); it != m_offers.end(); ++it)
+        *it = (*it)->build();
+    for (it = m_missions.begin(); it != m_missions.end(); ++it)
+        (*it)->unk_00();
+}
+
+// A random number from 0 to N.
+inline int random_index(int n)
+{
+    return lbl_018CD818->m_random.up_to(n);
+}
+
+// Unit types by their cost in a custom battle, cheapest first.
+struct CustomCostOrder {
+    bool operator()(int a, int b) const
+    {
+        return lbl_01589640.m_types[a].m_custom_cost < lbl_01589640.m_types[b].m_custom_cost;
+    }
+};
+
+// A heap sort (DATA from 1 while it works).
+template <class T, class Order>
+void sift_down(T* heap, unsigned int i, unsigned int count, const Order& order, T& swap)
+{
+    unsigned int child;
+    while ((child = i * 2) <= count) {
+        if (child != count && order(heap[child], heap[child + 1]))
+            child++;
+        if (!order(heap[i], heap[child]))
+            return;
+        swap = heap[child];
+        heap[child] = heap[i];
+        heap[i] = swap;
+        i = child;
+    }
+}
+
+template <class T, class Order>
+void heap_sort(T* data, unsigned int count, const Order& order, T& swap)
+{
+    data--;
+    for (unsigned int i = count / 2; i > 1; i--)
+        sift_down(data, i, count, order, swap);
+    while (count > 1) {
+        sift_down(data, 1, count, order, swap);
+        swap = data[1];
+        data[1] = data[count];
+        data[count] = swap;
+        count--;
+    }
+}
+
+template <class T, class Order>
+inline void sort(T* data, unsigned int count, const Order& order)
+{
+    T swap;
+    heap_sort(data, count, order, swap);
+}
+
+// Each unit type its settlements' buildings can train, once. It returns how many there are.
+unsigned int Faction::buildable_units(Array<int>& units)
+{
+    // NONMATCHING - the original has end()'s temporaries and find's result in other stack slots
+    BuildingEffects effects;
+    unsigned int types = 0;
+    for (PointerList<Settlement>::iterator it = m_settlements.begin(); it != m_settlements.end(); ++it) {
+        Settlement* settlement = *it;
+        settlement->unk_005BCA50(&effects);
+        unsigned int num_recruits = effects.num_recruits();
+        for (unsigned int i = 0; i < num_recruits; i++) {
+            BuildingRecruit item;
+            effects.recruit(&item, i);
+            BuildingRecruit* recruit = &item;
+            if (recruit->m_experience.total() >= 0) {
+                int type = recruit->m_unit;
+                if (units.end() == units.find(type)) {
+                    units.push_back(type);
+                    types++;
+                }
+            }
+        }
+    }
+    CustomCostOrder order;
+    sort(&units[0], types, order);
+    return types;
+}
+
+// COUNT new units of the type, at its capital: a ship in the capital's port, or else the first port of its
+// settlements' that has m_3c; any other unit in the capital's garrison, made if need be, or a new army beside the
+// capital when the garrison is full. It stops when a unit can't be made.
+void Faction::give_units(int type, int count, RewardUnit* unit)
+{
+    for (unsigned int i = 0; i < count; i++) {
+        unit->m_unit = lbl_01589640.unk_0091AEAA(m_capital->region(), type, m_id, 0, -1);
+        if (!unit->m_unit)
+            return;
+        unit->m_place = m_capital;
+        if (unit->m_unit->category() == 4) {
+            SettlementUnk184* port = unit->m_place->m_184;
+            PointerList<Settlement>::iterator it = PointerList<Settlement>::iterator(m_settlements.begin());
+            while ((!port || !port->unk_3c()) && it != m_settlements.end()) {
+                unit->m_place = *it;
+                port = unit->m_place->m_184;
+                ++it;
+            }
+            port->unk_0049E4D1(unit->m_unit);
+            continue;
+        }
+        if (m_capital->has_room(true)) {
+            if (!m_capital->unk_40()) {
+#line 7646
+                Army* army = new (THIS_FILE, __FILE__, __LINE__, true) Army(0, 0);
+                m_capital->unk_84(army);
+                unk_004CA5BA(army);
+                lbl_018CD80C->unk_0048204D(army, lbl_018CD80C->tile(*m_capital->position())->m_region);
+            }
+            m_capital->unk_40()->unk_0071D66C(unit->m_unit, 0);
+        } else {
+            TilePosition position;
+            bool found = m_capital->unk_005BA4CA(&position, 0, 0, 0);
+            Army* army = unk_004C9439(&position, 0);
+            army->unk_0071D66C(unit->m_unit, 0);
+            army->unk_00721E6B(&position);
+        }
+    }
+}
+
+// Takes out the general units (general_unit in export_descr_unit.txt).
+void remove_general_units(Array<int>& units)
+{
+    Array<int>::iterator it = units.begin();
+    while (it != units.end()) {
+        UnitUnk50* type = &lbl_01589640.m_types[*it];
+        if (type->m_general_unit)
+            it = units.erase(it);
+        else
+            ++it;
+    }
+}
+
+// The senate's units (code\senate_mission.cpp's rewards): COUNT units of a type it can build, of a fixed type, or of
+// one of a fixed list at random, each list looked up in export_descr_unit.txt once.
+// The count is buildable_units' from before the general units are taken out, so with general units buildable, the
+// picks can land past the list's end, where erase leaves its old items.
+void Faction::give_buildable_units(int count, RewardUnit* unit)
+{
+    Array<int> units;
+    unsigned int found = buildable_units(units);
+    remove_general_units(units);
+    if (found > 0) {
+        int i = lbl_018CD818->m_random.range(found / 2, found - 1);
+        give_units(units[i], count, unit);
+    }
+}
+
+void Faction::give_best_buildable_units(int count, RewardUnit* unit)
+{
+    Array<int> units;
+    unsigned int found = buildable_units(units);
+    remove_general_units(units);
+    if (found > 0)
+        give_units(units[found - 1], count, unit);
+}
+
+void Faction::give_triarii(int count, RewardUnit* unit)
+{
+    String name("roman triarii");
+    give_units(lbl_01589640.find(name), count, unit);
+}
+
+void Faction::give_minor_exotic_units(int count, RewardUnit* unit)
+{
+    static int s_minor_exotic[7] = {
+        lbl_01589640.find(String("roman velite gladiator")),
+        lbl_01589640.find(String("merc rhodian slingers")),
+        lbl_01589640.find(String("merc greek hoplites")),
+        lbl_01589640.find(String("merc barbarian infantry")),
+        lbl_01589640.find(String("merc numidian cavalry")),
+        lbl_01589640.find(String("merc barbarian cavalry")),
+        lbl_01589640.find(String("roman scorpion")),
+    };
+    give_units(s_minor_exotic[random_index(6)], count, unit);
+}
+
+// The first cohorts are given only once the Marian reforms have happened.
+void Faction::give_major_exotic_units(int count, RewardUnit* unit)
+{
+    static int s_major_exotic[10] = {
+        lbl_01589640.find(String("roman arcani")),
+        lbl_01589640.find(String("roman samnite gladiator")),
+        lbl_01589640.find(String("roman mirmillo gladiator")),
+        lbl_01589640.find(String("merc bastarnae")),
+        lbl_01589640.find(String("merc elephants")),
+        lbl_01589640.find(String("merc horse archers")),
+        lbl_01589640.find(String("merc sarmatian cavalry")),
+        lbl_01589640.find(String("naval deceres")),
+        lbl_01589640.find(String("roman legionary first cohort i")),
+        lbl_01589640.find(String("roman legionary first cohort ii")),
+    };
+    if (lbl_018CD818->marian_reforms())
+        give_units(s_major_exotic[random_index(9)], count, unit);
+    else
+        give_units(s_major_exotic[random_index(7)], count, unit);
+}
+
+// The senate's gift (SenateFamily::check_gift): a "roman legionary first cohort i" or "ii", 50-50, once the Marian
+// reforms have happened.
+void Faction::give_first_cohort()
+{
+    if (!lbl_018CD818->marian_reforms())
+        return;
+    RewardUnit unit;
+    if (lbl_018CD818->m_random.percent() > 50) {
+        String name("roman legionary first cohort i");
+        give_units(lbl_01589640.find(name), 1, &unit);
+    } else {
+        String name("roman legionary first cohort ii");
+        give_units(lbl_01589640.find(name), 1, &unit);
+    }
+}
+
 // The Marian reforms come: the bodyguards of its named characters are upgraded, when it owns a general_unit_upgrade unit.
 void Faction::marian_reforms()
 {

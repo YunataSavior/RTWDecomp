@@ -118,7 +118,7 @@ int fn_0054B3ED(Faction* faction, Faction* target, int* cost);              // c
 int fn_005516FE(Faction* faction, Faction* target, int* cost);              // code\sm_broker_peace.cpp
 int fn_005621DA(Faction* faction, Settlement* target, int);                 // code\sm_take_city.cpp
 
-// Each mission type's reward code (0 to 7, as fn_0054610E takes them) from its table, at a standing level and
+// Each mission type's reward code (0 to 7, as choose_reward takes them) from its table, at a standing level and
 // difficulty.
 int fn_0054F8C2(int level, int difficulty);     // Blockade_Port
 int fn_0054CADD(int level, int difficulty);     // Assassination
@@ -694,11 +694,46 @@ void AISenateFaction::start_displeasure()
     turns_from_today(&m_displeasure_until, s_displeasure_duration);
 }
 
+void AISenateFaction::withhold_offices()
+{
+    m_offices_withheld = true;
+}
+
+void AISenateFaction::promise_appointment()
+{
+    m_appointment_promised = true;
+}
+
 bool AISenateFaction::at_war_with(Faction* faction)
 {
     int id = faction->m_id;
     SenateView& view = m_views[id];
     return view.m_at_war_with_senate || view.m_at_war;
+}
+
+// Whether a man is of the faction.
+inline bool of_faction(CharacterRecord* record, Faction* faction)
+{
+    return record->m_faction->m_id == faction->m_id;
+}
+
+// Only the first office of the type counts; the offices' benefits (no_censor_suicide, censor_immunity) play no part.
+bool AISenateFaction::censor_protects(Faction* faction)
+{
+    for (LinkedList<SenateOffice>::iterator it = s_offices.head(); it != LinkedList<SenateOffice>::iterator(); ++it) {
+        if ((*it).m_type == OFFICE_CENSOR)
+            return (*it).holder() == 0 || of_faction((*it).holder(), faction);
+    }
+    return false;
+}
+
+bool AISenateFaction::quaestor_protects(Faction* faction)
+{
+    for (LinkedList<SenateOffice>::iterator it = s_offices.head(); it != LinkedList<SenateOffice>::iterator(); ++it) {
+        if ((*it).m_type == OFFICE_QUAESTOR)
+            return (*it).holder() == 0 || of_faction((*it).holder(), faction);
+    }
+    return false;
 }
 
 // The families' standings each turn, and the advisor's words when the human's family's change.
@@ -1331,7 +1366,7 @@ void AISenateFaction::unk_00530A0D()
     SenateFamily* family = m_player_family;
     Faction* faction = family->m_faction;
     int faction_id = faction->m_id;
-    faction->unk_004D13E8(this);
+    faction->check_missions(this);
 
     // Last turn's faction events that the senate hasn't judged yet.
     LinkedList<FactionEventRecord*>* events = &lbl_014D5F70;
@@ -1399,7 +1434,7 @@ void AISenateFaction::unk_00530A0D()
     if (family->standing_level() == 0 && unk_44()->unk_18(faction_id) && faction->m_heir != 0
         && !given_recently(MISSION_DEMAND_SUICIDE, faction_id, 3)) {
         offer(GivenMission(MISSION_DEMAND_SUICIDE, faction_id),
-              fn_00547F56(SenateMissionRequest(this, faction, family->standing_level(), fn_0054610E(1, faction), 0)));
+              fn_00547F56(SenateMissionRequest(this, faction, family->standing_level(), choose_reward(1, faction), 0)));
     }
 
     // The first turn's Occupy_City for each family.
@@ -1716,7 +1751,7 @@ void AISenateFaction::unk_00530A0D()
         int code = fn_0055B89C(family->standing_level(), column);
         if (code != 0) {
             offer(GivenMission(MISSION_HELP_PLAYER, faction_id),
-                  fn_00547F48(SenateMissionRequest(this, faction, family->standing_level(), fn_0054610E(code, faction), 0)));
+                  fn_00547F48(SenateMissionRequest(this, faction, family->standing_level(), choose_reward(code, faction), 0)));
         }
     }
     for (LinkedList<SenateCandidate*>::Node* node = candidates.tail(); node != 0; node = node->m_prev) {
@@ -1773,7 +1808,7 @@ void BlockadePortCandidate::give(Faction* faction, int level, AISenateFaction* s
     if (code != 0) {
         int owner = m_target->unk_0049E4B4()->m_id;
         senate->offer(GivenMission(MISSION_BLOCKADE_PORT, owner),
-                      fn_00547F9A(SenateMissionRequest(senate, faction, level, fn_0054610E(code, faction), 0), m_target));
+                      fn_00547F9A(SenateMissionRequest(senate, faction, level, choose_reward(code, faction), 0), m_target));
     }
 }
 
@@ -1782,7 +1817,7 @@ void OccupyCityCandidate::give(Faction* faction, int level, AISenateFaction* sen
     int code = fn_005621C5(level, m_difficulty);
     if (code != 0) {
         senate->offer(GivenMission(MISSION_OCCUPY_CITY, m_target->owner_id()),
-                      fn_005480AC(SenateMissionRequest(senate, faction, level, fn_0054610E(code, faction), 0), m_target));
+                      fn_005480AC(SenateMissionRequest(senate, faction, level, choose_reward(code, faction), 0), m_target));
     }
 }
 
@@ -1791,7 +1826,7 @@ void EnslaveCityCandidate::give(Faction* faction, int level, AISenateFaction* se
     int code = fn_005621C5(level, m_difficulty);
     if (code != 0) {
         senate->offer(GivenMission(MISSION_ENSLAVE_CITY, m_target->owner_id()),
-                      fn_005480BE(SenateMissionRequest(senate, faction, level, fn_0054610E(code, faction), 0), m_target));
+                      fn_005480BE(SenateMissionRequest(senate, faction, level, choose_reward(code, faction), 0), m_target));
     }
 }
 
@@ -1800,7 +1835,7 @@ void ExterminateCityCandidate::give(Faction* faction, int level, AISenateFaction
     int code = fn_005621C5(level, m_difficulty);
     if (code != 0) {
         senate->offer(GivenMission(MISSION_EXTERMINATE_CITY, m_target->owner_id()),
-                      fn_005480D0(SenateMissionRequest(senate, faction, level, fn_0054610E(code, faction), 0), m_target));
+                      fn_005480D0(SenateMissionRequest(senate, faction, level, choose_reward(code, faction), 0), m_target));
     }
 }
 
@@ -1811,7 +1846,7 @@ void AssassinationCandidate::give(Faction* faction, int level, AISenateFaction* 
     if (code != 0) {
         int owner = m_target->m_faction->m_id;
         senate->offer(GivenMission(MISSION_ASSASSINATION, owner),
-                      fn_00547FAC(SenateMissionRequest(senate, faction, level, fn_0054610E(code, faction), 0), m_target));
+                      fn_00547FAC(SenateMissionRequest(senate, faction, level, choose_reward(code, faction), 0), m_target));
     }
 }
 
@@ -1822,7 +1857,7 @@ void ExactTributeCandidate::give(Faction* faction, int level, AISenateFaction* s
     if (code != 0) {
         int owner = m_target->m_id;
         senate->offer(GivenMission(MISSION_EXACT_TRIBUTE, owner),
-                      fn_0054800A(SenateMissionRequest(senate, faction, level, fn_0054610E(code, faction), 0), m_target));
+                      fn_0054800A(SenateMissionRequest(senate, faction, level, choose_reward(code, faction), 0), m_target));
     }
 }
 
@@ -1833,7 +1868,7 @@ void SubjugateCandidate::give(Faction* faction, int level, AISenateFaction* sena
     if (code != 0) {
         int owner = m_target->m_id;
         senate->offer(GivenMission(MISSION_SUBJUGATE, owner),
-                      fn_0054801C(SenateMissionRequest(senate, faction, level, fn_0054610E(code, faction), 0), m_target));
+                      fn_0054801C(SenateMissionRequest(senate, faction, level, choose_reward(code, faction), 0), m_target));
     }
 }
 
@@ -1844,7 +1879,7 @@ void GetMapInfoCandidate::give(Faction* faction, int level, AISenateFaction* sen
     if (code != 0) {
         int owner = m_target->m_id;
         senate->offer(GivenMission(MISSION_GET_MAP_INFO, owner),
-                      fn_00548040(SenateMissionRequest(senate, faction, level, fn_0054610E(code, faction), 0), m_target));
+                      fn_00548040(SenateMissionRequest(senate, faction, level, choose_reward(code, faction), 0), m_target));
     }
 }
 
@@ -1855,7 +1890,7 @@ void AppeaseCandidate::give(Faction* faction, int level, AISenateFaction* senate
     if (code != 0) {
         int owner = m_target->m_id;
         senate->offer(GivenMission(MISSION_APPEASE, owner),
-                      fn_00548064(SenateMissionRequest(senate, faction, level, fn_0054610E(code, faction), 0), m_target));
+                      fn_00548064(SenateMissionRequest(senate, faction, level, choose_reward(code, faction), 0), m_target));
     }
 }
 
@@ -1866,7 +1901,7 @@ void TradeAgreementCandidate::give(Faction* faction, int level, AISenateFaction*
     if (code != 0) {
         int owner = m_target->m_id;
         senate->offer(GivenMission(MISSION_MAKE_TRADE_AGREEMENT, owner),
-                      fn_00548052(SenateMissionRequest(senate, faction, level, fn_0054610E(code, faction), 0), m_target));
+                      fn_00548052(SenateMissionRequest(senate, faction, level, choose_reward(code, faction), 0), m_target));
     }
 }
 
@@ -1877,7 +1912,7 @@ void BrokerPeaceCandidate::give(Faction* faction, int level, AISenateFaction* se
     if (code != 0) {
         int owner = m_target->m_id;
         senate->offer(GivenMission(MISSION_BROKER_PEACE, owner),
-                      fn_00548076(SenateMissionRequest(senate, faction, level, fn_0054610E(code, faction), 0), m_target));
+                      fn_00548076(SenateMissionRequest(senate, faction, level, choose_reward(code, faction), 0), m_target));
     }
 }
 
@@ -1886,6 +1921,6 @@ void AnnexCityCandidate::give(Faction* faction, int level, AISenateFaction* sena
     int code = fn_0054A56B(level, m_difficulty);
     if (code != 0) {
         senate->offer(GivenMission(MISSION_ANNEX_CITY, m_target->owner_id()),
-                      fn_0054802E(SenateMissionRequest(senate, faction, level, fn_0054610E(code, faction), 0), m_target));
+                      fn_0054802E(SenateMissionRequest(senate, faction, level, choose_reward(code, faction), 0), m_target));
     }
 }

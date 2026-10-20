@@ -205,7 +205,7 @@ bool read_triggers(ScriptReader& reader)
                     SCRIPT_ERROR(reader, "%s", "Advice thread increment not supplied");
                     return false;
                 }
-                short delta = reader.read_short();
+                short delta = reader.read_uint();
                 advice[advice.m_count].m_name = thread_name;
                 advice[advice.m_count++].m_increment = delta;
                 reader.next_line();

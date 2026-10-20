@@ -34,7 +34,7 @@ public:
     DemandSuicideMission(AISenateFaction* senate, Faction* faction, SenateReward* reward);
     DemandSuicideMission(const DemandSuicideBuilder& builder);
 
-    virtual int unk_2c() { return 0; }
+    virtual int run_out() { return 0; }
     virtual void* title() { return fn_00D93A0C(0xdb); }
     virtual void unk_08(int* a, int* b)
     {
@@ -46,7 +46,7 @@ public:
     virtual void* target_name() { return faction()->display_name(); }
 
     virtual bool save(SaveStream& stream);
-    virtual bool unk_38(int a);
+    virtual bool possible(AISenateFaction* senate);
     virtual void accepted();
     virtual void declined();
 };
@@ -55,7 +55,7 @@ public:
 SenateMissionImpl* DemandSuicideBuilder::load(SaveStream& stream)
 {
     SenateMissionState state;
-    fn_00546B90(stream, state);
+    load_mission_state(stream, state);
 #line 46
     return NEW DemandSuicideBuilder(state);
 }
@@ -79,7 +79,7 @@ SenateMissionImpl* DemandSuicideBuilder::create(const SenateMissionRequest& requ
     SenateReward* reward = request.m_reward;
     int difficulty = 0;
     if (!reward)
-        reward = fn_0054610E(s_rewards.m_codes[request.m_level][difficulty], request.m_faction);
+        reward = choose_reward(s_rewards.m_codes[request.m_level][difficulty], request.m_faction);
     if (is_reward(reward))
 #line 81
         return NEW DemandSuicideMission(request.m_senate, request.m_faction, reward);
@@ -114,7 +114,7 @@ bool DemandSuicideMission::save(SaveStream& stream)
     return stream.unk_00F3D990();
 }
 
-bool DemandSuicideMission::unk_38(int a)
+bool DemandSuicideMission::possible(AISenateFaction* senate)
 {
     return true;
 }
