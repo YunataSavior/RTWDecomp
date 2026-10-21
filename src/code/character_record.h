@@ -4,6 +4,12 @@
 #define CHARACTER_RECORD_H
 
 #include "unsorted.h"
+#include "core_strings.h"
+#include "army.h"
+#include "calender.h"
+#include "faction.h"
+#include "romans_utils.h"
+#include "unit.h"
 
 #include "core_linked_list.h"
 #include "character_traits_db.h"

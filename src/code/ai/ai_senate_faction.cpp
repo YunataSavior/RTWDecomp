@@ -7,6 +7,20 @@ static char THIS_FILE[] = __FILE__;
 #include <math.h>
 
 #include "unsorted.h"
+#include "ai_analyser.h"
+#include "ai_faction_base.h"
+#include "../army.h"
+#include "../calender.h"
+#include "../faction.h"
+#include "../faction_diplomacy.h"
+#include "../mission_triggers.h"
+#include "../port.h"
+#include "../romans_utils.h"
+#include "../settlement.h"
+#include "../strategy_map.h"
+#include "../win_conditions.h"
+#include "../world.h"
+#include "../world_map.h"
 
 #include "core_linked_list.h"
 #include "../character.h"

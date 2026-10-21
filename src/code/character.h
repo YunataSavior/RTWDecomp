@@ -3,6 +3,11 @@
 #define CHARACTER_H
 
 #include "unsorted.h"
+#include "army.h"
+#include "faction.h"
+#include "fort.h"
+#include "settlement.h"
+#include "unit.h"
 
 class CharacterRecord;
 

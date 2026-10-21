@@ -4,6 +4,10 @@ static char THIS_FILE[] = __FILE__;
 
 // The faction events: the records of what happened to a faction, made while lbl_014D6058 is set.
 #include "unsorted.h"
+#include "faction.h"
+#include "settlement.h"
+#include "settlement_base.h"
+#include "settlement_triggers.h"
 #include "character.h"
 #include "character_record.h"
 

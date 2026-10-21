@@ -1,6 +1,10 @@
 #include "ai_cheat_manager.h"
 
 #include "unsorted.h"
+#include "ai_analyser.h"
+#include "../faction.h"
+#include "../world.h"
+#include "../world_map.h"
 #include "map_constants.h"
 
 // Each faction's standing towards the first human faction, rebuilt by update().

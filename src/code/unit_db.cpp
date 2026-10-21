@@ -4,6 +4,7 @@ static char THIS_FILE[] = __FILE__;
 
 // The unit types of export_descr_unit.txt.
 #include "unsorted.h"
+#include "unit_db.h"
 
 // Whether the faction owns a unit type with general_unit_upgrade.
 bool UnitDB::has_general_upgrade(int faction)

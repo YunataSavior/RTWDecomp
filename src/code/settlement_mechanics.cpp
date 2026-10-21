@@ -4,6 +4,16 @@ static char THIS_FILE[] = __FILE__;
 
 // A settlement's figures for each turn: its growth and its public order.
 #include "unsorted.h"
+#include "army.h"
+#include "capabilities.h"
+#include "faction.h"
+#include "rebel_faction_db.h"
+#include "romans_utils.h"
+#include "settlement.h"
+#include "settlement_mechanics.h"
+#include "strategy_map.h"
+#include "world.h"
+#include "world_map.h"
 
 #include "ai/ai_cheat_manager.h"
 #include "character.h"

@@ -1,5 +1,9 @@
 // The campaign map's tiles.
 #include "unsorted.h"
+#include "port.h"
+#include "rebel_faction_db.h"
+#include "strategy_map.h"
+#include "world_map.h"
 #include "map_constants.h"
 
 void unk_009CA004(int x, int y, int width, int height, int);  // 0x009CA004: on the aerial map

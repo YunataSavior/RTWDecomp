@@ -3,6 +3,10 @@
 #define SENATE_MISSION_H
 
 #include "unsorted.h"
+#include "core_strings.h"
+#include "calender.h"
+#include "faction.h"
+#include "romans_utils.h"
 #include "ai/ai_senate_faction.h"
 
 // Where a reward shows on the map, for its message: a reward that makes a unit sets it to the unit's place.

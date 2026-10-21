@@ -5,6 +5,10 @@ static char THIS_FILE[] = __FILE__;
 // A unit in a settlement's recruitment queue, or one it could recruit.
 #include <math.h>
 #include "unsorted.h"
+#include "recruitment_item.h"
+#include "settlement.h"
+#include "unit_db.h"
+#include "world.h"
 
 extern "C" int lbl_010FDF20;            // bestbuy's percentage: 100, or 90
 

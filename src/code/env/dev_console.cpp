@@ -8,6 +8,11 @@ static char THIS_FILE[] = __FILE__;
 #include <string.h>
 
 #include "unsorted.h"
+#include "../battle.h"
+#include "../faction.h"
+#include "../romans_utils.h"
+#include "../world.h"
+#include "../world_map.h"
 #include "../character.h"
 #include "../character_record.h"
 #include "../character_traits_db.h"

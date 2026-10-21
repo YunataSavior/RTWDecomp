@@ -4,6 +4,7 @@ static char THIS_FILE[] = __FILE__;
 
 // A unit of an army.
 #include "unsorted.h"
+#include "unit.h"
 
 int Unit::unk_007B9438()
 {

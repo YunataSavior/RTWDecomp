@@ -3,6 +3,7 @@
 static char THIS_FILE[] = __FILE__;
 
 #include "unsorted.h"
+#include "faction.h"
 #include "character.h"
 #include "character_record.h"
 #include "senate_mission.h"

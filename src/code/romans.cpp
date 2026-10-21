@@ -8,6 +8,7 @@ static char THIS_FILE[] = __FILE__;
 #include <fstream.h>
 
 #include "unsorted.h"
+#include "core_strings.h"
 #include "map_constants.h"
 
 inline void copy_to_ascii(char* dst, const unsigned short* src)

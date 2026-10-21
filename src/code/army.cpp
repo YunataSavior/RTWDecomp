@@ -4,6 +4,12 @@ static char THIS_FILE[] = __FILE__;
 
 // An army of the campaign map: its units.
 #include "unsorted.h"
+#include "unit_db.h"
+#include "army.h"
+#include "battle.h"
+#include "settlement.h"
+#include "unit.h"
+#include "world.h"
 #include "character.h"
 
 // 0 while it's in a battle with m_139 set.

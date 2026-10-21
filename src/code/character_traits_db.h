@@ -4,6 +4,8 @@
 #define CHARACTER_TRAITS_DB_H
 
 #include "unsorted.h"
+#include "core_strings.h"
+#include "romans_utils.h"
 
 // The original expands inlines deeper than VC6's default of 8 calls here: the destructors that Array<TraitDescription>
 // tries to expand leave the slots of 11 levels.

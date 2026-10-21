@@ -2,6 +2,9 @@
 #define ROAD_H
 
 #include "unsorted.h"
+#include "strategy_map.h"
+#include "world.h"
+#include "world_map.h"
 #include "map_constants.h"
 
 // A road between two regions' settlements (or from a settlement to its port). Its route is planned once, by the

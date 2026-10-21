@@ -1,5 +1,9 @@
 // The campaign map's A* search.
 #include "unsorted.h"
+#include "faction.h"
+#include "strategy_map.h"
+#include "strategy_map_pathfinding.h"
+#include "world_map.h"
 #include "character.h"
 #include "heap.h"
 

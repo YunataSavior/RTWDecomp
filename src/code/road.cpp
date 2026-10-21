@@ -5,6 +5,10 @@ static char THIS_FILE[] = __FILE__;
 #include "road.h"
 
 #include "unsorted.h"
+#include "faction.h"
+#include "strategy_map.h"
+#include "version_registry.h"
+#include "world_map.h"
 
 inline bool has_aerial_map()
 {

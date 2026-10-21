@@ -1,5 +1,8 @@
 // The event messages: each makes a message of its type for a faction and sends it.
 #include "unsorted.h"
+#include "../faction.h"
+#include "../romans_utils.h"
+#include "../world.h"
 
 // A message being made. Each << adds a value for its text.
 class EventMessage {

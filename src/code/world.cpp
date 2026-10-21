@@ -3,6 +3,17 @@
 static char THIS_FILE[] = __FILE__;
 
 #include "unsorted.h"
+#include "battle.h"
+#include "building_db.h"
+#include "event_manager.h"
+#include "faction.h"
+#include "faction_db.h"
+#include "fort.h"
+#include "romans_utils.h"
+#include "settlement.h"
+#include "strategy_map.h"
+#include "world.h"
+#include "world_map.h"
 #include "character.h"
 #include "ai/ai_cheat_manager.h"
 #include "ai/ai_senate_faction.h"

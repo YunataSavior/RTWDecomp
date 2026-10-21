@@ -4,6 +4,9 @@ static char THIS_FILE[] = __FILE__;
 
 // A faction's finances: its treasury and income.
 #include "unsorted.h"
+#include "faction.h"
+#include "faction_economics.h"
+#include "world.h"
 
 #include "ai/ai_cheat_manager.h"
 

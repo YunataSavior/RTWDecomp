@@ -8,6 +8,9 @@ static char THIS_FILE[] = __FILE__;
 #include "triggers.h"
 
 #include "unsorted.h"
+#include "faction.h"
+#include "romans_utils.h"
+#include "world.h"
 #include "map_constants.h"
 #include "unk_id.h"
 

@@ -3,6 +3,14 @@
 #include "character.h"
 
 #include "unsorted.h"
+#include "port.h"
+#include "faction.h"
+#include "fog_of_war.h"
+#include "settlement.h"
+#include "strategy_map.h"
+#include "strategy_map_pathfinding.h"
+#include "world.h"
+#include "world_map.h"
 
 RoadPoint::RoadPoint(int index)
 {

@@ -1,5 +1,8 @@
 // A settlement's buildings.
 #include "unsorted.h"
+#include "building.h"
+#include "settlement.h"
+#include "world.h"
 
 // Damages the buildings in a riot or a revolt. Each building other than the walls (and, with skip_outside, other than
 // the port and the hinterland buildings, such as roads and farms) is damaged with a chance of m_building_chance

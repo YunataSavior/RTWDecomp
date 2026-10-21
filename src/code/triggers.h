@@ -4,6 +4,7 @@
 #define TRIGGERS_H
 
 #include "unsorted.h"
+#include "faction.h"
 
 #include "core_linked_list.h"
 #include "ca_auto_ptr.h"
@@ -12,6 +13,7 @@
 #include "character_ancillaries_db.h"
 #include "character_record.h"
 #include "character.h"
+#include "romans_utils.h"
 
 // A trigger's Affects line: a trait, the points it gives (or takes), and the chance in percent.
 struct TraitAffect {

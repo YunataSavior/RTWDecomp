@@ -4,6 +4,12 @@ static char THIS_FILE[] = __FILE__;
 
 // A character on the strategy map.
 #include "character.h"
+#include "campaign_triggers.h"
+#include "event_manager.h"
+#include "fort.h"
+#include "settlement.h"
+#include "strategy_map.h"
+#include "unit_db.h"
 
 extern "C" {
 void fn_00CB09C7(CharacterRecord* record);  // the message that it died of plague (a guess)

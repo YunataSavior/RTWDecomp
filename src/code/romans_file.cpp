@@ -5,6 +5,13 @@
 static char THIS_FILE[] = __FILE__;
 
 #include "unsorted.h"
+#include "faction.h"
+#include "core_strings.h"
+#include "ai/ai_faction_base.h"
+#include "strategy_map.h"
+#include "version_registry.h"
+#include "world.h"
+#include "world_map.h"
 #include "map_constants.h"
 
 #include "ai/ai_cheat_manager.h"

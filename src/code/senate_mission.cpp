@@ -4,6 +4,14 @@
 static char THIS_FILE[] = __FILE__;
 
 #include "unsorted.h"
+#include "unit_db.h"
+#include "core_strings.h"
+#include "campaign_triggers.h"
+#include "faction.h"
+#include "faction_economics.h"
+#include "romans_utils.h"
+#include "version_registry.h"
+#include "world.h"
 #include "map_constants.h"
 #include "hash_map.h"
 #include "maths_random.h"

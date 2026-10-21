@@ -9,6 +9,8 @@ static char THIS_FILE[] = __FILE__;
 #include "character_traits_db.h"
 
 #include "unsorted.h"
+#include "localisation/string_table_manager.h"
+#include "romans_utils.h"
 
 extern "C" {
 int fn_00E3B72D(const char* name);      // a character type from its name

@@ -8,6 +8,8 @@ static char THIS_FILE[] = __FILE__;
 #include "landmark.h"
 
 #include "unsorted.h"
+#include "localisation/string_table_manager.h"
+#include "romans_utils.h"
 #include "angle_constants.h"
 
 // The 10 wonder types' descriptions.

@@ -2,6 +2,10 @@
 #define LANDMARK_H
 
 #include "unsorted.h"
+#include "core_strings.h"
+#include "faction.h"
+#include "localisation/string_table_manager.h"
+#include "romans_utils.h"
 
 #include "core_linked_list.h"
 

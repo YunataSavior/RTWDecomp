@@ -5,6 +5,11 @@
 #define AI_SENATE_FACTION_H
 
 #include "unsorted.h"
+#include "ai_faction_base.h"
+#include "../calender.h"
+#include "../faction.h"
+#include "../port.h"
+#include "../settlement.h"
 #include "core_linked_list.h"
 
 class SenateReward;

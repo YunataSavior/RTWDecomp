@@ -5,6 +5,14 @@ static char THIS_FILE[] = __FILE__;
 #include "landmark.h"
 
 #include "unsorted.h"
+#include "campaign_triggers.h"
+#include "faction.h"
+#include "port.h"
+#include "romans_utils.h"
+#include "strategy_map.h"
+#include "version_registry.h"
+#include "world.h"
+#include "world_map.h"
 #include "map_constants.h"
 
 static const ConstInt NUM_LANDMARK_TYPES(9);  // the wonders' type IDs are 1 to 9

@@ -4,6 +4,9 @@ static char THIS_FILE[] = __FILE__;
 
 // What settlements and forts share.
 #include "unsorted.h"
+#include "settlement.h"
+#include "settlement_base.h"
+#include "world_map.h"
 
 #include "character.h"
 
