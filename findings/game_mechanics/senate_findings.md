@@ -237,8 +237,10 @@ Each turn the senate works out a view of every faction (`SenateView`, 21 of them
 - Its flags come from diplomacy with the families and the senate (`update_diplomacy`, `0x52E911`): at war (stance 600), stance 400 (probably hostile), allied (stance 0), and bit 3 of the relation's flags (`0x5A0F3E`).
   - A family also gets a separate flag when it's at war with the senate.
 - Its three figures are sums of three figures each family's AI keeps for each faction (`add_family_view`, `0x52E7D2`).
-  - They're in a 21-entry table the AI builds at `0x517247`, which is probably its war-target code (the same code as in [AI war targeting](difficulty_findings.md#ai-war-targeting-and-aggression)); what each figure measures is NYD.
-- A family's AI "has it in view" when that table's region (`+0x1c`, while `+0x18` is set) is held by the faction, or when the faction's entry in the AI's global strategy director has its `+0x1e` flag set.
+  - They're three fields of the goal the family's AI keeps for that faction, in its long-term goal director (`AIFactionGoal`; see [AI war targeting](difficulty_findings.md#ai-war-targeting-and-aggression)).
+  - The first is the war priority that `choose_war_targets` gives the faction, from 100 to 900.
+  - What the other two (`+0x1c` and `+0x28`) measure is NYD.
+- A family's AI "has it in view" when the region it plans to invade by sea (`+0x1c`, while its `+0x18` flag says it's free to start a war) is held by the faction, or when the faction's entry in the AI's global strategy director has its `+0x1e` flag set.
 - From those, `SenateView::update_state` gives each faction a state:
 
 | State | When |
@@ -252,7 +254,7 @@ Each turn the senate works out a view of every faction (`SenateView`, 21 of them
 
 - Slots 7, 10, 15 and 20 are Carthage, the Gauls, the Greek cities and the rebels in the original campaign, so the senate always counts them as enemies.
 - For each family, `choose_enemy` (`0x52EC0D`) then picks the neighbour the senate wants it to fight, or none (21).
-  - Only factions whose regions border the family's count, and never dead ones, the ones in a cash crisis or with a faction at `+0x4f0` (`Faction::unk_004584F1`) or those with the description's `+0xa7` flag.
+  - Only factions whose regions border the family's count, and never dead ones, superfactions or their factions (`Faction::unk_004584F1`; the SPQR and the families) or those with the description's `+0xa7` flag.
   - Any it's at war with comes first: the one with the highest first figure.
   - Otherwise it's the one with the highest first figure that isn't in state 4 or 5.
   - The missions use it: a city, Assassination or Blockade_Port candidate against that faction gets 5 more weight.

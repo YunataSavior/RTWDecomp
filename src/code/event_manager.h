@@ -7,6 +7,7 @@
 
 // The disasters of descr_events.txt, by their index in the exe's list of their names (earthquake, flood, ...).
 enum {
+    DISASTER_FAMINE = 7,
     DISASTER_PLAGUE = 8,
 };
 

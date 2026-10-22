@@ -6,6 +6,7 @@
 struct Date {
     Date() { m_year = 0; m_season = 2; }
     Date(int year, int season) { m_year = year; m_season = season; }
+    int year() const { return m_year; }
     int season() const;                         // 0x0043C687: 2 in summer, 0 in winter (a guess)
     void unk_0043C59F();                        // 0x0043C59F: the next season (a guess)
     Date& next_turn();                          // 0x0043BEFE: summer to winter, or winter to the next year's summer

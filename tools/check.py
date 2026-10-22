@@ -9,7 +9,11 @@ bytes. Two targets with different names still match when:
 - the compiled one is a string literal or another static data symbol of BASE whose bytes are the original's at the
   target's address (literals are named $SG<n> by the compiler, and file statics need no name of their own);
 - CONFIG/folded.txt lists the compiled one as folded into the original one: the linker kept one copy of functions
-  whose code is the same (a template's functions for different types, most often).
+  whose code is the same (a template's functions for different types, most often);
+- both name an address (an _lbl_ name, or one symbols.txt gives) and, with their addends, the same one: the split
+  names the symbol an address falls in, so `array - 2` can be the symbol before `array`.
+
+A string literal of zeros ("") is in .bss, so it matches an original address that has no file-backed data.
 """
 import json
 import re
@@ -65,7 +69,7 @@ class Object:
         self.data = {}
         for name, value, section, storage, function in defined:
             section_name, data, _ = self.sections[section - 1]
-            if storage == 3 and not function and section_name.startswith(".data") and name != section_name:
+            if storage == 3 and not function and section_name.startswith((".data", ".bss")) and name != section_name:
                 following = [v for _, v, s, _, _ in defined if s == section and v > value]
                 self.data[name] = data[value:min(following, default=len(data))]
 
@@ -101,8 +105,19 @@ def target_matcher(config, got):
         try:
             return original.read(address, len(content)) == content
         except ValueError:
-            return False
+            if content.strip(b"\0"):
+                return False
+            try:
+                original.section_for_address(address)
+            except ValueError:
+                return False
+            return True
 
+    def address_of(name):
+        match = re.fullmatch(r"_lbl_([0-9A-F]{8})", name)
+        return int(match[1], 16) if match else addresses.get(name)
+
+    same_target.address_of = address_of
     return same_target
 
 
@@ -121,11 +136,28 @@ def main():
         theirs = {(o, k): t for o, t, k in other_relocs}
         if len(other) != len(code):
             problems.append(f"{name}: 0x{len(other):X} bytes, not 0x{len(code):X}")
-        elif mine.keys() != theirs.keys() or not all(same_target(mine[k], theirs[k]) for k in mine):
-            differ = min(k for k in mine.keys() | theirs.keys()
-                         if k not in mine or k not in theirs or not same_target(mine[k], theirs[k]))
+            continue
+        masked = []
+
+        def same(k):
+            if same_target(mine[k], theirs[k]):
+                return True
+            wanted, compiled = (same_target.address_of(n) for n in (mine[k], theirs[k]))
+            offset, kind = k
+            if kind != 6 or wanted is None or compiled is None:  # IMAGE_REL_I386_DIR32
+                return False
+            if wanted + struct.unpack_from("<i", code, offset)[0] != compiled + struct.unpack_from("<i", other, offset)[0]:
+                return False
+            masked.append(offset)
+            return True
+
+        if mine.keys() != theirs.keys() or not all(same(k) for k in mine):
+            differ = min(k for k in mine.keys() | theirs.keys() if k not in mine or k not in theirs or not same(k))
             problems.append(f"{name}: relocations differ (first at +0x{differ[0]:X})")
-        elif other != code:
+            continue
+        for offset in masked:
+            code = code[:offset] + other[offset:offset + 4] + code[offset + 4:]
+        if other != code:
             at = next(i for i in range(len(code)) if code[i] != other[i])
             problems.append(f"{name}: bytes differ at +0x{at:X}")
     if problems:

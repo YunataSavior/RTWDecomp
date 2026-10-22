@@ -9,6 +9,7 @@ static char THIS_FILE[] = __FILE__;
 #include "unsorted.h"
 #include "ai_analyser.h"
 #include "ai_faction_base.h"
+#include "ai_long_term_goal_director.h"
 #include "../army.h"
 #include "../calender.h"
 #include "../faction.h"
@@ -848,18 +849,18 @@ void AISenateFaction::add_family_view(FactionAI* family_ai)
 {
     // NONMATCHING - stack slot order differs
     FactionAI* ai = family_ai;
-    FactionAIUnk20* targets = ai->unk_20();
+    AILongTermGoalDirector* targets = ai->unk_20();
     for (unsigned int i = 0; i < NUM_FACTIONS; i++) {
         int faction_id = i;
-        FactionAIUnk20Entry* entry = &targets->m_entries[faction_id];
+        AIFactionGoal* entry = &targets->m_goals.m_goals[faction_id];
         int& threat = m_views[i].m_threat;
-        threat += entry->m_c;
+        threat += entry->m_war_priority;
         int& c = m_views[i].m_c;
         c += entry->m_1c;
         int& v10 = m_views[i].m_10;
         v10 += entry->m_28;
         if (ai->unk_38()) {
-            if (targets->unk_18() && faction_id == lbl_018CD80C->region(targets->unk_1c())->m_owner->id())
+            if (targets->ready_for_war() && faction_id == lbl_018CD80C->region(targets->target_region())->m_owner->id())
                 m_views[i].m_targeted = true;
             if (ai->unk_38()->unk_1e(faction_id))
                 m_views[i].m_targeted = true;

@@ -7,7 +7,12 @@
 // Something of a faction's, updated at the start of its turn (not identified).
 class FactionUnk4F8 {
 public:
+    int unk_4() const { return m_4; }
+
     void unk_004DBCBD();                // 0x004DBCBD
+
+    char m_pad0[4];
+    int m_4;                            // +0x04: a faction, 21 for none
 };
 
 // The strength of the armies in some regions, split by whose they are (not identified).

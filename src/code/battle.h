@@ -28,9 +28,30 @@ public:
     unsigned int m_1bfc;                // +0x1bfc
 };
 
+// A player of a battle (0x18 bytes).
+struct BattlePlayer {
+    bool m_active;                      // +0x00
+    char m_pad1[8 - 1];
+    float m_speed;                      // +0x08: the speed the player asks for
+    char m_padc[0x14 - 0xc];
+    int m_id;                           // +0x14
+};
+
+// The battle speeds: 0 (paused), 1, 2 and 6 times normal.
+extern "C" {
+int fn_005F5D4F(float speed);           // the speed's number, 0 to 3; always 3 under -ai:enter_battles
+float fn_005F5D9D(int index);           // the speed with that number; always 6 under -ai:enter_battles
+}
+
 // The battle being fought (not identified).
 class Battle {
 public:
+    bool paused() const { return m_paused; }
+    float speed() const { return m_speed; }
+    int speed_index();                  // 0x0060253C
+    void set_speed(int player, float speed);  // 0x00602617: the slowest that an active player asks for
+    void set_all_speeds(float speed);   // 0x0060289E
+
     int unk_8() const { return m_8; }
     bool unk_c() const { return m_c; }
     bool unk_24() const { return m_24; }
@@ -50,9 +71,15 @@ public:
     bool m_24;                          // +0x24
     char m_pad25[0x46 - 0x25];
     bool m_46;                          // +0x46
-    char m_pad47[0xe1f8 - 0x47];
+    char m_pad47[0x4c - 0x47];
+    bool m_paused;                      // +0x4c
+    float m_speed;                      // +0x50
+    char m_pad54[0xe1f8 - 0x54];
     int m_side_of_faction[21];          // +0xe1f8
     unsigned int m_num_sides;           // +0xe24c
+    char m_pade250[0xe268 - 0xe250];
+    BattlePlayer m_players[21];         // +0xe268
+    unsigned int m_num_players;         // +0xe460
 };
 
 extern "C" {

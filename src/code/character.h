@@ -93,7 +93,11 @@ public:
     void unk_00581268();                        // 0x00581268: replaces its bodyguard unit (a guess: with the upgraded one)
     float unk_005815D7();                       // 0x005815D7
     void unk_00581619(float);                   // 0x00581619
-    void unk_0057DD3B();                        // 0x0057DD3B
+    void unk_0057DD3B();                        // 0x0057DD3B: at the end of its faction's turn: old age, births, marriage
+    void unk_005821A4();                        // 0x005821A4
+    Region* unk_00586C48();                     // 0x00586C48: the region it's in
+    int attribute(int id);                      // its record's (inline, in the .cpp)
+    int famine_threat();                        // its region's (inline, in the .cpp)
     void unk_00587731();                        // 0x00587731
     void unk_00587D27();                        // 0x00587D27
     int unk_00586C03();                         // 0x00586C03
@@ -126,7 +130,8 @@ public:
     char m_padaf[1];
     int m_plague_ticks;                         // +0xb0
     int m_b4;                                   // +0xb4
-    char m_padb8[0xc4 - 0xb8];
+    int m_b8;                                   // +0xb8
+    char m_padbc[0xc4 - 0xbc];
     float m_c4;                                 // +0xc4
     char m_padc8[0xd4 - 0xc8];
     Settlement* m_settlement;                   // +0xd4: the settlement it's in, or 0

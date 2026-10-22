@@ -125,6 +125,68 @@ Tips
   (`(bool)occupant->m_84`).
 - Many `return 0`s that jump to one shared `xor eax, eax` before `leave` are nested `if`s whose failures fall through
   to a final `return 0;`; a `return 0;` written in place compiles to its own `xor eax, eax; jmp`.
+- VC6 compiles code after a `return` it can't reach. A function whose code runs on past an unconditional `return` (with
+  no jump into the rest) had a `return` in the middle of its source, as `romans_cmd_line.cpp`'s option reader does.
+- A temporary passed by reference is constructed from a value either way, but a functional cast
+  (`f(UniString(text))`) passes the constructor's returned pointer (`push eax`), while an implicit conversion
+  (`f(text)`, for `f(const UniString&)`) reloads its address (`lea eax, [ebp-X]; push eax`).
+- A string made, used once and destroyed, whose address is reloaded for the use (`call ??0; lea ecx, [ebp-X]; call
+  chars`), is a named local in a block of its own (`{ UniString path(text); fn_00F3B090(path.chars()); }`); a
+  temporary's member call uses the constructor's result (`mov ecx, eax`).
+- An inline's by-value argument goes through a temporary (`mov eax, [x]; mov [ebp-T], eax`) when the argument is a
+  local whose address is taken somewhere in the function (passed to `fn_00408CDE(text, &mask)`), and is used directly
+  when it isn't.
+- The temporaries of an inline's body come after the caller's own, even when its call is earlier: `clamp(x, 60.0f,
+  600000.0f)` calling `minimum(maximum(...))` in its body puts `maximum`'s result after all of the caller's
+  temporaries, but writing `minimum(maximum(...))` in the caller puts it among them.
+- A string literal of zeros (`""`) is in `.bss`; `strcmp(s, "") != 0` with `strcmp` intrinsic is `repe cmpsb` with a
+  count of 1 against an address there.
+- `#pragma intrinsic(strcmp, strcpy, strlen)` expands those inline: `strcpy` to `repne scasb; rep movsd; rep movsb`,
+  `strlen` to `repne scasb; not ecx; dec ecx`, and `strcmp(s, "literal") == 0` to `repe cmpsb` with the literal's
+  length plus one.
+- A function whose `__LINE__` comes before its neighbours' but whose code is far after them is an inline defined in
+  the `.cpp` that VC6 didn't expand (it holds a `NEW`): its out-of-line copy goes after the unit's other functions,
+  and its callers keep unused slots for it (`AIGlobalStrategyDirector::make_horde_controller`).
+- A test whose failure jumps straight to the end (`cmp; jne end`) wraps the rest of the function in an `if`; an early
+  `return` compiles to `je next; jmp end` (`PathFinder::unk_004A4C7F`).
+- `bool(!b)` in a condition compiles to `neg; sbb; inc; movzx eax, al; test`, where `!b` is a plain `test`
+  (`fn_00CB52D0`).
+- An `&&` whose right side is an `||` the original keeps as an int temporary is written `a ? (b || c) : false`
+  (`fn_00CB52D0`).
+- A two-int struct zeroed in slots below the `NEW` temporary, then passed by address, is a temporary bound to a
+  `const T&` (`box->unk_018(UIPoint())`), not a named local (`UIMessageHandler::open`).
+- An inline's `int` result stored to an `unsigned int` global goes through a temporary (`mov [ebp-T], eax; mov eax,
+  [ebp-T]`); stored to an `int` it doesn't (`Campaign::end_turn`).
+- A slot that is zeroed before a `for` loop's counter and then never read isn't a local of the source; leave it to
+  the compiler (`Battle::set_speed`).
+- A temporary built before a call's other arguments are pushed (`call ??0UniString; push 0; lea ecx, [ebp-X]`) comes
+  from an implicit conversion (`ScriptReader reader("file", 0)`); a functional cast `UniString("file")` is built in
+  argument order, after the `push 0` (`fn_00403412`).
+- `push ecx; mov [ebp-T], esp; ...; mov ecx, [ebp-T]; call ctor` builds a by-value argument through an inline
+  constructor; a non-inline constructor gets `mov ecx, esp` with no temporary. A target that doesn't return `this` is
+  the method that inline constructor calls (`FactionMask(int faction) { set(faction); }`).
+- VC6 doesn't expand an inline that returns a class by value into a by-value argument, so the out-of-line copy is
+  called (`players.set_factions(setup.playable(), ...)`), though the same inline expands elsewhere.
+- A recursive inline written `if (c) return a; return b;` expands one level, calling its out-of-line copy for the
+  rest; the same inline written with `?:`, or one with `if`/`else` statements, isn't expanded at all. An inline
+  constructor holding an `if`/`else` is expanded, so code the original expands with an `if`/`else` (and a 4-byte
+  temporary slot) can be a temporary of an empty struct (`ReadTemplate(file, lbl_02943828)`).
+- A virtual call through `[ecx]` on a local object (`lea ecx, [ebp-X]; mov eax, [ebp-X]; call [eax+0xc]`) was made
+  in an expanded inline taking the object by reference; called on the object itself, VC6 calls the function directly.
+- `movzx` on a `char` buffer's first byte means the original's buffer is `unsigned char`; a `char` one gets `movsx`.
+- Git Bash rewrites `/Os`-style arguments into paths, so a test compile by hand needs `MSYS_NO_PATHCONV=1 python
+  tools/cl.py ...`, or it silently builds with the default flags.
+- A `bool` passed to a `bool` parameter is pushed as the whole dword (`push dword ptr [ebp-X]`); passed to an `int`
+  parameter it gets a `movzx` first. So a `push` of a byte local's slot means the callee takes a `bool`.
+- An inline constructor taking a struct by value copies it to a slot before the members are constructed; taking it by
+  `const&`, the copy comes in the body, after the vtable store (`SecureInt2` in `include/secure_int.h`).
+- An inline's by-value `int` parameter given a constant is folded into the address (`push 0x1f; pop ecx; shl ecx, 2`).
+  The original's `mov [ebp-T], 0x1f` before an indexed load means the parameter is copied to a local
+  (`int index = id;`) or passed on by reference (`Character::attribute` in `character.cpp`).
+- A slot shift across `[ebp-0x80]` changes instruction lengths (8-bit to 32-bit displacements), so the relocations no
+  longer line up and `tools/bind_symbols.py` pairs nothing. Fix the slots above `-0x80` first, then bind.
+- Some constants are scrambled (`SecureInt`, `SecureInt2`): the code holds the scrambled bits, and `value()` unscrambles
+  them through `0x4247FE` or `0x42477C`. Write the scrambled bits as they are, with the value in a comment.
 
 Locals and the stack
 --------------------

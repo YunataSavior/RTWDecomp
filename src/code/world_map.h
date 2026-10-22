@@ -173,6 +173,8 @@ public:
     void set_port_road(Road* road) { m_port_road = road; }
     int creator_faction() const { return m_creator_faction; }
     bool is_sea() const { return m_sea; }
+    int unk_54() const { return m_54; }
+    bool has_one_neighbour() const { return m_neighbours.size() <= 1; }
     RegionNeighbour* neighbour(int region);  // 0x00483C05: its entry for a neighbouring region, added if missing
     void unk_00483CBF();                     // 0x00483CBF
     void unk_00486079(int tile);             // 0x00486079: adds the tile to m_a4
@@ -202,9 +204,12 @@ public:
     char m_pad2c[0x44 - 0x2c];
     Array<RegionUnk44*> m_44;           // +0x44
     bool m_sea;                         // +0x50: a sea region
-    char m_pad51[0x58 - 0x51];
+    char m_pad51[3];
+    int m_54;                           // +0x54: the same in the regions an army can reach by land, perhaps
+                                        //   (AILongTermGoalDirectorBase::target_score)
     Road* m_port_road;                  // +0x58
-    char m_pad5c[0x68 - 0x5c];
+    char m_sea_targets[0xc];            // +0x5c: an Array<AIRegionTarget>, the regions it can reach by sea (its type isn't
+                                        //   given, so that the implicit constructor stays as it is)
     int m_creator_faction;              // +0x68: the faction descr_regions.txt names for it (21 for none)
     char m_pad6c[0x88 - 0x6c];
     RegionRevoltUnits* m_88;            // +0x88: more units for a revolt there (not identified)

@@ -11,6 +11,9 @@
 #include "strategy_map_pathfinding.h"
 #include "world.h"
 #include "world_map.h"
+#include "fort.h"
+#include "romans_cmd_line.h"
+#include "ui/strat_ui_v2.h"
 
 RoadPoint::RoadPoint(int index)
 {
@@ -31,6 +34,28 @@ inline bool in_bounds(const RoadPoint& point)
 inline unsigned char direction_bit(const RoadPoint& from, const RoadPoint& to)
 {
     return (lbl_010D0A00 + 1)[(to.y - from.y + 1) * 3 + (to.x - from.x)];
+}
+
+// At the start of the player's turn, the interface selects the character, settlement or fort that was waiting, the
+// settlement and fort only while they're still the player's. Not in a hotseat game, or under -ai.
+void PathFinder::unk_004A4C7F()
+{
+    if (lbl_02945090 != 0 || lbl_012CA766)
+        return;
+    if (lbl_018CD818->unk_22c() == lbl_018DC3A4->unk_00B4CFDA()) {
+        if (m_4c) {
+            fn_00C803CE()->select(m_4c);
+            m_4c = 0;
+        } else if (m_50) {
+            if (m_50->unk_9c() == lbl_018CD818->unk_22c())
+                fn_00C803CE()->select(m_50);
+            m_50 = 0;
+        } else if (m_54) {
+            if (m_54->unk_9c() == lbl_018CD818->unk_22c())
+                fn_00C803CE()->select(m_54);
+            m_54 = 0;
+        }
+    }
 }
 
 // Whether the terrain stops a step from one tile into the next (tile): its blocked directions, the sea, or a river

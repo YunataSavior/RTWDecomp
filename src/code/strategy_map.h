@@ -124,7 +124,11 @@ public:
     int m_status;                       // +0x14: of the last search (0 found, 1 bad goal, 2 no path)
     char m_pad18[4];
     int m_1c;                           // +0x1c: set to 3 at the start of each faction's turn
-    char m_pad20[0x6c - 0x20];
+    char m_pad20[0x4c - 0x20];
+    Character* m_4c;                    // +0x4c: the interface selects one of these three at the start of the
+    Settlement* m_50;                   // +0x50:   player's turn (a guess)
+    Fort* m_54;                         // +0x54
+    char m_pad58[0x6c - 0x58];
     PathFinderUnk6C m_6c;               // +0x6c
     char m_pad70[0x84 - 0x70];
     ExtentsManager m_84;                // +0x84

@@ -12,10 +12,7 @@ auto/game/00402967.cpp:
 	.text       start:0x00402967 end:0x00403090
 
 code/romans.cpp:
-	.text       start:0x00403090 end:0x00403412
-
-auto/game/00403412.cpp:
-	.text       start:0x00403412 end:0x00408692
+	.text       start:0x00403090 end:0x00408692
 
 code/romans_cmd_line.cpp:
 	.text       start:0x00408692 end:0x0040EA2A

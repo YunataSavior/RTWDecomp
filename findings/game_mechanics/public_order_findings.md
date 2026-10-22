@@ -190,7 +190,7 @@ At the end of the owner's turn (`Settlement::end_turn`, called from the faction 
 
 Nothing happens when any of these hold:
 
-- The owner is a faction with the `description+0xa7` flag (probably the rebels), or `faction+0x4ec` is non-zero (not identified).
+- The owner is a faction with the `description+0xa7` flag (probably the rebels), or it's a superfaction (`faction+0x4ec` non-zero: the SPQR in the original campaign).
 - The owner is a "small AI" faction (`AICheatManager::not_small_ai()` is false; see [difficulty](difficulty_findings.md)).
 - `settlement+0x84` is non-zero (not identified).
 - The order is **above 65%**.
@@ -230,7 +230,7 @@ revolt if Random::percent() <= chance  // 0..100, so (chance + 1) in 101; a flag
 - It fires `GovernorCityRebels` when there's a governor and then `CityRebels` (`fn_008B4820`, in [`code/faction_event.cpp`](../../src/code/faction_event.cpp)), and records the revolt in the faction's events when they're being recorded.
 - After the handover, it kills 0–10% of the population (rolled), through the same damage function as a riot (below); it kills no characters, and the garrison's roll is 0.
   - Each building is damaged with a 5% chance, losing 10–30 health.
-- When the owner's `unk_004584F1()` holds (`faction+0x4ec` non-zero, or `faction+0x4f0` names a faction; not identified), it adds 1 to `settlement+0xa7e`.
+- When the owner's `unk_004584F1()` holds (it's a superfaction or one of a superfaction's factions: the SPQR or a Roman family), it adds 1 to `settlement+0xa7e`.
 - When the new army has a leader, a message is shown (`0xCB42BB`, NYD), and the leader and the characters with his army come into the settlement (`Settlement::unk_ac`).
   - Each one becomes the governor when he's a named character and there's no governor or his Management is higher than the governor's (`Settlement::better_governor`).
 

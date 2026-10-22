@@ -121,6 +121,23 @@ Project structure
 - `tools/cl.py`: runs VC6's `CL.EXE` with its environment, and writes the header dependencies VC6 cannot.
 - `tools/vc6_locals.py`: predicts the stack order VC6 gives locals from their names (see
   [`MATCHING.md`](MATCHING.md#locals-and-the-stack)).
+- `tools/vc6_names.py`: finds names for one scope's locals that give the original's stack order.
+- `tools/slotmap.py`: maps a function's stack slots in the original to the compiled unit's, to show which locals are
+  out of place.
+- `tools/odiff.py`: prints objdiff's diff of one function, with only the differing rows.
+- `tools/disasm.py`, `tools/peek.py`: disassemble the original at an address (optionally with string and symbol
+  notes), and read its strings, dwords, floats and doubles.
+- `tools/unit_funcs.py`: pairs a compiled unit's functions with the original's in order, and can name the original's
+  after them (the `$E` initializers, constructors and so on).
+- `tools/bind_symbols.py`: names the original's unnamed relocation targets (data, called functions) after the
+  compiled unit's.
+- `tools/rename_symbols.py`: lists a partly decompiled unit's functions that `symbols.txt` doesn't name yet, and names
+  the original's after them by address.
+- `tools/xrefs.py`: lists the original's instructions that refer to an address, or call or jump to it, with each
+  one's function and unit.
+- `tools/report_diff.py`: compares `report.json` with an earlier copy, to show the functions whose match dropped.
+- `tools/objdis.py`: disassembles a function of a compiled object with its relocations named, for code the original
+  has no copy of to diff against (a test compile).
 - `tools/ghidra/ExportSymbols.py`: a Ghidra script writing the program's functions and named data in `symbols.txt`
   format.
 

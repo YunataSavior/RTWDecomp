@@ -48,6 +48,10 @@ public:
     CampaignSettings* settings();       // 0x00B4DC5F: lbl_018DC384's +0x29f8
     bool unk_00452977();                // 0x00452977: +0x238
     bool is_faction_alive(int faction); // 0x0045491C
+    bool has_faction(int faction);      // 0x004548F5: not 21, and its slot holds a faction
+    bool unk_0045428B(int faction);     // 0x0045428B: with a senate, for a faction with a superfaction, the senate's
+                                        //   +0x44's virtual +0x18
+    bool unk_004542E9(int faction);     // 0x004542E9: the same with its virtual +0x14
     bool unk_00454978();                // 0x00454978: lbl_02921AE0 and the battle's +0x46 are set
     int human_faction(int index);       // 0x00457158: the index'th human faction, or 21
     bool is_prologue() const { return m_prologue; }
@@ -80,6 +84,7 @@ public:
     void unk_00457C3C();                                // 0x00457C3C
     void unk_00452A2D();                                // 0x00452A2D
     void unk_00452A62();                                // 0x00452A62
+    void end_turn();                                    // 0x0045334A: the end of a faction's turn
     void unk_0045361A();                                // 0x0045361A: the start of a round
     void unk_00453B9B();                                // 0x00453B9B: the start of a faction's turn
     void unk_0045732F();                                // 0x0045732F
@@ -102,12 +107,16 @@ public:
     char m_pad21c[0x22c - 0x21c];
     Faction* m_22c;                     // +0x22c: the faction whose turn it is (a guess)
     unsigned int m_230;                 // +0x230: its index in m_factions (a guess)
-    char m_pad234[0x24c - 0x234];
+    char m_pad234[0x240 - 0x234];
+    int m_240;                          // +0x240
+    char m_pad244[0x24c - 0x244];
     unsigned int m_turn;                // +0x24c: the turn number (a guess: things are timed by it)
 
     unsigned int turn() { return m_turn; }
 
-    char m_pad250[0x254 - 0x250];
+    bool m_250;                         // +0x250: cleared at the end of a faction's turn
+    bool m_251;                         // +0x251: set at the end of a round
+    char m_pad252[0x254 - 0x252];
     Watcher m_rome_watcher;             // +0x254: m_rome's (a WatchedCharacter's code sets it)
     Settlement* m_rome;                 // +0x258: the settlement named Rome (Settlement::after_load)
     Watcher m_constantinople_watcher;   // +0x25c

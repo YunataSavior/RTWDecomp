@@ -9,6 +9,7 @@ class UniString {
 public:
     UniString();                                // 0x00F34F70
     UniString(const char* text);                // 0x00F338B0
+    UniString(const char* text, unsigned short length);  // 0x00F33D40: its first length characters
     UniString(const UniChar& c);                // 0x00F33F30
     UniString(const UniString& other);          // 0x00F34BE0
     explicit UniString(int capacity);           // 0x00F33380 (a guess)
@@ -27,5 +28,7 @@ public:
 private:
     void* m_data;
 };
+
+UniString uni_format(UniString format, ...);   // 0x00F386C0: a formatted text (a guess)
 
 #endif

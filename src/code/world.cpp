@@ -14,6 +14,7 @@ static char THIS_FILE[] = __FILE__;
 #include "strategy_map.h"
 #include "world.h"
 #include "world_map.h"
+#include "romans_cmd_line.h"
 #include "character.h"
 #include "ai/ai_cheat_manager.h"
 #include "ai/ai_senate_faction.h"
@@ -77,6 +78,13 @@ extern Unk02921A10* lbl_02921A10;
 void fn_005214ED();
 void fn_005F50EF();                     // (when religions are enabled)
 void fn_00CB4D9D(Faction* faction, int);
+
+extern unsigned int (*lbl_012BF5E8)();  // the time in milliseconds (ca_libs' 0x00F3FE70)
+// When the turns of the AI's factions started, in seconds, and the campaign's m_240 then (a guess: timings).
+extern unsigned int lbl_012CF378;
+extern unsigned int lbl_012CF37C;
+extern unsigned int lbl_012CF380;
+extern unsigned int lbl_012CF384;
 }
 
 static inline Unk02921A58* unk_02921A58()
@@ -95,6 +103,53 @@ static inline PathFinder* route_finder()
 {
     PathFinder* finder = lbl_02921A1C;
     return finder;
+}
+
+// The end of the turn of the faction at m_230: the next faction whose unk_178() is under 2 is next, and after the last
+// one the round ends. The timings start again when a human's turn is followed by the AI's, and under -ai at each round.
+void Campaign::end_turn()
+{
+    // NONMATCHING - the times' unsigned conversion and float_to_int_chop's argument have each other's stack slots
+    unsigned int previous = m_230;
+    bool new_round = false;
+    m_250 = false;
+    route_finder()->m_1c = 4;
+    route_finder()->unk_004A434A();
+    Faction* ending = m_factions[m_230];
+    fn_00CB4D9D(ending, 1);
+    ending->unk_004CB8CC();
+    FactionUnkD4* d4 = ending->m_d4;
+    if (d4)
+        d4->unk_0c(ending);
+    do {
+        m_230++;
+        if (m_230 >= m_num_factions) {
+            new_round = true;
+            m_230 = 0;
+        }
+    } while (m_factions[m_230]->unk_178() >= 2);
+    unk_0045732F();
+    if (lbl_012CA766 && new_round) {
+        lbl_012CF378 = float_to_int_chop(lbl_012BF5E8() * 0.001f);
+        lbl_012CF380 = m_240;
+        lbl_012CF37C = lbl_012CF378;
+        lbl_012CF384 = lbl_012CF380;
+    } else if (m_factions[previous]->control() == 1 && m_factions[m_230]->control() == 0) {
+        lbl_012CF37C = lbl_012CF378;
+        lbl_012CF384 = lbl_012CF380;
+    } else if (m_factions[m_230]->control() == 1) {
+        lbl_012CF378 = float_to_int_chop(lbl_012BF5E8() * 0.001f);
+        lbl_012CF380 = m_240;
+        lbl_012CF37C = lbl_012CF378;
+        lbl_012CF384 = lbl_012CF380;
+    }
+    if (new_round) {
+        unk_004537F2();
+        m_251 = true;
+        route_finder()->m_1c = 5;
+    } else {
+        unk_00453B9B();
+    }
 }
 
 // The start of a round: the turn number goes up, every faction's turn update (Faction::unk_004CAC88) and neighbours,

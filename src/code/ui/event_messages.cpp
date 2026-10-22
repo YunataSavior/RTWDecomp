@@ -3,14 +3,9 @@
 #include "../faction.h"
 #include "../romans_utils.h"
 #include "../world.h"
-
-// A message being made. Each << adds a value for its text.
-class EventMessage {
-public:
-    EventMessage& operator<<(void* text);           // 0x00CC4CCA
-    EventMessage& operator<<(const bool& value);    // 0x00CC4D26
-    EventMessage& operator<<(const String& text);   // 0x00CC4D82
-};
+#include "../romans_cmd_line.h"
+#include "event_messages.h"
+#include "strat_ui_v2.h"
 
 // The message types, read from a file (not identified).
 class EventMessageTypes {
@@ -18,11 +13,39 @@ public:
     EventMessage* create(int type, Faction* faction);  // 0x008F3499: null when the type is off or unknown (a guess)
 };
 
+// The battle's interface (codeattle_uishell.cpp; not identified).
+class BattleUIShell {
+public:
+    bool unk_00B54B4C();                // 0x00B54B4C: a battle is being fought (a guess)
+};
+
 extern "C" {
+extern bool lbl_0292A100;               // show_all_messages
+extern BattleUIShell* lbl_018CD81C;
 extern EventMessageTypes lbl_015706A8;
-extern UnkB4CFDA* lbl_018DC3A4;
 extern Campaign* lbl_02921AC0;
 void fn_00CB5210(Faction* faction, EventMessage* message);  // sends it to the faction
+
+// Whether a faction's event messages are made: 1 for the player's, 2 for another human's in a hotseat game, and 0 for
+// none. Under -ai every faction's are made, and show_all_messages makes them all as the player's.
+int fn_00CB52D0(int faction)
+{
+    int mode = 0;
+    if (lbl_0292A100)
+        mode = 1;
+    else if (lbl_012CA766)
+        mode = 2;
+    else if (!lbl_018CD81C->unk_00B54B4C()) {
+        bool own = faction == lbl_018DC3A4->unk_00B4CFFE();
+        bool other_human = fn_00C803D8()
+            ? (bool(!own) && lbl_02945090 != 0) || (own && !fn_00C803CE()->unk_154()) : false;
+        if (other_human)
+            mode = 2;
+        else if (own)
+            mode = 1;
+    }
+    return mode;
+}
 
 // To the faction that lost its eagle (type 0x60).
 void fn_00CB67A8(Faction* faction)

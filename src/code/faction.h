@@ -16,6 +16,7 @@ class SettlementUnk184;
 class FactionSet {
 public:
     int bits() const { return m_bits; }
+    void clear() { m_bits = 0; }
     void add(int faction) { m_bits |= 1 << faction; }
     bool contains(int faction) const { return (m_bits & (1 << faction)) != 0; }
     unsigned int count() const
@@ -41,10 +42,14 @@ class TriggerEvent;
 class FactionUnk88C {
 public:
     void unk_004D2ACF();                // 0x004D2ACF
+    float family_per_region();          // 0x004D2CCA: the family (see the .cpp's births) over 0.75 per region + 1
+    unsigned int child_slots();         // 0x004D3120: 4 less the children of each family man of 16 or more on the
+                                        //   map with fewer than 4
     unsigned int unk_004D3219();        // 0x004D3219: room for adoptions: 4 less the children of each man (alive or
                                         //   not) of 16 or more with m_flag16, or 1 when no record has m_flag17
 
-    char m_pad0[0xc];
+    Faction* m_faction;
+    char m_pad4[8];
 };
 
 // Something of a faction's (not identified).
@@ -72,7 +77,7 @@ public:
     virtual void unk_00();
     virtual void unk_04();
     virtual void unk_08();
-    virtual void unk_0c();
+    virtual void unk_0c(Faction* faction);  // +0x0c: at the end of its turn
     virtual void unk_10();
 };
 
@@ -91,15 +96,20 @@ public:
     int unk_178() const { return m_178; }
     unsigned int num_regions() const { return m_regions.size(); }
     FactionSet neighbours() const { return m_neighbours; }
-    bool no_cash_crisis() const { return m_4ec == 0; }  // (what +0x4ec means is not known)
-    bool has_cash_crisis() const { return !no_cash_crisis(); }
+    bool no_subfactions() const { return m_subfactions == 0; }
+    bool has_subfactions() const { return !no_subfactions(); }  // a superfaction (the SPQR)
+    bool is_superfaction_of(int faction) const { return (m_subfactions & (1 << faction)) != 0; }
+    int superfaction() const { return m_superfaction; }
     bool at_war_with(Faction* other);   // 0x004CFC65
-    bool unk_4f4() const { return m_4f4; }
+    bool unk_4f4() const { return m_4f4; }   // a horde (a guess: its AI gets a horde controller)
+    FactionUnk4F8* unk_4f8() const { return m_4f8; }
+    unsigned int num_settlements() const { return m_settlements.size(); }
     Settlement* capital() const { return m_capital; }
     FactionAI* ai() const { return m_ai; }
     bool unk_a7() const { return m_description->m_a7; }
     bool unk_1d4() const { return m_1d4; }
     int id() const { return m_id; }
+    int control() const { return m_control; }   // 1 for a human
     int culture() const { return m_culture; }
     FactionDescription* description() const { return m_description; }
     bool is_unk_a7() const { return m_description->m_a7; }
@@ -111,7 +121,7 @@ public:
     FactionUnk180* unk_180() const { return m_180; }
 
     bool unk_00445B2B();                // 0x00445B2B: description's +0xa4 set and +0xa7 clear
-    bool unk_004584F1();                // 0x004584F1: has_cash_crisis() or +0x4f0 is a faction
+    bool unk_004584F1();                // 0x004584F1: a superfaction or one of a superfaction's factions
     Character* unk_004C41EF(const char* name);          // 0x004C41EF: its character on the map with that name
     Settlement* unk_004C44F0(CharacterRecord* father);  // 0x004C44F0
     int unk_004C4589(CharacterRecord* record);          // 0x004C4589
@@ -121,8 +131,12 @@ public:
     void unk_004CA5BA(Army* army);                      // 0x004CA5BA
     void unk_004CA308(bool);                            // 0x004CA308: makes or replaces its AI (a guess)
     void unk_004CAC88();                                // 0x004CAC88: its turn update
+    void unk_004CB8CC();                                // 0x004CB8CC: at the end of its turn
     bool unk_004CAEDB();                                // 0x004CAEDB: its part of the end of a round
     void marian_reforms();                              // 0x004D411D
+    bool unk_004D43D5();                                // 0x004D43D5: it can become a horde (a guess: its culture's
+                                                        //   +0xd9 is set, and it has fewer of something than its
+                                                        //   description's +0xb8)
     void unk_004CB391();                                // 0x004CB391: works out m_neighbours
     void unk_004CB56C();                                // 0x004CB56C
     void start_turn();                                  // 0x004CB6EA
@@ -138,6 +152,7 @@ public:
     int stance(int other);                              // 0x004CFBD3: the same, by the other's index
     void* display_name();                               // 0x004C3F6B: its name's text (a guess)
     CharacterRecord* leader() const { return m_leader; }
+    CharacterRecord* heir() const { return m_heir; }
     int average_order();                                // 0x004CEB90: its settlements' public order percentages' average
     void give_first_cohort();                           // 0x004D245E: a "roman legionary first cohort i" or "ii", 50-50, once the +0x2b6 flag is set
     void unk_004D3E6F(int);                             // 0x004D3E6F
@@ -148,6 +163,8 @@ public:
     void unk_004CEA1C(int faction, int, int);           // 0x004CEA1C: the same (a guess)
     void unk_004CEAC8(int faction, int);                // 0x004CEAC8: the same (a guess)
     void unk_004CED7E();                                // 0x004CED7E
+    void unk_004CECB3(int);                             // 0x004CECB3
+    void unk_004CEEEA(int, int);                        // 0x004CEEEA
     void set_capital(Settlement* capital);              // 0x004CF09A: moves the settlements' m_is_capital too
     void unk_004D0905(Array<Region*>* regions);         // 0x004D0905: its settlements' regions (a guess)
     unsigned int unk_004D6EC0(LinkedList<Character*>* characters, int type);  // 0x004D6EC0: adds its characters of a type; how many
@@ -215,8 +232,8 @@ public:
     char m_pad1d5[0x4e4 - 0x1d5];
     bool m_4e4;                         // +0x4e4: set when one of its settlements' figures changes
     char m_pad4e5[0x4ec - 0x4e5];
-    int m_4ec;                          // +0x4ec
-    int m_4f0;                          // +0x4f0 (a faction index, 21 for none)
+    int m_subfactions;                  // +0x4ec: the factions it's the superfaction of, a bit each (0x0045798F)
+    int m_superfaction;                 // +0x4f0: its superfaction, or 21 for none
     bool m_4f4;                         // +0x4f4
     char m_pad4f5[0x4f8 - 0x4f5];
     FactionUnk4F8* m_4f8;               // +0x4f8

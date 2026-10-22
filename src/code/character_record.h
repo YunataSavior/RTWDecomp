@@ -167,6 +167,7 @@ public:
     int attribute_at(int id) { int index = id; return attribute_value(index); }
     CharacterRecord*& child(int index) { return m_children[index]; }
     bool is_leader() const { return m_leader; }
+    bool is_heir() const { return m_flag4; }    // (a guess: Faction::m_heir's is cleared with it)
 
     static int s_next_id;
 

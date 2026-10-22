@@ -11,6 +11,7 @@
 #include "../port.h"
 #include "../settlement.h"
 #include "core_linked_list.h"
+#include "secure_int.h"
 
 class SenateReward;
 class Character;
@@ -217,40 +218,6 @@ struct SenateFamily {
     unsigned int m_gift_turn;           // +0x18: when the senate last gave it a unit
     bool m_senate_rising;               // +0x1c: its senate standing went up at its last change
     bool m_popularity_rising;           // +0x1d: its popularity went up at its last change
-};
-
-// An int kept scrambled in memory (not identified; perhaps against memory editors).
-class ScrambledInt {
-public:
-    ScrambledInt() { m_scrambled = 0; }
-    ScrambledInt(unsigned int scrambled) : m_0(0), m_scrambled(scrambled) {}
-    ScrambledInt(int value, int) { m_scrambled = scramble(value); }
-    int value();                        // 0x004247FE
-    unsigned int scramble(int value);   // 0x004249C0
-
-    int m_0;
-    unsigned int m_scrambled;           // +0x04
-};
-
-// A scrambled constant.
-struct Scrambled {
-    Scrambled(unsigned int bits) : m_bits(bits) {}
-
-    unsigned int m_bits;
-};
-
-// A ScrambledInt with a virtual for its arithmetic (vtable 0x00FE4730; not identified).
-class SecureInt {
-public:
-    SecureInt(Scrambled value) { m_value.m_scrambled = value.m_bits; }
-    SecureInt(int value);               // 0x00533DEF
-    // The operation that the key picks (0xa8b35b36 adds, 0xa8b35b37 subtracts), on a and b.
-    virtual ScrambledInt apply(const unsigned int& key, ScrambledInt& a, ScrambledInt& b);    // 0x004243D4
-    SecureInt& operator+=(SecureInt& other);    // 0x00533E38
-    SecureInt operator-(SecureInt& other);      // 0x00533EA0
-    int value() { return m_value.value(); }
-
-    ScrambledInt m_value;               // +0x04
 };
 
 // A man the senate could appoint to an office, and his chance.

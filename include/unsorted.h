@@ -694,9 +694,9 @@ inline int float_to_int(float value)
 // The same, rounding toward zero (the same header's).
 inline int float_to_int_chop(float value)
 {
+    int result;
     int control;
     int chop;
-    int result;
     __asm {
         push eax
         fld value
@@ -760,7 +760,9 @@ extern Unk02921A38* lbl_02921A38;
 class UnkB4CFDA {
 public:
     Faction* unk_00B4CFDA();            // 0x00B4CFDA: the player's faction (a guess)
+    int unk_00B4CFFE();                 // 0x00B4CFFE: its index (code\local_player.cpp)
 };
+extern UnkB4CFDA* lbl_018DC3A4;         // the local player (code\local_player.cpp)
 
 inline Unk02921A38* unk_02921A38()
 {
@@ -797,7 +799,7 @@ void fn_008B529F(Settlement* settlement, Faction* faction);  // a message, when 
 void fn_008B4820(Settlement* settlement, Faction* faction, Character* governor);  // fires CityRebels and GovernorCityRebels
 void fn_00CB42BB(const SettlementDamage* damage, Faction* faction);  // the revolt's message (a guess)
 void fn_00CB4122(const SettlementDamage* damage);    // the riot's message (a guess)
-void fn_008FF5CB(Random* random, int faction, int, int* first_name, int* surname);  // picks a name
+void fn_008FF5CB(Random* random, int faction, bool male, int* first_name, int* surname);  // picks a name
 const char* fn_008FF4A3(int kind, int faction, int id);  // a saved name's key
 Character* fn_008E1FA5(String* type, Faction* faction, int name_faction, int age, int first_name, int surname);  // a new general
 Character* fn_008E212F(int type, Faction* faction, int age, const char* first_name, const char* surname, int name_faction);  // a new agent

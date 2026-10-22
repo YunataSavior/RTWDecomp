@@ -151,6 +151,7 @@ extern SettlementLevel lbl_012DAFC8[];
 
 class Settlement : public SettlementBase {
 public:
+    bool is_capital() const { return m_is_capital; }
     virtual FogOfWarEntry* unk_74();                        // +0x74: 0x005B1440
     virtual int region_id();                                // +0x8c: 0x005BE77E
     virtual Faction* unk_9c();                              // +0x9c: the same function as owner()

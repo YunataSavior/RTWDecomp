@@ -39,6 +39,8 @@ public:
     bool m_custom_battle_availability;  // +0xa4
     char m_pada5[2];
     bool m_a7;                          // +0xa7
+    char m_pada8[0xdc - 0xa8];
+    int m_dc;                           // +0xdc: lets the AI keep looking for wars with up to 9 targets
 };
 
 extern "C" {

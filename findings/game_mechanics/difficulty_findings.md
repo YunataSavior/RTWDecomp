@@ -134,12 +134,14 @@ if bonus != 0:
 | Case | Result |
 |---|---|
 | Human | 0 |
-| `has_cash_crisis()` (`faction+0x4ec != 0`) | base + 3000, plus the deficit if the treasury is negative |
+| `has_subfactions()` (`faction+0x4ec != 0`: a superfaction, the SPQR in the original campaign) | base + 3000, plus the deficit if the treasury is negative |
 | The `small_ai` flag | base + 1000 (**also on Easy**) |
 | Rebels | 0 |
 | Otherwise | base × scale, where scale is 1.0 for ≤5 regions, then 0.9 / 0.8 / 0.7 / 0.6 for 6–9, and 0.5 for ≥10 |
 
-So a rebel faction in a cash crisis, or flagged `small_ai`, would get the bonus too.
+So a rebel faction flagged `small_ai` would get the bonus too.
+
+`faction+0x4ec` is the set of factions it's the superfaction of, a bit each, and `faction+0x4f0` is a faction's superfaction (21 for none): the campaign's setup (`0x45798F`) fills both from `descr_strat.txt`'s superfactions.
 
 The normal case per turn, before the random part:
 
@@ -167,15 +169,24 @@ The full spawn system is in [Brigand and pirate spawning](#brigand-and-pirate-sp
 
 ### AI war targeting and aggression
 
-The war-target code is around `0x515070`, `0x51578F` and `0x516D1D` (NYD). The accessors' logic comes from the matching source.
+Each faction's AI keeps a goal towards every other faction, in its long-term goal director ([`ai_long_term_goal_director.cpp`](../../src/code/ai/ai_long_term_goal_director.cpp)). Three of its functions use the accessors below:
+
+- `update_stances` (`0x515070`) gives each faction a stance from 0 to 5 and a priority from 300 to 900.
+  - It compares their armies' strength near each other's regions, the AI's threat values and their settlements.
+- `choose_war_targets` (`0x51578F`) gives each neighbour a war goal from 0 to 4 and a priority from 100 to 900.
+  - It then decides whether the faction is free to start a war: few targets, a threat value over 1,000, and not the rebels or a superfaction.
+  - A faction under another one (bit 3 of their relation's flags, perhaps a protectorate) does none of this.
+- `choose_sea_target` (`0x516ACE`) picks one region to invade by sea, the best `target_score` (`0x516D1D`) among those that its largest block of regions can reach by sea.
+  - The score is 100, plus up to 1,200 for nearness, 500 for a region cut off from the rest of its owner's (400 for a rebel one) and the region's value from the AI analyser, less 400 for a capital.
+  - A region it can reach by land, or one a fellow Roman family holds or borders, can't be a target.
 
 | Accessor (caller) | Difficulty | Effect |
 |---|---|---|
-| `target_player_bonus` (`0x516F8D`) | **V.Hard only** | The AI's target score for the player gets **+5000**, unless that AI is allied with the player (NYD) |
-| `punish_long_war` (`0x516104`) | 20 / 10 / 4 / 2 turns | Once the player has been at war with anyone for more than N **consecutive** turns, the player's strongest neighbour gets **+800** priority on the player (NYD) |
+| `target_player_bonus` (`0x516F8D`) | **V.Hard only** | A **player-owned** region's score as a **sea-invasion** target gets **+5000**, unless that AI is allied with the player |
+| `punish_long_war` (`0x516104`) | 20 / 10 / 4 / 2 turns | Once the player has been at war with anyone for more than N **consecutive** turns, the player's strongest neighbour gets **+800** war priority against the player, or a new war goal at 900 if it had none |
 | `player_target_value` (`0x50C3BE`) | ×1.0 / 1.8 / 2.2 / 3.0 | The value of a **player-owned** settlement as an invasion target (base value from `0x4E4C70`: settlement level 5 / 30 / 60 / 80 / 100 / 120, plus population and other terms; NYD) |
 | `may_target` (`0x5158AC`) | Medium and up | An AI not allied with the player won't target a neighbour that's at war with and bordering the player, so in effect the player's enemies are left alone |
-| `flag_war` (`0x51530C`) | Medium and up | When an AI is at war with a faction that's fighting the player, it sets a flag on that war (meaning not decoded; NYD) |
+| `flag_war` (`0x51530C`) | Medium and up | When an AI is at war with a faction that's fighting the player, it sets a flag on that war (`AIFactionGoal+0x11`; what reads it isn't decompiled, NYD) |
 | `player_objective_bonus` (`0x4EA38A`) | Hard and up | An AI objective whose target belongs to the player gets an extra 400 (via `0x4EDE03`); exact meaning not confirmed (NYD) |
 
 - The consecutive-turns counter (`s_player_war_turns`) is kept by `update_war_turns()`, reset whenever the player is at peace, and saved with the game.
@@ -183,7 +194,7 @@ The war-target code is around `0x515070`, `0x51578F` and `0x516D1D` (NYD). The a
   - An AI can't target the player's strongest neighbour unless it's allied with the player.
   - The player's strongest neighbour can only target human factions.
   - A faction at war with and bordering the player can't be targeted while its value in the table at `0x12D0F78` is 0 or less.
-  - Between AI factions, a target that's in a cash crisis (or has a faction at `+0x4f0`, not identified) is left alone by attackers with fewer than 7 regions, and by all of them if the target is `small_ai`.
+  - Between AI factions, a target that's a superfaction or one of a superfaction's factions (the SPQR and the Roman families) is left alone by attackers with fewer than 7 regions, and by all of them if the target is `small_ai`.
   - The rebels can always be targeted.
 
 ### Other direct uses of the difficulty value (NYD)

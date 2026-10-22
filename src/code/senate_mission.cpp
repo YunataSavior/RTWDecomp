@@ -152,8 +152,6 @@ SenateMissionImpl* fn_0054B307(SaveStream& stream);
 SenateMissionImpl* fn_00551618(SaveStream& stream);
 }
 
-UniString uni_format(UniString format, ...);   // 0x00F386C0: a formatted text (a guess)
-
 inline const UniString& senate_text(int text)
 {
     return *(const UniString*)fn_00D93A0C(text);

@@ -174,7 +174,7 @@ void Settlement::check_riots(BuildingEffects* effects)
     bool rioted = m_rioted;
     m_rioted = false;
     int owner = m_owner->id();
-    if (m_owner->is_unk_a7() || !m_owner->no_cash_crisis())
+    if (m_owner->is_unk_a7() || !m_owner->no_subfactions())
         return;
     if (!AICheatManager::not_small_ai(owner))
         return;
