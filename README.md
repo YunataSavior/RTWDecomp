@@ -125,8 +125,8 @@ Project structure
 - `tools/slotmap.py`: maps a function's stack slots in the original to the compiled unit's, to show which locals are
   out of place.
 - `tools/odiff.py`: prints objdiff's diff of one function, with only the differing rows.
-- `tools/disasm.py`, `tools/peek.py`: disassemble the original at an address (optionally with string and symbol
-  notes), and read its strings, dwords, floats and doubles.
+- `tools/disasm.py`, `tools/peek.py`: disassemble the original at one or more addresses (a function's whole length
+  from `symbols.txt` by default, optionally with string and symbol notes), and read its strings, dwords, floats and doubles.
 - `tools/unit_funcs.py`: pairs a compiled unit's functions with the original's in order, and can name the original's
   after them (the `$E` initializers, constructors and so on).
 - `tools/bind_symbols.py`: names the original's unnamed relocation targets (data, called functions) after the
@@ -136,6 +136,14 @@ Project structure
 - `tools/xrefs.py`: lists the original's instructions that refer to an address, or call or jump to it, with each
   one's function and unit.
 - `tools/report_diff.py`: compares `report.json` with an earlier copy, to show the functions whose match dropped.
+- `tools/nyd.py`: lists the findings docs' NYD claims with the function, unit and match of each address they name, or
+  (`--todo`) a work list of those functions, smallest first.
+- `tools/use_decl.py`: points the source's uses of a placeholder `fn_` declaration at its decompiled function, and
+  adds the header's `#include`.
+- `tools/trycc.py`: test-compiles a scratch source with the game's flags and compares its functions with the
+  original's row by row (relocations and branch targets compared as equal), to try variants without a full build.
+- `tools/vtables.py`: lists the original's vtables holding a range's functions (a unit's, say), with the functions
+  that set each one, to tell its classes apart.
 - `tools/objdis.py`: disassembles a function of a compiled object with its relocations named, for code the original
   has no copy of to diff against (a test compile).
 - `tools/ghidra/ExportSymbols.py`: a Ghidra script writing the program's functions and named data in `symbols.txt`

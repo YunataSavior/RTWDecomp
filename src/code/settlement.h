@@ -207,6 +207,7 @@ public:
     int entertainment();                                    // 0x005BC859
     void unk_005BCA50(BuildingEffects* effects);            // 0x005BCA50: works out its building effects
     bool unk_005BA3F0(TilePosition* position);              // 0x005BA3F0
+    bool unk_005BA392();                // 0x005BA392: it has room for a unit, or isn't besieged and has a free tile beside it
     bool unk_005BA4CA(TilePosition* position, int, int, int);  // 0x005BA4CA: a free tile beside it (a guess)
     int unk_005BB0ED(Unit* unit, UnitUnk4D469D& experience);  // 0x005BB0ED
     void unk_005B9837(Unit* unit);      // 0x005B9837: updates its mechanics (SettlementDD8::update) after a unit leaves

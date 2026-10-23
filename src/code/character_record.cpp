@@ -61,9 +61,9 @@ extern Battle* lbl_029219E4;
 }
 
 // Messages to the triggers about a character's family (not identified).
-class UnkMessage8A4724 : public UnkMessage {
+class OfferedForMarriageEvent : public UnkMessage {
 public:
-    UnkMessage8A4724(CharacterRecord* record);  // 0x008A4724
+    OfferedForMarriageEvent(CharacterRecord* record);  // 0x008A4724
 };
 
 class UnkMessage8A47F3 : public UnkMessage {
@@ -161,7 +161,7 @@ CharacterRecord::CharacterRecord(Faction* faction)
     m_male = true;
     m_flag2 = false;
     m_leader = false;
-    m_flag4 = false;
+    m_heir = false;
     m_flag5 = false;
     m_age = 0;
     m_flags13 = 0;
@@ -205,7 +205,7 @@ CharacterRecord::CharacterRecord(const CharacterRecord& other) : m_religious_bel
     m_male = other.m_male;
     m_flag2 = other.m_flag2;
     m_leader = other.m_leader;
-    m_flag4 = other.m_flag4;
+    m_heir = other.m_heir;
     m_flag5 = other.m_flag5;
     m_age = other.m_age;
     m_flags13 = other.m_flags13;
@@ -836,21 +836,23 @@ bool CharacterRecord::unk_005919E3()
     return false;
 }
 
-CharacterRecord* CharacterRecord::create_son()
+// A suitor for this daughter: a new family-tree man of her age -10 to +30 (16 to 75); OfferedForMarriage fires.
+CharacterRecord* CharacterRecord::create_suitor()
 {
     int age = m_age + lbl_018CD818->m_random.range(-10, 30);
     age = clamp_int(age, 16, 75);
     int given_name = 0;
     int last_name = 0;
     fn_008FF5CB(&lbl_018CD818->m_random, m_faction->id(), 1, &given_name, &last_name);
-    CharacterRecord* son = fn_008E2CE8(m_faction, given_name, last_name, age, 1, 1, 0);
-    son->m_flag16 = true;
-    fn_008E2F67(son, 5, m_faction->id(), m_faction->id());
-    fire_triggers(UnkMessage8A4724(son));
-    return son;
+    CharacterRecord* husband = fn_008E2CE8(m_faction, given_name, last_name, age, 1, 1, 0);
+    husband->m_flag16 = true;
+    fn_008E2F67(husband, 5, m_faction->id(), m_faction->id());
+    fire_triggers(OfferedForMarriageEvent(husband));
+    return husband;
 }
 
-CharacterRecord* CharacterRecord::create_unk_00591C43()
+// A man for this father to adopt: a new family-tree man of 20 to 30; OfferedForAdoption fires.
+CharacterRecord* CharacterRecord::create_adoptee()
 {
     int age = lbl_018CD818->m_random.range(20, 30);
     int given_name = 0;
@@ -859,7 +861,7 @@ CharacterRecord* CharacterRecord::create_unk_00591C43()
     CharacterRecord* member = fn_008E2CE8(m_faction, given_name, last_name, age, 1, 1, 0);
     member->m_flag16 = true;
     fn_008E2F67(member, 5, m_faction->id(), m_faction->id());
-    fire_triggers(UnkMessage8A4586(member));
+    fire_triggers(OfferedForAdoptionEvent(member));
     return member;
 }
 
@@ -1183,7 +1185,7 @@ bool CharacterRecord::save(SaveStream& stream)
     bits += m_male * 2;
     bits += m_flag2 * 4;
     bits += m_leader * 8;
-    bits += m_flag4 << 4;
+    bits += m_heir << 4;
     bits += m_flag5 << 5;
     bits += m_age << 6;
     bits += m_flags13 << 13;
@@ -1245,7 +1247,7 @@ bool CharacterRecord::load(SaveStream& stream)
     m_male = bits >> 1;
     m_flag2 = bits >> 2;
     m_leader = bits >> 3;
-    m_flag4 = bits >> 4;
+    m_heir = bits >> 4;
     m_flag5 = bits >> 5;
     m_age = bits >> 6;
     m_flags13 = bits >> 13;

@@ -18,6 +18,7 @@ static char THIS_FILE[] = __FILE__;
 #include "character.h"
 #include "character_record.h"
 #include "senate_mission.h"
+#include "localisation/string_table_manager.h"
 
 enum {
     CHARACTER_SPY = 0,
@@ -87,7 +88,6 @@ public:
 };
 
 extern "C" {
-void* fn_00D93A0C(int text);            // a senate text by its number (a guess)
 int fn_008F649F();                      // the index of the faction "romans_senate"
 SenateMoneyTexts* fn_00D926DB();
 void fn_00CB639F(Faction* faction, SenateMissionInfo* info, int);       // a mission's message
@@ -154,7 +154,7 @@ SenateMissionImpl* fn_00551618(SaveStream& stream);
 
 inline const UniString& senate_text(int text)
 {
-    return *(const UniString*)fn_00D93A0C(text);
+    return *strat_text(text);
 }
 
 // descr_senate.txt's fines (each divides the faction's net income) and cash rewards (in denari).
@@ -206,7 +206,7 @@ template <int INDEX, int TITLE>
 class Payback : public SenateReward {
 public:
     Payback(const char* name) : SenateReward(name) {}
-    virtual void* title() { return fn_00D93A0C(TITLE); }
+    virtual void* title() { return (void*)strat_text(TITLE); }
     virtual SaveStream& save(SaveStream& stream)
     {
         if (!stream.unk_00F3D990())
@@ -583,7 +583,7 @@ void SenateMissionBase::unk_00()
     void* target = target_name();
     void* mission_text = text();
     int duration = m_duration;
-    void* payback_kind = fn_00D93A0C(m_reward->is_benefit() ? 0xf2 : 0xdf);
+    void* payback_kind = (void*)strat_text(m_reward->is_benefit() ? 0xf2 : 0xdf);
     void* payback = m_reward->title();
     SenateMissionInfo info(mission_title, 0x3b, target, mission_text, duration, payback_kind, payback, 0);
     fn_00CB639F(m_faction, &info, unk_0c());
@@ -724,7 +724,7 @@ void SenateMissionOffer::unk_00()
 {
     // NONMATCHING - the original gets payback() twice before the rest, and evaluates the fields in another order
     SenateMissionInfo info(title(), 0x3b, target_name(), text(), duration(),
-                           fn_00D93A0C(payback()->is_benefit() ? 0xf2 : 0xdf), payback()->title(),
+                           (void*)strat_text(payback()->is_benefit() ? 0xf2 : 0xdf), payback()->title(),
                            (SenateMissionAnswer*)this);
     fn_00CB639F(faction(), &info, unk_0c());
 }
@@ -968,7 +968,7 @@ UniString* CensorFamilyPenalty::punish(AISenateFaction* senate, Faction* faction
         while (victim->record()->m_leader);
         victim->kill();
         victim->unk_00580C1E()->m_898.set_14(fn_008F649F());
-        text = uni_format(UniString("%S (%S)"), *(UniString*)fn_00D93A0C(0xe4), victim->m_record->m_name);
+        text = uni_format(UniString("%S (%S)"), *strat_text(0xe4), victim->m_record->m_name);
         return &text;
     }
     return 0;
@@ -989,7 +989,7 @@ UniString* CensorFactionPenalty::punish(AISenateFaction* senate, Faction* factio
         Character* victim = agents[lbl_018CD818->m_random.up_to(agents.size() - 1)];
         victim->kill();
         victim->unk_00580C1E()->m_898.set_14(fn_008F649F());
-        text = uni_format(UniString("%S %S"), *(UniString*)fn_00D93A0C(0xe8), victim->m_record->m_name);
+        text = uni_format(UniString("%S %S"), *strat_text(0xe8), victim->m_record->m_name);
         return &text;
     }
     return 0;
@@ -1069,7 +1069,7 @@ UniString* MajorExoticUnitReward::reward(AISenateFaction* senate, Faction* facti
     if (!unit.m_unit)
         return &(text = senate_text(0xfa));
     *place = *unit.m_place->position();
-    return &(text = *(UniString*)fn_00D93A0C(0xfb) + *unit.m_unit->unk_50()->m_name);
+    return &(text = *strat_text(0xfb) + *unit.m_unit->unk_50()->m_name);
 }
 
 UniString* TwoMinorExoticUnitsReward::reward(AISenateFaction* senate, Faction* faction, UniString& text,
@@ -1080,7 +1080,7 @@ UniString* TwoMinorExoticUnitsReward::reward(AISenateFaction* senate, Faction* f
     if (!unit.m_unit)
         return &(text = senate_text(0xfa));
     *place = *unit.m_place->position();
-    return &(text = *(UniString*)fn_00D93A0C(0x46f) + *unit.m_unit->unk_50()->m_name);
+    return &(text = *strat_text(0x46f) + *unit.m_unit->unk_50()->m_name);
 }
 
 UniString* TwoBestBuildableUnitsReward::reward(AISenateFaction* senate, Faction* faction, UniString& text,
@@ -1091,7 +1091,7 @@ UniString* TwoBestBuildableUnitsReward::reward(AISenateFaction* senate, Faction*
     if (!unit.m_unit)
         return &(text = senate_text(0xfa));
     *place = *unit.m_place->position();
-    return &(text = *(UniString*)fn_00D93A0C(0x46f) + *unit.m_unit->unk_50()->m_name);
+    return &(text = *strat_text(0x46f) + *unit.m_unit->unk_50()->m_name);
 }
 
 UniString* OneBestBuildableUnitReward::reward(AISenateFaction* senate, Faction* faction, UniString& text,
@@ -1102,7 +1102,7 @@ UniString* OneBestBuildableUnitReward::reward(AISenateFaction* senate, Faction* 
     if (!unit.m_unit)
         return &(text = senate_text(0xfa));
     *place = *unit.m_place->position();
-    return &(text = *(UniString*)fn_00D93A0C(0xfb) + *unit.m_unit->unk_50()->m_name);
+    return &(text = *strat_text(0xfb) + *unit.m_unit->unk_50()->m_name);
 }
 
 UniString* OneMinorExoticUnitReward::reward(AISenateFaction* senate, Faction* faction, UniString& text,
@@ -1113,7 +1113,7 @@ UniString* OneMinorExoticUnitReward::reward(AISenateFaction* senate, Faction* fa
     if (!unit.m_unit)
         return &(text = senate_text(0xfa));
     *place = *unit.m_place->position();
-    return &(text = *(UniString*)fn_00D93A0C(0xfb) + *unit.m_unit->unk_50()->m_name);
+    return &(text = *strat_text(0xfb) + *unit.m_unit->unk_50()->m_name);
 }
 
 UniString* OneBuildableUnitReward::reward(AISenateFaction* senate, Faction* faction, UniString& text,
@@ -1124,7 +1124,7 @@ UniString* OneBuildableUnitReward::reward(AISenateFaction* senate, Faction* fact
     if (!unit.m_unit)
         return &(text = senate_text(0xfa));
     *place = *unit.m_place->position();
-    return &(text = *(UniString*)fn_00D93A0C(0xfb) + *unit.m_unit->unk_50()->m_name);
+    return &(text = *strat_text(0xfb) + *unit.m_unit->unk_50()->m_name);
 }
 
 UniString* MajorCashReward::reward(AISenateFaction* senate, Faction* faction, UniString& text, RewardPlace& place)
@@ -1176,7 +1176,7 @@ UniString* OneTriariiReward::reward(AISenateFaction* senate, Faction* faction, U
     if (!unit.m_unit)
         return &(text = senate_text(0xfa));
     *place = *unit.m_place->position();
-    return &(text = *(UniString*)fn_00D93A0C(0xfb) + *unit.m_unit->unk_50()->m_name);
+    return &(text = *strat_text(0xfb) + *unit.m_unit->unk_50()->m_name);
 }
 
 UniString* TwoTriariiReward::reward(AISenateFaction* senate, Faction* faction, UniString& text, RewardPlace& place)
@@ -1186,15 +1186,15 @@ UniString* TwoTriariiReward::reward(AISenateFaction* senate, Faction* faction, U
     if (!unit.m_unit)
         return &(text = senate_text(0xfa));
     *place = *unit.m_place->position();
-    return &(text = *(UniString*)fn_00D93A0C(0xfb) + *unit.m_unit->unk_50()->m_name);
+    return &(text = *strat_text(0xfb) + *unit.m_unit->unk_50()->m_name);
 }
 
 void* SenateMissionOffer::accept_text()
 {
-    return fn_00D93A0C(0x223);
+    return (void*)strat_text(0x223);
 }
 
 void* SenateMissionOffer::decline_text()
 {
-    return fn_00D93A0C(0x405);
+    return (void*)strat_text(0x405);
 }

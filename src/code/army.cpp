@@ -130,3 +130,29 @@ void Army::remove_unit(Unit* unit)
 #line 2810
     CA_DELETE(unit);
 }
+
+// FACTION's spying level rises to LEVEL on each of its units (through the unit's character, for one that has one), its
+// leader, the other characters with it and, for a fleet, the units of the army it carries; its own level is set to
+// LEVEL, even when that's lower.
+void Army::raise_spying_level(int faction, int level)
+{
+    unsigned int i;
+    for (i = 0; i < m_units.size(); i++) {
+        if (m_units[i]->unk_278())
+            m_units[i]->unk_278()->raise_spying_level(faction, level);
+        else
+            m_units[i]->raise(faction, level);
+    }
+    if (leader())
+        leader()->raise(faction, level);
+    for (i = 0; i < m_characters.size(); i++)
+        m_characters[i]->raise(faction, level);
+    if (m_ac) {
+        Army* carried = this->carried();
+        if (carried) {
+            for (i = 0; i < carried->m_units.size(); i++)
+                carried->unit_at(i)->raise(faction, level);
+        }
+    }
+    m_level[faction] = level;
+}

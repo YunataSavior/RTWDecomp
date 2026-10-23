@@ -112,7 +112,7 @@ PathNode* AStar::pop()
 // Tries each step out of a node's tile that the mode allows.
 void AStar::expand(PathNode* node, const RoadPoint& goal)
 {
-    // NONMATCHING - evaluation order and inline temporaries differ, and the cast to CharacterKind adds a null check
+    // NONMATCHING - evaluation order and inline temporaries differ, and the cast to CharacterSpyingInfo adds a null check
     RoadPoint next;
     const RoadPoint& point = node->m_point;
     unsigned int width = lbl_018CD80C->width();
@@ -139,7 +139,7 @@ void AStar::expand(PathNode* node, const RoadPoint& goal)
                 int region = lbl_018CD80C->m_tiles[next.x + next.y * lbl_018CD80C->m_width].m_region;
                 Faction* owner = lbl_018CD80C->m_regions[region].m_owner;
                 if (lbl_029219E0->character()->unk_0058B8D9(owner)
-                    || ((CharacterKind*)lbl_029219E0->character())->faction()->at_war_with(owner)) {
+                    || ((CharacterSpyingInfo*)lbl_029219E0->character())->faction()->at_war_with(owner)) {
                     if (lbl_029219E0->can_move(point, next, goal) == 1)
                         relax(node, next, goal);
                 }

@@ -29,6 +29,7 @@ static char THIS_FILE[] = __FILE__;
 #include "../landmark.h"
 #include "ai_senate_faction.h"
 #include "../senate_mission.h"
+#include "../localisation/string_table_manager.h"
 
 enum {
     FACTION_JULII = 0,
@@ -51,8 +52,7 @@ extern "C" {
 extern unsigned int lbl_010B5070;           // the popularity_land_percentage option (27)
 extern LandmarkManager lbl_018BF5A8;        // the campaign's landmarks
 void fn_00CBAE4F(Faction* faction);         // when a family's popularity goes above 66 (an event, 0x82)
-void* fn_00D93A0C(int advice);              // the advisor's thread of this number (a guess)
-void fn_00CBB282(void* advice, bool senate, bool rising);  // the advisor speaks of a standing's change (a guess)
+void fn_00CBB282(const UniString* advice, bool senate, bool rising);  // the advisor speaks of a standing's change (a guess)
 Character* fn_008E24E2();                   // a new named character for the senate, at its capital; 0 without one
 void fn_00CBB01C(LinkedList<SenateOffice*>* offices);  // tells the player of the offices the family's men got
 }
@@ -425,9 +425,9 @@ void SenateOffice::appoint(CharacterRecord* record)
     for (unsigned int family = 0; family <= FACTION_SENATE; family++) {
         if (family != (unsigned int)record->m_faction->m_id) {
             if (record->m_character->army() != 0)
-                record->m_character->army()->unk_0071EBF6(family, 3);
+                record->m_character->army()->raise_spying_level(family, 3);
             else
-                record->m_character->unk_00580620(family, 3);
+                record->m_character->raise_spying_level(family, 3);
         }
     }
     Date& today = lbl_018CD818->m_date;
@@ -804,43 +804,43 @@ void AISenateFaction::update_families()
     unsigned int turn = lbl_018CD818->m_turn;
     if (senate_rising && senate == 9 && turn - m_advice_turn[0] > 10) {
         m_advice_turn[0] = turn;
-        fn_00CBB282(fn_00D93A0C(0x4d0), true, true);
+        fn_00CBB282(strat_text(0x4d0), true, true);
     }
     if (senate_rising && senate == 6 && turn - m_advice_turn[1] > 10) {
         m_advice_turn[1] = turn;
-        fn_00CBB282(fn_00D93A0C(0x4d1), true, true);
+        fn_00CBB282(strat_text(0x4d1), true, true);
     }
     if (senate_rising && senate == 3 && turn - m_advice_turn[2] > 10) {
         m_advice_turn[2] = turn;
-        fn_00CBB282(fn_00D93A0C(0x4d2), true, true);
+        fn_00CBB282(strat_text(0x4d2), true, true);
     }
     if (!senate_rising && senate == 4 && turn - m_advice_turn[3] > 10) {
         m_advice_turn[3] = turn;
-        fn_00CBB282(fn_00D93A0C(0x4d3), true, false);
+        fn_00CBB282(strat_text(0x4d3), true, false);
     }
     if (!senate_rising && senate == 1 && turn - m_advice_turn[4] > 10) {
         m_advice_turn[4] = turn;
-        fn_00CBB282(fn_00D93A0C(0x4d4), true, false);
+        fn_00CBB282(strat_text(0x4d4), true, false);
     }
     if (popularity_rising && popularity == 9 && turn - m_advice_turn[5] > 10) {
         m_advice_turn[5] = turn;
-        fn_00CBB282(fn_00D93A0C(0x4d5), false, true);
+        fn_00CBB282(strat_text(0x4d5), false, true);
     }
     if (popularity_rising && popularity == 6 && turn - m_advice_turn[6] > 10) {
         m_advice_turn[6] = turn;
-        fn_00CBB282(fn_00D93A0C(0x4d6), false, true);
+        fn_00CBB282(strat_text(0x4d6), false, true);
     }
     if (popularity_rising && popularity == 3 && turn - m_advice_turn[7] > 10) {
         m_advice_turn[7] = turn;
-        fn_00CBB282(fn_00D93A0C(0x4d7), false, true);
+        fn_00CBB282(strat_text(0x4d7), false, true);
     }
     if (!popularity_rising && popularity == 4 && turn - m_advice_turn[8] > 10) {
         m_advice_turn[8] = turn;
-        fn_00CBB282(fn_00D93A0C(0x4d8), false, false);
+        fn_00CBB282(strat_text(0x4d8), false, false);
     }
     if (!popularity_rising && popularity == 1 && turn - m_advice_turn[9] > 10) {
         m_advice_turn[9] = turn;
-        fn_00CBB282(fn_00D93A0C(0x4d9), false, false);
+        fn_00CBB282(strat_text(0x4d9), false, false);
     }
 }
 

@@ -16,9 +16,9 @@ public:
 };
 
 // The OfferedForAdoption event.
-class UnkMessage8A4586 : public UnkMessage {
+class OfferedForAdoptionEvent : public UnkMessage {
 public:
-    UnkMessage8A4586(CharacterRecord* record);  // 0x008A4586
+    OfferedForAdoptionEvent(CharacterRecord* record);  // 0x008A4586
 };
 
 // The senate's penalties' events, for the faction leader.
@@ -83,6 +83,56 @@ public:
 class BecomesFactionLeaderEvent : public TriggerEvent {
 public:
     BecomesFactionLeaderEvent(CharacterRecord* record);  // 0x008A48C2
+    virtual LinkedList<Trigger>* triggers() const;
+    virtual const void* unk_7c() const;
+
+    CharacterRecord* m_record;
+};
+
+// The BecomesFactionHeir event.
+class BecomesFactionHeirEvent : public TriggerEvent {
+public:
+    BecomesFactionHeirEvent(CharacterRecord* record);  // 0x008A4991
+    virtual LinkedList<Trigger>* triggers() const;
+    virtual const void* unk_7c() const;
+
+    CharacterRecord* m_record;
+};
+
+// The CeasedFactionHeir event.
+class CeasedFactionHeirEvent : public TriggerEvent {
+public:
+    CeasedFactionHeirEvent(CharacterRecord* record);  // 0x008A5009
+    virtual LinkedList<Trigger>* triggers() const;
+    virtual const void* unk_7c() const;
+
+    CharacterRecord* m_record;
+};
+
+// The Birth event, for the child.
+class BirthEvent : public TriggerEvent {
+public:
+    BirthEvent(CharacterRecord* record);  // 0x008A635B
+    virtual LinkedList<Trigger>* triggers() const;
+    virtual const void* unk_7c() const;
+
+    CharacterRecord* m_record;
+};
+
+// The CharacterBecomesAFather event.
+class CharacterBecomesAFatherEvent : public TriggerEvent {
+public:
+    CharacterBecomesAFatherEvent(CharacterRecord* record);  // 0x008A65C8
+    virtual LinkedList<Trigger>* triggers() const;
+    virtual const void* unk_7c() const;
+
+    CharacterRecord* m_record;
+};
+
+// The LesserGeneralOfferedForAdoption event.
+class LesserGeneralOfferedForAdoptionEvent : public TriggerEvent {
+public:
+    LesserGeneralOfferedForAdoptionEvent(CharacterRecord* record);  // 0x008A4655
     virtual LinkedList<Trigger>* triggers() const;
     virtual const void* unk_7c() const;
 

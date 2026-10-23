@@ -3,6 +3,7 @@
 #define UNIT_H
 
 #include "unsorted.h"
+#include "spying_info.h"
 
 // A unit's soldier (4 bytes of bitfields; not identified).
 struct UnitSoldier {
@@ -20,8 +21,17 @@ public:
     virtual void unk_08(Unit* unit);    // +0x08: the unit leaves (a guess)
 };
 
+// A unit's first 0xc bytes (not identified).
+class Unit0 {
+public:
+    virtual ~Unit0();
+
+    int m_4;                            // +0x4
+    bool m_8;                           // +0x8
+};
+
 // A unit of an army (code/unit.cpp).
-class Unit {
+class Unit : public Unit0, public UnitSpyingInfo {
 public:
     UnitUnk44* unk_44() const { return m_44; }
     Settlement* unk_48() const { return m_48; }
@@ -69,7 +79,7 @@ public:
     virtual void vf_2a0(); virtual void vf_2a4(); virtual void vf_2a8();
     virtual int kill_soldiers(int percent);  // +0x2ac: returns how many died
 
-    char m_pad4[0x40 - 0x4];
+    char m_pad30[0x40 - 0x30];
     int m_40;                           // +0x40
     UnitUnk44* m_44;                    // +0x44
     Settlement* m_48;                   // +0x48: the settlement it's queued to retrain in, or 0 (a guess)

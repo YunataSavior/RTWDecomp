@@ -3,14 +3,7 @@
 #define ARMY_H
 
 #include "unsorted.h"
-
-// Who an army belongs to (an army's +0xc; not identified).
-class ArmyOwner {
-public:
-    virtual void unk_00();
-    virtual void unk_04();
-    virtual Faction* faction();         // +0x08
-};
+#include "spying_info.h"
 
 // An army's first 0xc bytes (not identified).
 class Army0 {
@@ -20,16 +13,21 @@ public:
 };
 
 // An army (probably code\army.cpp).
-class Army : public Army0, public ArmyOwner {
+class Army : public Army0, public ArmySpyingInfo {
 public:
     Army(Character* character, int);    // 0x00719056
     int num_units() const { return m_units.size(); }
     Unit* unit_at(int index) { return m_units[index]; }
     int unk_134() const { return m_134; }
     bool unk_ac() const { return m_ac; }
+    Army* carried() const
+    {
+        Army* army = m_carried;         // the original's expansion copies it through a local
+        return army;
+    }
     Region* unk_007199A3();             // 0x007199A3: the region it's in (a guess)
     int unk_007216D2(int, int, TilePosition* position);  // 0x007216D2
-    void unk_0071EBF6(int faction, int);    // 0x0071EBF6
+    void raise_spying_level(int faction, int level);  // 0x0071EBF6: on it and everyone in it
     int unk_bc() const { return m_bc; }
 
     TilePosition* unk_00719BB2();       // 0x00719BB2
@@ -62,18 +60,20 @@ public:
     void unk_0071E3F1(Unit* unit);      // 0x0071E3F1: takes it out (a guess)
     bool unk_0072309A();                // 0x0072309A
 
-    char m_pad10[0x54 - 0x10];
+    char m_pad30[0x54 - 0x30];
     Faction* m_faction;                 // +0x54
     char m_pad58[0x5c - 0x58];
     Array<Unit*> m_units;               // +0x5c
     char m_pad68[0xac - 0x68];
-    bool m_ac;                          // +0xac
-    char m_padad[0xbc - 0xad];
+    bool m_ac;                          // +0xac: it's a fleet (a guess)
+    char m_padad[0xb4 - 0xad];
+    Army* m_carried;                    // +0xb4: the army a fleet carries, or 0 (a guess)
+    char m_padb8[0xbc - 0xb8];
     int m_bc;                           // +0xbc
     char m_padc0[0xf0 - 0xc0];
     Character* m_leader;                // +0xf0
     char m_padf4[0x10c - 0xf4];
-    PointerList<Character> m_characters;  // +0x10c: the characters with it besides its leader (a guess)
+    Array<Character*> m_characters;     // +0x10c: the characters with it besides its leader (a guess)
     char m_pad118[0x11c - 0x118];
     StrategyObject* m_11c;              // +0x11c: where it is (a settlement or fort it's in?)
     char m_pad120[0x129 - 0x120];

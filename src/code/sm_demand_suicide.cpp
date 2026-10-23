@@ -7,9 +7,9 @@ static char THIS_FILE[] = __FILE__;
 #include "character.h"
 #include "character_record.h"
 #include "senate_mission.h"
+#include "localisation/string_table_manager.h"
 
 extern "C" {
-void* fn_00D93A0C(int text);                // a senate text by its number (a guess)
 int fn_008F649F();                          // the index of the faction "romans_senate"
 }
 
@@ -36,14 +36,14 @@ public:
     DemandSuicideMission(const DemandSuicideBuilder& builder);
 
     virtual int run_out() { return 0; }
-    virtual void* title() { return fn_00D93A0C(0xdb); }
+    virtual void* title() { return (void*)strat_text(0xdb); }
     virtual void unk_08(int* a, int* b)
     {
         *a = 0;
         *b = 0;
     }
     virtual int unk_0c() { return 0; }
-    virtual void* text() { return fn_00D93A0C(0xdc); }
+    virtual void* text() { return (void*)strat_text(0xdc); }
     virtual void* target_name() { return faction()->display_name(); }
 
     virtual bool save(SaveStream& stream);
@@ -67,7 +67,7 @@ DemandSuicideBuilder::DemandSuicideBuilder(const SenateMissionState& state) : m_
 
 void* DemandSuicideBuilder::title()
 {
-    return fn_00D93A0C(0xdb);
+    return (void*)strat_text(0xdb);
 }
 
 // NONMATCHING - its initializer: the original reserves 0x28 bytes of stack it doesn't use
@@ -125,12 +125,12 @@ void DemandSuicideMission::accepted()
 {
     this->faction()->leader()->m_character->kill();
     this->faction()->m_898.set_14(fn_008F649F());
-    report_accepted(this->faction()->display_name(), fn_00D93A0C(0xde));
+    report_accepted(this->faction()->display_name(), (void*)strat_text(0xde));
     SenateMissionOffer::declined();
 }
 
 void DemandSuicideMission::declined()
 {
-    report_declined(this->faction()->display_name(), fn_00D93A0C(0xdd));
+    report_declined(this->faction()->display_name(), (void*)strat_text(0xdd));
     SenateMissionOffer::declined();
 }

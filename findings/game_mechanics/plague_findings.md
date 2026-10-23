@@ -16,7 +16,7 @@ Sources:
 
 | Where | Field | Meaning |
 |---|---|---|
-| Settlement | `+0xb0` (byte) | Has plague; the trigger condition `SettlementHasPlague` reads it (`0x89DA2B`, NYD). |
+| Settlement | `+0xb0` (byte) | Has plague; the trigger condition `SettlementHasPlague` reads it (`SettlementHasPlague::test`, `0x89DA2B`, in [`code/settlement_state_inspection.cpp`](../../src/code/settlement_state_inspection.cpp)). |
 | Settlement | `+0xac` | Plague ticks so far. |
 | Settlement | `+0xa78` | Population the plague killed in the last growth step, for the turn report. |
 | Character | `+0xae` (byte) | Has plague. |

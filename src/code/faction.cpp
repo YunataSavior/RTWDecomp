@@ -25,6 +25,7 @@ static char THIS_FILE[] = __FILE__;
 
 #include "character.h"
 #include "character_record.h"
+#include "senate_mission.h"
 
 // Runs at the end of the faction's turn: its characters age and act, its settlements are updated, and the public
 // order bonuses for a triumph and for capturing a wonder each wind down by 1.
@@ -50,7 +51,7 @@ void Faction::unk_004CAC88()
         for (i = 0; i < m_settlements.size(); i++)
             m_settlements.m_items[i]->unk_005B5D57();
         if (m_control == 1)
-            m_88c.unk_004D2ACF();
+            m_88c.make_offers();
         for (i = 0; i < m_characters.size(); i++)
             m_characters.m_items[i]->unk_00587731();
         if (m_triumph_order > 0)
@@ -132,6 +133,8 @@ void Faction::plague_tick()
 }
 
 extern "C" {
+void fn_008B3EE1(CharacterRecord* leader);  // after a new leader is chosen (a message, when some flag allows)
+void fn_008B41DA(CharacterRecord* heir);    // after a new heir is chosen (the same)
 void fn_008B1C3F(CharacterRecord* spy, Settlement* settlement, int outcome);  // the message (a guess)
 }
 
@@ -212,13 +215,8 @@ void Faction::catch_spy(Character* spy, float strength, Settlement* settlement)
         fn_008B1C3F(spy->record(), settlement, outcome);
 }
 
-class UnkC0A6AF {
-public:
-    void unk_00C0A6AF(Faction* faction);  // 0x00C0A6AF
-};
-
 extern "C" {
-extern UnkC0A6AF* lbl_029219DC;
+extern UnkC0A37E* lbl_029219DC;
 extern bool lbl_010D2324;            // set by 0x0044B9ED
 float fn_004100B6();                 // a global float (0x012CB9E0)
 void fn_0054558A(FactionAI* ai);
@@ -320,7 +318,7 @@ void Faction::destroy()
         shadow->m_listeners.unk_004D71CF(FactionGoneEvent());
         shadow->unk_004CE844(m_id, 10);
         unk_004CE839(shadowed_by());
-        unk_004CED7E();
+        choose_leader();
         fn_00CBB8EF(this);
     } else {
         if (m_description->has_shadowing()) {
@@ -368,7 +366,7 @@ void Faction::destroy()
             m_leader = 0;
         } else if (m_heir) {
             m_leader->remove_leader_traits();
-            m_heir->m_flag4 = false;
+            m_heir->m_heir = false;
             m_heir = 0;
         }
     }
@@ -400,6 +398,94 @@ void Faction::set_leader(CharacterRecord* record)
         m_leader->m_leader = true;
         fire_triggers(BecomesFactionLeaderEvent(m_leader));
     }
+}
+
+// Makes the record the heir, or leaves the faction without one; a record outside the family tree is refused.
+void Faction::set_heir(CharacterRecord* record)
+{
+    if (record && !record->m_flag16)
+        return;
+    if (m_heir)
+        fire_triggers(CeasedFactionHeirEvent(m_heir));
+    m_heir = record;
+    if (m_heir) {
+        m_heir->m_heir = true;
+        fire_triggers(BecomesFactionHeirEvent(m_heir));
+    }
+}
+
+void Faction::kill_leader()
+{
+    m_leader->m_character->kill();
+}
+
+inline int Character::influence()
+{
+    return m_record->influence();
+}
+
+// A new leader, after the old one is gone: the heir, who is replaced as heir, or else the family member on the map with
+// the most Influence whose character isn't dead (the first of them on a tie, but the last while the best has 0).
+void Faction::choose_leader()
+{
+    // NONMATCHING - the original gives the loop's size temporary a slot above the record's
+    set_leader(0);
+    if (m_heir) {
+        set_leader(m_heir);
+        choose_heir(0, false);
+    } else {
+        int best = 0;
+        CharacterRecord* chosen = 0;
+        for (unsigned int i = 0; i < m_characters.size(); i++) {
+            CharacterRecord* record = m_characters.m_items[i]->m_record;
+            if (record->m_flag16) {
+                if (best == 0 || m_characters.m_items[i]->influence() > best) {
+                    if (!m_characters.m_items[i]->unk_a0()) {
+                        chosen = m_characters.m_items[i]->m_record;
+                        best = m_characters.m_items[i]->influence();
+                    }
+                }
+            }
+        }
+        if (chosen)
+            set_leader(chosen);
+        if (m_leader)
+            choose_heir(0, false);
+    }
+    if (m_leader)
+        fn_008B3EE1(m_leader);
+}
+
+// A new heir: the record, or else the family member on the map other than the leader with the most Influence whose
+// character isn't dead (chosen as for the leader). With announce, the new heir is announced.
+void Faction::choose_heir(CharacterRecord* record, bool announce)
+{
+    // NONMATCHING - the original gives the loop's size temporary a slot above the record's
+    if (m_heir)
+        m_heir->m_heir = false;
+    set_heir(0);
+    if (record) {
+        set_heir(record);
+    } else {
+        int best = 0;
+        CharacterRecord* chosen = 0;
+        for (unsigned int i = 0; i < m_characters.size(); i++) {
+            CharacterRecord* candidate = m_characters.m_items[i]->m_record;
+            if (candidate->m_flag16 && !m_characters.m_items[i]->m_record->is_leader()) {
+                if (best == 0 || m_characters.m_items[i]->influence() > best) {
+                    if (!m_characters.m_items[i]->unk_a0()) {
+                        chosen = m_characters.m_items[i]->m_record;
+                        best = m_characters.m_items[i]->influence();
+                    }
+                }
+            }
+        }
+        if (chosen)
+            set_heir(chosen);
+    }
+    lbl_029219DC->unk_00C097F2(m_id);
+    if (m_heir && announce)
+        fn_008B41DA(m_heir);
 }
 
 unsigned int Faction::unk_004D0EC5(Array<Region*>& regions)
@@ -744,10 +830,240 @@ void Faction::give_first_cohort()
     }
 }
 
+// A suitor offered for an unmarried daughter's hand (0x10 bytes).
+class MarriageOffer : public SenateMissionAnswer {
+public:
+    MarriageOffer(CharacterRecord* suitor, CharacterRecord* bride)
+        : m_answered(false), m_accepted(false), m_suitor(suitor), m_bride(bride) {}
+    virtual ~MarriageOffer() {}
+    virtual void accepted();            // 0x004D4AF4
+    virtual void declined();            // 0x004D4B75
+    virtual void* accept_text() { return 0; }
+    virtual void* decline_text() { return 0; }
+
+    bool m_answered;                    // +0x4
+    bool m_accepted;                    // +0x5
+    CharacterRecord* m_suitor;          // +0x8
+    CharacterRecord* m_bride;           // +0xc
+};
+
+// A man offered to a family man for adoption (0x14 bytes).
+class AdoptionOffer : public SenateMissionAnswer {
+public:
+    AdoptionOffer(CharacterRecord* adoptee, CharacterRecord* father)
+        : m_answered(false), m_accepted(false), m_adoptee(adoptee), m_father(father), m_general(0) {}
+    virtual ~AdoptionOffer() {}
+    virtual void accepted();            // 0x004D49C0
+    virtual void declined();            // 0x004D4A77
+    virtual void* accept_text() { return 0; }
+    virtual void* decline_text() { return 0; }
+
+    bool m_answered;                    // +0x4
+    bool m_accepted;                    // +0x5
+    CharacterRecord* m_adoptee;         // +0x8
+    CharacterRecord* m_father;          // +0xc
+    Character* m_general;               // +0x10: a lesser general adopted in the adoptee's place, when he isn't on the map
+};
+
+extern "C" {
+void fn_00CB21E9(CharacterRecord* bride, CharacterRecord* suitor, MarriageOffer* offer);      // the offer's message
+void fn_00CB23B0(CharacterRecord* father, CharacterRecord* adoptee, AdoptionOffer* offer);    // the offer's message
+void fn_00CB2478(CharacterRecord* record);      // the offered man has died (a guess)
+void fn_00CB15FA(Character* character);         // the wedding's message (a guess)
+}
+
+// Once in 4 turns, when no marriage offer waits, a suitor is offered for an unmarried daughter; then, when neither
+// offer waits, a man is offered for adoption when the family is small for its land: always under 0.6
+// (family_per_region), and on a percent() under 20 under 0.8.
+void FactionUnk88C::make_offers()
+{
+    int roll = lbl_018CD818->m_random.up_to(3);
+    if (roll == 0 && m_marriage == 0) {
+        CharacterRecord* bride = this->bride();
+        if (bride) {
+            CharacterRecord* suitor = bride->create_suitor();
+#line 8167
+            m_marriage = NEW MarriageOffer(suitor, bride);
+            fn_00CB21E9(bride, suitor, m_marriage);
+        }
+    }
+    if (m_adoption == 0 && m_marriage == 0) {
+        bool offer = false;
+        float family = family_per_region();
+        if (family < 0.6f)
+            offer = true;
+        else if (family < 0.8f && lbl_018CD818->m_random.percent() < 20)
+            offer = true;
+        else
+            offer = false;
+        if (offer == true) {
+            CharacterRecord* father = adopting_father(true, false, 0);
+            if (father) {
+                CharacterRecord* adoptee = father->create_adoptee();
+#line 8200
+                m_adoption = NEW AdoptionOffer(adoptee, father);
+                fn_00CB23B0(father, adoptee, m_adoption);
+            }
+        }
+    }
+}
+
+// The faction's family for the size of its land: the living family-tree members who are men of age on the map as
+// named characters, boys of 14 or more, or unmarried women of 12 or more, over 0.75 per region held + 1.
+float FactionUnk88C::family_per_region()
+{
+    float divisor = 0.75f * m_faction->m_regions.size() + 1.0f;
+    int count = 0;
+    for (unsigned int i = 0; i < m_faction->m_records.size(); i++) {
+        CharacterRecord* kin = m_faction->m_records[i];
+        if (kin->m_alive && kin->m_flag16) {
+            if (kin->m_male) {
+                if (!kin->m_flag2 && kin->m_character != 0 && kin->m_character->type() == 5)
+                    count++;
+                else if (kin->m_flag2 && kin->m_age >= 14)
+                    count++;
+            } else if (kin->m_age >= 12 && kin->m_spouse == 0) {
+                count++;
+            }
+        }
+    }
+    return (float)count / divisor;
+}
+
+// The children the family's men could still have: 4 less the children of each living family-tree man of 16 or more on
+// the map as a named character with fewer than 4.
+unsigned int FactionUnk88C::child_slots()
+{
+    unsigned int slots = 0;
+    for (unsigned int i = 0; i < m_faction->m_characters.size(); i++) {
+        if (m_faction->m_characters[i]->type() == 5) {
+            CharacterRecord* record = m_faction->m_characters[i]->record();
+            if (record->m_alive && record->m_male && record->m_flag16 && record->m_age >= 16
+                && record->m_num_children < 4)
+                slots += 4 - record->m_num_children;
+        }
+    }
+    return slots;
+}
+
+// The adoption offer is done with.
+void FactionUnk88C::end_adoption_offer()
+{
+    if (m_adoption) {
+#line 8315
+        CA_DELETE(m_adoption);
+        m_adoption = 0;
+    }
+}
+
+// The marriage offer is done with.
+void FactionUnk88C::end_marriage_offer()
+{
+    if (m_marriage) {
+#line 8324
+        CA_DELETE(m_marriage);
+        m_marriage = 0;
+    }
+}
+
+// The first of the faction's living unmarried women of 12 to 50 who is in one of its settlements, when that
+// settlement isn't besieged and has room (Settlement::unk_005BA392).
+CharacterRecord* FactionUnk88C::bride()
+{
+    for (unsigned int i = 0; i < m_faction->m_records.size(); i++) {
+        CharacterRecord* record = m_faction->m_records[i];
+        if (record->m_alive && !record->m_male && record->m_spouse == 0 && record->m_age >= 12 && record->m_age <= 50) {
+            Settlement* settlement = m_faction->unk_004C44F0(record);
+            if (settlement && !settlement->besieged() && settlement->unk_005BA392())
+                return record;
+        }
+    }
+    return 0;
+}
+
+// The first living family-tree man of 16 or more on the map as a named character, other than OTHER, with fewer than 4
+// children; with OLDER, only one younger than OTHER, and with IN_SETTLEMENT, only one in a settlement that isn't
+// besieged and has room.
+CharacterRecord* FactionUnk88C::adopting_father(bool in_settlement, bool older, CharacterRecord* other)
+{
+    for (unsigned int i = 0; i < m_faction->m_characters.size(); i++) {
+        if (m_faction->m_characters[i]->type() == 5) {
+            CharacterRecord* record = m_faction->m_characters[i]->m_record;
+            if ((!other || other != record) && record->m_alive && record->m_male && record->m_flag16
+                && record->m_age >= 16 && (!older || (other && other->m_age - record->m_age > 0))
+                && record->m_num_children < 4) {
+                Settlement* settlement = m_faction->unk_004C44F0(record);
+                if (!in_settlement || (settlement && !settlement->besieged() && settlement->unk_005BA392()))
+                    return record;
+            }
+        }
+    }
+    return 0;
+}
+
+// The lesser general is adopted in the adoptee's place; LesserGeneralOfferedForAdoption fires for an AI faction.
+void FactionUnk88C::offer_lesser_general(Character* general, CharacterRecord* adoptee)
+{
+    general->unk_0057F7A5(adoptee);
+    if (m_faction->control() == 0)
+        fire_triggers(LesserGeneralOfferedForAdoptionEvent(general->record()));
+}
+
+// Accepted: the adoptee (living, or with death cause 9) is adopted, or the lesser general in his place when he isn't
+// on the map; one who has died gets fn_00CB2478's message.
+void AdoptionOffer::accepted()
+{
+    m_accepted = true;
+    m_answered = true;
+    if (m_adoptee->m_alive || m_adoptee->m_1c0 == 9) {
+        if (m_adoptee->m_character == 0 && m_general) {
+            m_father->m_faction->m_88c.offer_lesser_general(m_general, m_adoptee);
+            m_adoptee->destroy();
+        } else {
+            m_adoptee->adopt(m_father);
+        }
+    } else {
+        fn_00CB2478(m_adoptee);
+    }
+    m_father->m_faction->m_88c.end_adoption_offer();
+}
+
+// Declined: the adoptee is destroyed when he isn't on the map.
+void AdoptionOffer::declined()
+{
+    m_answered = true;
+    if (m_adoptee && m_adoptee->m_character == 0)
+        m_adoptee->destroy();
+    m_father->m_faction->m_88c.end_adoption_offer();
+}
+
+// Accepted: the suitor marries the bride, when he's still alive.
+void MarriageOffer::accepted()
+{
+    m_accepted = true;
+    m_answered = true;
+    if (m_suitor->m_alive) {
+        m_suitor->marry(m_bride);
+        if (m_suitor->m_character)
+            fn_00CB15FA(m_suitor->m_character);
+    } else {
+        fn_00CB2478(m_suitor);
+    }
+    m_bride->m_faction->m_88c.end_marriage_offer();
+}
+
+// Declined: the suitor is destroyed.
+void MarriageOffer::declined()
+{
+    m_answered = true;
+    m_suitor->destroy();
+    m_bride->m_faction->m_88c.end_marriage_offer();
+}
+
 // The Marian reforms come: the bodyguards of its named characters are upgraded, when it owns a general_unit_upgrade unit.
 void Faction::marian_reforms()
 {
-    // NONMATCHING - the original keeps the character's CharacterKind pointer in a temporary for the virtual call
+    // NONMATCHING - the original keeps the character's CharacterSpyingInfo pointer in a temporary for the virtual call
     for (unsigned int i = 0; i < m_characters.size(); i++) {
         if (m_characters.m_items[i]->type() == 5 && lbl_01589640.has_general_upgrade(m_id))
             m_characters.m_items[i]->marian_reforms();

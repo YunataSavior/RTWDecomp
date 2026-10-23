@@ -15,6 +15,7 @@ static char THIS_FILE[] = __FILE__;
 #include "map_constants.h"
 #include "romans_cmd_line.h"
 #include "romans_utils.h"
+#include "localisation/string_table_manager.h"
 
 #pragma intrinsic(strcpy)
 
@@ -358,7 +359,6 @@ PackFile* fn_00F3BB50(const unsigned short* path, int);  // opens a pack (ca_lib
 void fn_00F3C360(PackFile* pack);              // closes it
 void fn_00D92647(int);                          // (code\localisation\language.cpp)
 void fn_00D9543F();                             // (code\localisation\string_table_manager.cpp)
-const UniString* fn_00D939EA(int);              // a text from the game's text table
 void fn_00D85238();                             // (code\menu\menu_base.cpp)
 void fn_00D852CA();
 void fn_00D7FA5B(const UniString&);
@@ -560,7 +560,7 @@ extern "C" int fn_00403412(HINSTANCE instance, HINSTANCE prev_instance)
     bool failed = false;
     HANDLE mutex = CreateMutexA(0, TRUE, "Rome: Total War instance verification mutex");
     if (!lbl_012CB0C4 && GetLastError() == ERROR_ALREADY_EXISTS) {
-        fn_00F40080(1, "%S", fn_00D939EA(0x172)->chars());
+        fn_00F40080(1, "%S", shared_text(0x172)->chars());
         return 0;
     }
     if (lbl_012CA75C) {
@@ -587,7 +587,7 @@ extern "C" int fn_00403412(HINSTANCE instance, HINSTANCE prev_instance)
     if (fn_0040520C()) {
         lbl_012CA5BC = true;
     } else {
-        fn_00F40080(1, "%S", fn_00D939EA(0x171)->chars());
+        fn_00F40080(1, "%S", shared_text(0x171)->chars());
         goto end;
     }
     if (false)
@@ -620,7 +620,7 @@ extern "C" int fn_00403412(HINSTANCE instance, HINSTANCE prev_instance)
     if (fn_00F440A0(fn_00410225, fn_004102A7, 1)) {
         lbl_012CA5BE = true;
     } else {
-        fn_00F40080(1, "%S", fn_00D939EA(0x171)->chars());
+        fn_00F40080(1, "%S", shared_text(0x171)->chars());
         goto end;
     }
 
@@ -948,12 +948,12 @@ extern "C" int fn_00403412(HINSTANCE instance, HINSTANCE prev_instance)
             fn_0040F750();
         }
     } else {
-        fn_00F40080(1, "%S", fn_00D939EA(0x171)->chars());
+        fn_00F40080(1, "%S", shared_text(0x171)->chars());
     }
 
 end:
     if (failed)
-        fn_00F40080(1, "%S", fn_00D939EA(0x173)->chars());
+        fn_00F40080(1, "%S", shared_text(0x173)->chars());
     ReleaseMutex(mutex);
     fn_004050C9();
     for (unsigned int i = 0; i < lbl_012CA2D0.size(); i++)

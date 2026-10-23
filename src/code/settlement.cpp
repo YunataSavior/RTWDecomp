@@ -592,7 +592,7 @@ Army* Settlement::revolt(int type, int unk, int reason, int faction)
             }
             if (father)
                 leader->m_record->adopt(father);
-            fire_triggers(UnkMessage8A4586(leader->m_record));
+            fire_triggers(OfferedForAdoptionEvent(leader->m_record));
             army->unk_0071DADD(leader, 0, 0, 0, 0);
         }
         new_owner->unk_180()->unk_00492498(leader, false);

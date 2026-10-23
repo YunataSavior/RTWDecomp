@@ -37,19 +37,29 @@ public:
 class Character;
 class CharacterRecord;
 class TriggerEvent;
+class MarriageOffer;
+class AdoptionOffer;
 
-// Something of a human faction's (not identified).
+// The family's marriage and adoption offers (a human faction's).
 class FactionUnk88C {
 public:
-    void unk_004D2ACF();                // 0x004D2ACF
-    float family_per_region();          // 0x004D2CCA: the family (see the .cpp's births) over 0.75 per region + 1
+    void make_offers();                 // 0x004D2ACF: may offer a suitor for a daughter, then a son for adoption
+    float family_per_region();          // 0x004D2CCA: the family over 0.75 per region held + 1
+    void end_adoption_offer();          // 0x004D30B0
+    void end_marriage_offer();          // 0x004D30E8
     unsigned int child_slots();         // 0x004D3120: 4 less the children of each family man of 16 or more on the
                                         //   map with fewer than 4
     unsigned int unk_004D3219();        // 0x004D3219: room for adoptions: 4 less the children of each man (alive or
                                         //   not) of 16 or more with m_flag16, or 1 when no record has m_flag17
 
+    CharacterRecord* bride();           // 0x004D34F3: the first unmarried daughter of 12 to 50 in a settlement
+                                        //   free to take her
+    CharacterRecord* adopting_father(bool in_settlement, bool older, CharacterRecord* other);  // 0x004D35DF
+    void offer_lesser_general(Character* general, CharacterRecord* adoptee);  // 0x004D38B8
+
     Faction* m_faction;
-    char m_pad4[8];
+    MarriageOffer* m_marriage;          // +0x4: the marriage offer waiting for an answer
+    AdoptionOffer* m_adoption;          // +0x8: the adoption offer waiting for an answer
 };
 
 // Something of a faction's (not identified).
@@ -162,9 +172,10 @@ public:
     void unk_004CE943(int faction, int);                // 0x004CE943: hands its ... to the faction (a guess)
     void unk_004CEA1C(int faction, int, int);           // 0x004CEA1C: the same (a guess)
     void unk_004CEAC8(int faction, int);                // 0x004CEAC8: the same (a guess)
-    void unk_004CED7E();                                // 0x004CED7E
-    void unk_004CECB3(int);                             // 0x004CECB3
-    void unk_004CEEEA(int, int);                        // 0x004CEEEA
+    void set_heir(CharacterRecord* record);             // 0x004CECB3
+    void kill_leader();                                 // 0x004CED61: the leader's character on the map dies
+    void choose_leader();                               // 0x004CED7E: the heir, or the family's most influential
+    void choose_heir(CharacterRecord* record, bool announce);  // 0x004CEEEA: the record, or the most influential
     void set_capital(Settlement* capital);              // 0x004CF09A: moves the settlements' m_is_capital too
     void unk_004D0905(Array<Region*>* regions);         // 0x004D0905: its settlements' regions (a guess)
     unsigned int unk_004D6EC0(LinkedList<Character*>* characters, int type);  // 0x004D6EC0: adds its characters of a type; how many
@@ -197,7 +208,7 @@ public:
     int m_culture;                      // +0xa4
     Settlement* m_capital;              // +0xa8
     CharacterRecord* m_leader;          // +0xac
-    CharacterRecord* m_heir;            // +0xb0 (a guess: its record's m_flag4 is cleared with it)
+    CharacterRecord* m_heir;            // +0xb0
     FactionDescription* m_description;  // +0xb4
     int m_control;                      // +0xb8 (1: human)
     FactionAI* m_ai;                    // +0xbc

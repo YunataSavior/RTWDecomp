@@ -53,6 +53,14 @@ inline int clamp_int(const int& value, const int& low, const int& high)
     return min_int(max_int(value, low), high);
 }
 
+// FACTION's spying level on it, and on its bodyguard, rises to LEVEL.
+void Character::raise_spying_level(int faction, int level)
+{
+    raise(faction, level);
+    if (bodyguard())
+        bodyguard()->raise(faction, level);
+}
+
 // A named character's bodyguard is upgraded when its faction owns a general_unit_upgrade unit.
 void Character::marian_reforms()
 {
@@ -202,13 +210,13 @@ void Character::unk_0057DD3B()
             m_7c->m_faction->m_898.set_14(21);
         fn_008B3858(record());
         if (record() == m_7c->m_faction->leader()) {
-            unk_005821A4();
-            m_7c->m_faction->unk_004CED7E();
+            stand_down();
+            m_7c->m_faction->choose_leader();
         }
         if (m_record == m_7c->m_faction->heir()) {
-            m_record->m_flag4 = false;
-            m_7c->m_faction->unk_004CECB3(0);
-            m_7c->m_faction->unk_004CEEEA(0, 1);
+            m_record->m_heir = false;
+            m_7c->m_faction->set_heir(0);
+            m_7c->m_faction->choose_heir(0, true);
         }
     }
     if (m_80->m_type == 5 && m_record->m_flag16 && !m_7c->m_faction->is_unk_a7()) {
@@ -264,4 +272,11 @@ void Character::unk_0057DD3B()
     m_b8 = -1;
     if (famine_threat() >= 2)
         fire_triggers(CharacterDamagedByDisasterEvent(m_record, DISASTER_FAMINE));
+}
+
+// It's no longer the faction leader.
+void Character::stand_down()
+{
+    m_record->m_leader = false;
+    m_record->m_flag5 = true;
 }

@@ -8,6 +8,7 @@
 #include "fort.h"
 #include "settlement.h"
 #include "unit.h"
+#include "spying_info.h"
 
 class CharacterRecord;
 
@@ -18,17 +19,6 @@ public:
     virtual int unk_78();
 
     char m_pad24[0xc];
-};
-
-// What kind of character it is (not identified: Character's base at +0x30).
-class CharacterKind {
-public:
-    virtual void unk_00();
-    virtual void unk_04();
-    virtual Faction* faction();                 // +0x08
-    virtual int type();                         // +0x0c: 0 spy, 1 assassin, 2 diplomat, 3 admiral, 4 general,
-                                                //   5 named character (a script command's names, 0x00B0EFF1)
-    virtual Army* kind_army();                  // +0x10: the army (a guess)
 };
 
 // What a character's +0x154 is (not identified).
@@ -52,19 +42,21 @@ struct CharacterUnk7C {
 
 // What a character's +0x80 points to (not identified).
 struct CharacterUnk80 {
-    int m_type;                                 // as CharacterKind::type()
+    int m_type;                                 // as CharacterSpyingInfo::type()
 };
 
-class Character : public Character24, public CharacterKind {
+class Character : public Character24, public CharacterSpyingInfo {
 public:
     bool unk_a0() const { return m_a0; }
     CharacterRecord* record() const { return m_record; }
+    int influence();                            // the record's Influence (inline, in faction.cpp)
     void start_turn() { reset_movement(); }
     int unk_b4() const { return m_b4; }
     float unk_c4() const { return m_c4; }
     bool has_plague() const { return m_plague; }
     Army* led_army() const { return m_army; }
     Settlement* current_settlement() const { return m_settlement; }
+    Unit* bodyguard() const { return m_bodyguard; }
     bool in_field() const { return current_settlement() == 0; }
 
     void catch_plague();                        // 0x0058AD99
@@ -83,7 +75,7 @@ public:
     StrategyObject* unk_00586278(Array<int>* tiles);  // 0x00586278
     bool unk_00585CF4(Array<int>* tiles, int);  // 0x00585CF4
     Army* army();                               // 0x00580C40: the army it leads, or 0
-    void unk_00580620(int faction, int);        // 0x00580620
+    void raise_spying_level(int faction, int level);  // 0x00580620: on it and its bodyguard
     bool unk_0058B8D9(Faction* faction);  // 0x0058B8D9
     void unk_00580DC3(Army* army);              // 0x00580DC3
     bool unk_005814BA();                        // 0x005814BA
@@ -94,7 +86,8 @@ public:
     float unk_005815D7();                       // 0x005815D7
     void unk_00581619(float);                   // 0x00581619
     void unk_0057DD3B();                        // 0x0057DD3B: at the end of its faction's turn: old age, births, marriage
-    void unk_005821A4();                        // 0x005821A4
+    void unk_0057F7A5(CharacterRecord* adoptee); // 0x0057F7A5: the lesser general is adopted in ADOPTEE's place (a guess)
+    void stand_down();                          // 0x005821A4: it's no longer the faction leader
     Region* unk_00586C48();                     // 0x00586C48: the region it's in
     int attribute(int id);                      // its record's (inline, in the .cpp)
     int famine_threat();                        // its region's (inline, in the .cpp)
@@ -117,7 +110,7 @@ public:
     void unk_00587657();                        // 0x00587657
     void unk_004B7AE0();                        // 0x004B7AE0
 
-    char m_pad34[0x58 - 0x34];
+    char m_pad54[0x58 - 0x54];
     CharacterUnk58 m_58;                        // +0x58
     char m_pad59[0x78 - 0x59];
     CharacterRecord* m_record;                  // +0x78
@@ -137,7 +130,9 @@ public:
     Settlement* m_settlement;                   // +0xd4: the settlement it's in, or 0
     char m_padd8[0xe4 - 0xd8];
     Army* m_army;                               // +0xe4: the army it leads, or 0
-    char m_pade8[0x154 - 0xe8];
+    char m_pade8[0xec - 0xe8];
+    Unit* m_bodyguard;                          // +0xec: its bodyguard unit, or 0 (a guess)
+    char m_padf0[0x154 - 0xf0];
     CharacterUnk154 m_154;                      // +0x154
 };
 

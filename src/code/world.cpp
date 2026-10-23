@@ -18,6 +18,7 @@ static char THIS_FILE[] = __FILE__;
 #include "character.h"
 #include "ai/ai_cheat_manager.h"
 #include "ai/ai_senate_faction.h"
+#include "localisation/string_table_manager.h"
 
 // How much bigger or smaller units are than at the normal unit size, which the garrison's public order weighs the
 // population by.
@@ -225,8 +226,7 @@ void Campaign::unk_00453B9B()
 extern "C" {
 extern Array<int> lbl_012D6FA0;             // (not identified)
 void fn_0097A192();                         // clears 0x015CD164
-void* fn_00D93A0C(int text);                // a text of this number (a guess)
-void fn_00CB691A(void* title, void* text, const char* image);  // shows a message (a guess)
+void fn_00CB691A(const UniString* title, const UniString* text, const char* image);  // shows a message (a guess)
 }
 
 // The end of a round, after every faction's turn. When a major faction holds a huge city in Italy (see
@@ -247,7 +247,7 @@ void Campaign::unk_004537F2()
     for (i = 0; i < m_num_factions; i++) {
         if (m_factions[i]->unk_004CAEDB() && !m_marian_reforms && !m_marian_reforms_disabled) {
             reformed = true;
-            fn_00CB691A(fn_00D93A0C(0x2fb), fn_00D93A0C(0x31e), "marian_reform");
+            fn_00CB691A(strat_text(0x2fb), strat_text(0x31e), "marian_reform");
         }
     }
     if (reformed) {

@@ -143,8 +143,8 @@ public:
     void unk_0059146C(int, unsigned int);                                 // 0x0059146C
     void update_age();                                                    // 0x00591522
     bool unk_005919E3();                                                  // 0x005919E3
-    CharacterRecord* create_son();                                        // 0x00591B00
-    CharacterRecord* create_unk_00591C43();                               // 0x00591C43
+    CharacterRecord* create_suitor();                                     // 0x00591B00
+    CharacterRecord* create_adoptee();                                    // 0x00591C43
     void marry(CharacterRecord* wife);                                    // 0x00591D2D
     void adopt(CharacterRecord* father);                                  // 0x00592326
     void destroy();                                                       // 0x005928F1
@@ -167,7 +167,7 @@ public:
     int attribute_at(int id) { int index = id; return attribute_value(index); }
     CharacterRecord*& child(int index) { return m_children[index]; }
     bool is_leader() const { return m_leader; }
-    bool is_heir() const { return m_flag4; }    // (a guess: Faction::m_heir's is cleared with it)
+    bool is_heir() const { return m_heir; }
 
     static int s_next_id;
 
@@ -205,8 +205,8 @@ public:
     unsigned int m_male : 1;
     unsigned int m_flag2 : 1;
     unsigned int m_leader : 1;                  // the faction leader
-    unsigned int m_flag4 : 1;
-    unsigned int m_flag5 : 1;
+    unsigned int m_heir : 1;                    // the faction heir
+    unsigned int m_flag5 : 1;                   // set when the leader stands down (a guess: was the leader)
     unsigned int m_age : 7;
     unsigned int m_flags13 : 3;
     unsigned int m_flag16 : 1;

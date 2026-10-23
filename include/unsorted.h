@@ -346,6 +346,7 @@ class UnkC0A37E {
 public:
     void unk_00C097F2(int faction);     // 0x00C097F2
     void unk_00C0A37E(Character* character);  // 0x00C0A37E
+    void unk_00C0A6AF(Faction* faction);  // 0x00C0A6AF
 };
 
 // (Not identified: a parameter of CharacterRecord::command with a large vtable.)
@@ -711,6 +712,25 @@ inline int float_to_int_chop(float value)
         pop eax
     }
     return result;
+}
+
+// float_to_int_chop through one more inline (ArmySpyingInfo::estimate's).
+inline int chop_to_int(float value)
+{
+    return float_to_int_chop(value);
+}
+
+// The larger and the smaller of two values (a header's templates, as the spying code expands them).
+template <class T>
+inline T max_of(const T& a, const T& b)
+{
+    return a < b ? b : a;
+}
+
+template <class T>
+inline T min_of(const T& a, const T& b)
+{
+    return a < b ? a : b;
 }
 
 // How many units a revolt raises, at least and at most, by settlement level.

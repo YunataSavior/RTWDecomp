@@ -28,7 +28,7 @@ Once a round, the round-end pass runs `Faction::unk_004CAEDB` for every faction.
 3. It isn't Rome (`campaign+0x258`).
 4. Its region has the `italy` hidden resource (`descr_regions.txt`).
 
-When a faction's check returns true and neither flag is set, the round-end pass shows the `marian_reform` message (texts `0x2FB` and `0x31E` through `0xD93A0C`, NYD which texts). `fn_00CB691A` ([`code/ui/event_messages.cpp`](../../src/code/ui/event_messages.cpp)) sends it, as message type `0x7b`, to every major faction whose state (`faction+0x178`) is 0, so a faction that is dead doesn't get it.
+When a faction's check returns true and neither flag is set, the round-end pass shows the `marian_reform` message (the title and text are entries `0x2FB` and `0x31E` of `strat.txt`, through `strat_text`, `0xD93A0C`, in [`code/localisation/string_table_manager.cpp`](../../src/code/localisation/string_table_manager.cpp); their wording is in the game's text files, not the exe). `fn_00CB691A` ([`code/ui/event_messages.cpp`](../../src/code/ui/event_messages.cpp)) sends it, as message type `0x7b`, to every major faction whose state (`faction+0x178`) is 0, so a faction that is dead doesn't get it.
 
 - The message is shown once for each faction that passes in that round, so two factions passing in one round show it twice.
 

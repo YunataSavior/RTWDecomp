@@ -4,6 +4,7 @@
 
 class Random {
 public:
+    Random() : m_seed(0x1209) {}        // until it is seeded, by calling the other constructor on it
     Random(int seed);                   // 0x00F3AA90
     int next();                         // 0x00F3AAA0: 0 to 0x7fff, as rand()
     int percent();                      // 0x00F3AAD0: 0 to 100, as up_to(100)

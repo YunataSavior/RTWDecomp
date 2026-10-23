@@ -126,7 +126,7 @@ For each AI family, `SenateFamily::check_gift` (`0x529593`) runs every turn:
 - When the senate standing rises into the 90s, 60s or 30s, or falls into the 40s or 10s.
 - The same five for popular standing.
 - Each comment waits more than 10 turns before it can repeat.
-- The messages are the texts `0x4D0`–`0x4D9` through `0xD93A0C` (NYD which texts), sent to the player as message type `0x87` by `fn_00CBB282` ([`code/ui/event_messages.cpp`](../../src/code/ui/event_messages.cpp)).
+- The messages are entries `0x4D0`–`0x4D9` of `strat.txt` (`strat_text`, `0xD93A0C`, in [`code/localisation/string_table_manager.cpp`](../../src/code/localisation/string_table_manager.cpp); their wording is in the game's text files, not the exe), sent to the player as message type `0x87` by `fn_00CBB282` ([`code/ui/event_messages.cpp`](../../src/code/ui/event_messages.cpp)).
   - It passes the senate-or-popular flag once and the rising-or-falling flag twice, as the message's three values.
 
 ## descr_senate.txt
@@ -209,7 +209,9 @@ The office parser (`load_office`, `0x527A49`) reads each office as its name line
    - Its date has then passed, so the election never fills it again.
 9. **Taking office** fires the `Become<Office>` trigger event (`BecomeQuaestor` … `BecomePontifexMaximus`).
    - His term ends `Duration` turns from today.
-   - For each of the other families and the senate, a per-faction level on him (or on each man in his army) is raised to 3, its top value (`0x580620` or `0x71EBF6`, through `0x4A332A`; NYD what the level is, perhaps what that faction may see of him).
+   - Each of the other families and the senate gets the top spying level, 3, on him and his bodyguard, or on his whole army when he leads one (`Character::raise_spying_level` and `Army::raise_spying_level`, in [`character.cpp`](../../src/code/character.cpp) and [`army.cpp`](../../src/code/army.cpp)).
+     - A faction's spying level on a map object runs from −1 (nothing) to 3, and decides what of it that faction may see ([`spying_info.cpp`](../../src/code/spying_info.cpp)).
+     - So once he takes office, every Roman faction can see everything about him that a level of 3 shows.
 10. **The player is told** of the offices the human's family's men got (`0xCBB01C`), from the second turn on.
 
 Restrictions and other rules:
